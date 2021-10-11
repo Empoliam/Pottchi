@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <random>
+#include "RandomNumberGenerators.h"
 
 using namespace std;
 
@@ -55,6 +57,41 @@ vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
 
 	return neighbours;
 
+}
+
+int SquareCellGrid::divideCell(int x, int y) {
+
+	vector<Cell*> neighbours = getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+
+	if (neighbours.size() != 0) {
+
+		internalGrid[x][y].increaseGeneration();
+
+		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
+
+		*neighbours[r] = internalGrid[x][y];
+
+	}
+
+	return 0;
+
+}
+
+int SquareCellGrid::printGrid()
+{
+
+	for (int y = 0; y < boundaryHeight; y++) {
+		for (int x = 0; x < boundaryWidth; x++) {
+
+			Cell c = internalGrid[x][y];
+			cout << c.toString();
+
+		}
+
+		cout << "\n";
+	}
+
+	return 0;
 }
 
 
