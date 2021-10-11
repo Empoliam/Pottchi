@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <curses.h>
+
 #include "RandomNumberGenerators.h"
 
 using namespace std;
@@ -79,17 +81,22 @@ int SquareCellGrid::divideCell(int x, int y) {
 
 int SquareCellGrid::printGrid()
 {
-
+	
 	for (int y = 0; y < boundaryHeight; y++) {
 		for (int x = 0; x < boundaryWidth; x++) {
 
 			Cell c = internalGrid[x][y];
-			cout << c.toString();
-
+			
+			move(y, x);
+			attron(COLOR_PAIR(c.getGeneration()));
+			addch(c.toChar());
+			attroff(COLOR_PAIR(c.getGeneration()));
+			
 		}
-
-		cout << "\n";
+		
 	}
+
+	refresh();
 
 	return 0;
 }

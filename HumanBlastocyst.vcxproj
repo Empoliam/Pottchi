@@ -73,7 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>E:\Documents\Code\C++\PDCurses-3.9;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Documents\Code\C++\PDCurses-3.9\build;$(LibraryPath)</LibraryPath>
+    <LibraryPath>E:\Documents\Code\C++\PDCurses-3.9\wincon;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

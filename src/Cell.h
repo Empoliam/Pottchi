@@ -26,6 +26,8 @@ public:
 
 	std::string toString() const;
 
+	char toChar() const;
+
 private:
 
 	CELL_TYPE type;

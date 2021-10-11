@@ -51,3 +51,22 @@ string Cell::toString() const {
 
 }
 
+char Cell::toChar() const {
+
+	switch (type)
+	{
+	case CELL_TYPE::EMPTYSPACE:
+		return '.';
+		break;
+	case CELL_TYPE::GENERIC:
+		return 'C';
+		break;
+	case CELL_TYPE::BOUNDARY:
+		return '#';
+		break;
+	default:
+		return '?';
+		break;
+	}
+
+}
