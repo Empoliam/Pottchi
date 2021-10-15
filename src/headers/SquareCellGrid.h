@@ -17,7 +17,12 @@ public:
 	std::vector<Cell*> getNeighbours(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
 
+
+	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
+	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);
+
 	int divideCell(int x, int y);
+	int moveCell(int x, int y);
 
 	int printGrid();
 

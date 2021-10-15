@@ -24,7 +24,7 @@
     <ClCompile Include="src\SquareCellGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CellGrid.h">
+    <ClCompile Include="src\headers\CellGrid.h">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="src\RandomNumberGenerators.cpp">
@@ -32,19 +32,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Cell.h">
+    <ClInclude Include="src\headers\Cell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CellTypes.h">
+    <ClInclude Include="src\headers\CellTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\SquareCellGrid.h">
+    <ClInclude Include="src\headers\SquareCellGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vector2D.h">
+    <ClInclude Include="src\headers\Vector2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\RandomNumberGenerators.h">
+    <ClInclude Include="src\headers\RandomNumberGenerators.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

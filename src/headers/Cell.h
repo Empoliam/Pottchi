@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include "CellTypes.h"
-#include "Vector2D.h"
+#include "../headers/CellTypes.h"
+#include "../headers/Vector2D.h"
 
 class Cell {
 

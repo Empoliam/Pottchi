@@ -5,16 +5,17 @@
 
 #include <curses.h>
 
-#include "Cell.h"
-#include "SquareCellGrid.h"
-#include "Vector2D.h"
-#include "RandomNumberGenerators.h"
+#include "./headers/Cell.h"
+#include "./headers/SquareCellGrid.h"
+#include "./headers/Vector2D.h"
+#include "./headers/RandomNumberGenerators.h"
 
-const int width = 50;
-const int height = 50;
+const int width = 30;
+const int height = 30;
 
 const float iMax = 1000;
 const float pDiv = 0.01f;
+const float pMove = 0.1f;
 
 using namespace std;
 
@@ -52,6 +53,12 @@ int main() {
 				Cell c = grid.getCell(x, y);
 				if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
 					
+					if (RandomNumberGenerators::rUnifProb() <= pMove) {
+
+						grid.moveCell(x,y);
+
+					}
+
 					if (RandomNumberGenerators::rUnifProb() <= pDiv) {
 
 						grid.divideCell(x, y);

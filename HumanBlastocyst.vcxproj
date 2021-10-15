@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Documents\Code\C++\PDCurses-3.9;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Documents\Code\C++\PDCurses-3.9\wincon;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9\wincon;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -143,17 +143,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Cell.cpp" />
-    <ClCompile Include="src\CellGrid.h" />
+    <ClCompile Include="src\headers\CellGrid.h" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\RandomNumberGenerators.cpp" />
     <ClCompile Include="src\SquareCellGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Cell.h" />
-    <ClInclude Include="src\CellTypes.h" />
-    <ClInclude Include="src\RandomNumberGenerators.h" />
-    <ClInclude Include="src\SquareCellGrid.h" />
-    <ClInclude Include="src\Vector2D.h" />
+    <ClInclude Include="src\headers\Cell.h" />
+    <ClInclude Include="src\headers\CellTypes.h" />
+    <ClInclude Include="src\headers\RandomNumberGenerators.h" />
+    <ClInclude Include="src\headers\SquareCellGrid.h" />
+    <ClInclude Include="src\headers\Vector2D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
