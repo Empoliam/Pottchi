@@ -10,12 +10,14 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
+const int SIM_SPEED = 1;
+
 const int width = 30;
 const int height = 30;
 
 const float iMax = 1000;
 const float pDiv = 0.01f;
-const float pMove = 0.1f;
+const float pMove = 0.005f;
 
 using namespace std;
 
@@ -41,8 +43,10 @@ int main() {
 
 	grid.getCell(width / 2, height / 2).setType(CELL_TYPE::GENERIC);
 
+	auto temp = grid.getNeighboursCoords((width / 2) + 1, height / 2, CELL_TYPE::GENERIC);
+
 	grid.printGrid();
-	getch();
+	//getch();
 
 	for (int i = 0; i < iMax; i++) {
 
@@ -51,7 +55,7 @@ int main() {
 			for (int y = 1; y < grid.interiorHeight; y++) {
 
 				Cell c = grid.getCell(x, y);
-				if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
+				if (c.getType() == CELL_TYPE::GENERIC) {
 					
 					if (RandomNumberGenerators::rUnifProb() <= pMove) {
 
@@ -59,7 +63,7 @@ int main() {
 
 					}
 
-					if (RandomNumberGenerators::rUnifProb() <= pDiv) {
+					if (RandomNumberGenerators::rUnifProb() <= pDiv && c.getGeneration() < 4) {
 
 						grid.divideCell(x, y);
 												
@@ -73,7 +77,7 @@ int main() {
 
 		grid.printGrid();
 		
-		if (i % 1 == 0) {
+		if (i % SIM_SPEED == 0) {
 			this_thread::sleep_for(chrono::milliseconds(1000 / 60));
 		}
 	}

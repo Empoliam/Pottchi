@@ -24,6 +24,8 @@ public:
 	int divideCell(int x, int y);
 	int moveCell(int x, int y);
 
+	void clearCell(int x, int y);
+
 	int printGrid();
 
 protected:

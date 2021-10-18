@@ -23,6 +23,14 @@ public:
 		return r[i];
 	}
 
+	bool operator==(const Vector2D<T>& b) const {
+		return (r[0] == b[0]) && (r[1] == b[1]);
+	}
+
+	bool operator!=(const Vector2D<T>& b) const {
+		return !((r[0] == b[0]) && (r[1] == b[1]));
+	}
+
 private:
 	
 	T r[2];

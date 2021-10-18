@@ -80,17 +80,17 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 
 std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, CELL_TYPE t)
 {
-	vector<Vector2D<int>> neighbours = getNeighboursCoords(row, col);
+	vector<Vector2D<int>> neighbours;
 
-	neighbours.erase(std::remove_if(
-		neighbours.begin(),
-		neighbours.end(),
-		[t, &internalGrid = internalGrid](const Vector2D<int> v) {
-			Cell c = internalGrid[v[0]][v[1]];
-			return (c.getType() != t); 
-		})
-		, neighbours.end()
-	);
+	neighbours.reserve(8);
+	if (internalGrid[row - 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col - 1));
+	if (internalGrid[row][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col - 1));
+	if (internalGrid[row + 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col - 1));
+	if (internalGrid[row - 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col));
+	if (internalGrid[row + 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col));
+	if (internalGrid[row - 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col + 1));
+	if (internalGrid[row][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col + 1));
+	if (internalGrid[row + 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col + 1));
 
 	return neighbours;
 }
@@ -115,22 +115,25 @@ int SquareCellGrid::divideCell(int x, int y) {
 
 int SquareCellGrid::moveCell(int x, int y) {
 	
-	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
+	vector<Vector2D<int>> emptyNeighbours = getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
 	
-	if (!neighbours.empty()) {
+	if (!emptyNeighbours.empty()) {
 		
 		vector<Vector2D<int>> validSquares;
+		Vector2D<int> excludeCell(x,y);
+		CELL_TYPE adhesiveType = internalGrid[x][y].getType();
 
-		for (int i = 0; i < (int)neighbours.size(); i++) {
-			Vector2D<int>& v = neighbours[i];
-			Cell* excludeN = &internalGrid[x][y];
-			vector<Cell*> N = getNeighbours(v[0], v[0], excludeN->getType());
+		for (int i = 0; i < (int)emptyNeighbours.size(); i++) {
+
+			const Vector2D<int>& v = emptyNeighbours[i];
+			
+			vector<Vector2D<int>> N = getNeighboursCoords(v[0], v[1], adhesiveType);
 
 			bool valid = false;
 
 			if (!N.empty()) {
-				for (int j = 0; j < N.size(); j++) {
-					if (N[j] != excludeN) {
+				for (int j = 0; j < (int) N.size(); j++) {
+					if (N[j] != excludeCell) {
 						valid = true;
 						break;
 					}
@@ -138,8 +141,19 @@ int SquareCellGrid::moveCell(int x, int y) {
 			}
 
 			if (valid) {
-				validSquares.push_back(neighbours[i]);
+				validSquares.push_back(emptyNeighbours[i]);
 			}
+
+		}
+
+		if (!validSquares.empty()) {
+
+			int r = RandomNumberGenerators::rUnifInt(0, validSquares.size()-1);
+			const Vector2D<int>& V = validSquares[r];
+			
+			internalGrid[V[0]][V[1]] = internalGrid[x][y];
+			
+			clearCell(x, y);
 
 		}
 
@@ -148,6 +162,11 @@ int SquareCellGrid::moveCell(int x, int y) {
 	}
 	else return 1;
 
+}
+
+void SquareCellGrid::clearCell(int x, int y)
+{
+	internalGrid[x][y] = Cell(CELL_TYPE::EMPTYSPACE,0);
 }
 
 int SquareCellGrid::printGrid() {

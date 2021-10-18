@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9\wincon;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Documents\University\Year 4\Project\Simulation\PDCurses-3.9\wincon;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
