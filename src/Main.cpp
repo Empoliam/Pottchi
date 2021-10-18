@@ -10,14 +10,14 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-const int SIM_SPEED = 1;
+const int SIM_SPEED = 1000;
 
 const int width = 30;
 const int height = 30;
 
-const float iMax = 1000;
+const float iMax = 100000;
 const float pDiv = 0.01f;
-const float pMove = 0.005f;
+const float pMove = 0.001f;
 
 using namespace std;
 
@@ -74,15 +74,17 @@ int main() {
 			}
 
 		}
-
-		grid.printGrid();
+				
 		
 		if (i % SIM_SPEED == 0) {
+			grid.printGrid();
 			this_thread::sleep_for(chrono::milliseconds(1000 / 60));
 		}
 	}
 	
-	getch();
+	grid.printGrid();
+
+ 	getch();
 	endwin();
 
 	return 0;

@@ -129,19 +129,12 @@ int SquareCellGrid::moveCell(int x, int y) {
 			
 			vector<Vector2D<int>> N = getNeighboursCoords(v[0], v[1], adhesiveType);
 
-			bool valid = false;
-
 			if (!N.empty()) {
 				for (int j = 0; j < (int) N.size(); j++) {
 					if (N[j] != excludeCell) {
-						valid = true;
-						break;
+						validSquares.push_back(emptyNeighbours[i]);
 					}
 				}
-			}
-
-			if (valid) {
-				validSquares.push_back(emptyNeighbours[i]);
 			}
 
 		}
