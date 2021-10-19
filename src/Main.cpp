@@ -10,21 +10,30 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-const int SIM_SPEED = 1000;
+#include "boost/program_options.hpp"
+
+int SIM_SPEED;
+int MAX_ITERATIONS;
 
 const int width = 30;
 const int height = 30;
 
-const float iMax = 100000;
 const float pDiv = 0.01f;
 const float pMove = 0.001f;
 
 using namespace std;
+namespace po = boost::program_options;
 
-int main() {
+int simInit(int argc, char* argv[]);
 
+int main(int argc, char* argv[]) {
+
+	if (simInit(argc, argv)) {
+		return 1;
+	}
+	
 	initscr();
-	resize_term(height+2,width+2);
+	resize_term(height + 2, width + 2);
 
 	if (has_colors() == FALSE) {
 		endwin();
@@ -48,7 +57,7 @@ int main() {
 	grid.printGrid();
 	//getch();
 
-	for (int i = 0; i < iMax; i++) {
+	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
 		for (int x = 1; x <= grid.interiorWidth; x++) {
 
@@ -56,17 +65,17 @@ int main() {
 
 				Cell c = grid.getCell(x, y);
 				if (c.getType() == CELL_TYPE::GENERIC) {
-					
+
 					if (RandomNumberGenerators::rUnifProb() <= pMove) {
 
-						grid.moveCell(x,y);
+						grid.moveCell(x, y);
 
 					}
 
 					if (RandomNumberGenerators::rUnifProb() <= pDiv && c.getGeneration() < 4) {
 
 						grid.divideCell(x, y);
-												
+
 					}
 
 				}
@@ -74,18 +83,47 @@ int main() {
 			}
 
 		}
-				
-		
+
+
 		if (i % SIM_SPEED == 0) {
 			grid.printGrid();
 			this_thread::sleep_for(chrono::milliseconds(1000 / 60));
 		}
 	}
-	
+
 	grid.printGrid();
 
- 	getch();
+	getch();
 	endwin();
 
 	return 0;
+}
+
+int simInit(int argc, char* argv[]) {
+
+	po::options_description description("Simulation options:");
+	description.add_options()
+		("help,h", "Display this help message")
+		("maxI,i", po::value<int>()->default_value(1000), "Maximum iterations")
+		("speed,s", po::value<int>()->default_value(1), "Display speed");
+
+	po::variables_map vm;
+	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
+	po::notify(vm);
+
+	if (vm.count("help")) {
+		std::cout << description;
+		return 1;
+	}
+
+	if (vm.count("maxI")) {
+		MAX_ITERATIONS = vm["maxI"].as<int>();
+	}
+
+	if (vm.count("speed")) {
+		SIM_SPEED = vm["speed"].as<int>();
+	}
+
+	return 0;
+
 }
