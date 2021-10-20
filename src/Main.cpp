@@ -19,7 +19,7 @@ const int width = 30;
 const int height = 30;
 
 const float pDiv = 0.01f;
-const float pMove = 0.001f;
+const float pMove = 0.01f;
 
 using namespace std;
 namespace po = boost::program_options;

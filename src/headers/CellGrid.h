@@ -26,6 +26,6 @@ public:
 
 	virtual int printGrid() = 0;
 
-	virtual float getHamiltonian() = 0;
+	virtual float getHamiltonian(std::vector<std::vector<Cell>>& grid) = 0;
 
 };

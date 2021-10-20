@@ -124,7 +124,7 @@ int SquareCellGrid::divideCell(int x, int y) {
 	return 0;
 
 }
-
+/*
 int SquareCellGrid::moveCell(int x, int y) {
 	
 	vector<Vector2D<int>> emptyNeighbours = getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
@@ -168,13 +168,36 @@ int SquareCellGrid::moveCell(int x, int y) {
 	else return 1;
 
 }
+*/
 
 
-//int SquareCellGrid::moveCell(int x, int y) {
-//
-//	float currentEnergy = getHamiltonian();
-//
-//}
+int SquareCellGrid::moveCell(int x, int y) {
+
+	float currentEnergy = getHamiltonian(internalGrid);
+
+	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
+
+	if (!neighbours.empty()) {
+
+		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
+
+		vector<vector<Cell>> newConfig = internalGrid;
+		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
+		newConfig[x][y] = Cell();
+
+		float newEnergy = getHamiltonian(newConfig);
+
+		if (newEnergy <= currentEnergy) {
+			internalGrid = newConfig;
+		}
+
+		return 0;
+
+	}
+
+	return 1;
+
+}
 
 void SquareCellGrid::clearCell(int x, int y)
 {
@@ -207,18 +230,19 @@ Cell& SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
 }
 
-
-
-float SquareCellGrid::getHamiltonian() {
+float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 	float energy = 0.0f;
 
-	for (int x = 1; x <= interiorWidth; x++) {
+	int xBounds = grid.size()-2;
+	int yBounds = grid[0].size()-2;
 
-		for (int y = 1; y <= interiorHeight; y++) {
+	for (int x = 1; x <= xBounds; x++) {
 
-			Cell& active = internalGrid[x][y];
-			vector<Cell*> neighbours = getNeighbours(x, y);
+		for (int y = 1; y <= yBounds; y++) {
+
+			Cell& active = grid[x][y];
+			vector<Cell*> neighbours = getNeighbours(x, y, grid);
 			
 			for (int i = 0; i < 8; i++) {
 
@@ -234,6 +258,6 @@ float SquareCellGrid::getHamiltonian() {
 
 	}
 
-	return 0.0f;
+	return energy;
 
 }

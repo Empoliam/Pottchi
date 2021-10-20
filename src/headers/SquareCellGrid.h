@@ -33,7 +33,7 @@ public:
 
 	int printGrid();
 
-	float getHamiltonian();
+	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
 
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
