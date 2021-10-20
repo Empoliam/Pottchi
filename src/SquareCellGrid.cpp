@@ -28,27 +28,35 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<C
 
 }
 
-vector<Cell*> SquareCellGrid::getNeighbours(int row, int col)
+vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid)
 {
 
 	vector<Cell*> neighbours;
 
-	neighbours.push_back(&internalGrid[row - 1][col - 1]);
-	neighbours.push_back(&internalGrid[row][col - 1]);
-	neighbours.push_back(&internalGrid[row + 1][col - 1]);
-	neighbours.push_back(&internalGrid[row - 1][col]);
-	neighbours.push_back(&internalGrid[row + 1][col]);
-	neighbours.push_back(&internalGrid[row - 1][col + 1]);
-	neighbours.push_back(&internalGrid[row][col + 1]);
-	neighbours.push_back(&internalGrid[row + 1][col + 1]);
+	neighbours.push_back(&(grid[row - 1][col - 1]));
+	neighbours.push_back(&(grid[row][col - 1]));
+	neighbours.push_back(&(grid[row + 1][col - 1]));
+	neighbours.push_back(&(grid[row - 1][col]));
+	neighbours.push_back(&(grid[row + 1][col]));
+	neighbours.push_back(&(grid[row - 1][col + 1]));
+	neighbours.push_back(&(grid[row][col + 1]));
+	neighbours.push_back(&(grid[row + 1][col + 1]));
 
 	return neighbours;
 
 }
 
-vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
+vector<Cell*> SquareCellGrid::getNeighbours(int row, int col) {
+	return getNeighbours(row,col,internalGrid);
+}
 
-	vector<Cell*> neighbours = getNeighbours(row, col);
+std::vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
+	return getNeighbours(row, col, internalGrid, t);
+}
+
+vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t) {
+
+	vector<Cell*> neighbours = getNeighbours(row, col, grid);
 
 	neighbours.erase(std::remove_if(
 		neighbours.begin(), 
@@ -61,7 +69,7 @@ vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
 
 }
 
-std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
+vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 {
 	vector<Vector2D<int>> neighbours;
 
@@ -78,19 +86,23 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 	return neighbours;
 }
 
-std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, CELL_TYPE t)
+std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, CELL_TYPE t) {
+	return getNeighboursCoords(row, col, internalGrid, t);
+}
+
+vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t)
 {
 	vector<Vector2D<int>> neighbours;
 
 	neighbours.reserve(8);
-	if (internalGrid[row - 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col - 1));
-	if (internalGrid[row][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col - 1));
-	if (internalGrid[row + 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col - 1));
-	if (internalGrid[row - 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col));
-	if (internalGrid[row + 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col));
-	if (internalGrid[row - 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col + 1));
-	if (internalGrid[row][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col + 1));
-	if (internalGrid[row + 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col + 1));
+	if (grid[row - 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col - 1));
+	if (grid[row][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col - 1));
+	if (grid[row + 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col - 1));
+	if (grid[row - 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col));
+	if (grid[row + 1][col].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col));
+	if (grid[row - 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row - 1, col + 1));
+	if (grid[row][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row, col + 1));
+	if (grid[row + 1][col + 1].getType() == t) neighbours.push_back(Vector2D<int>(row + 1, col + 1));
 
 	return neighbours;
 }
@@ -157,6 +169,13 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 }
 
+
+//int SquareCellGrid::moveCell(int x, int y) {
+//
+//	float currentEnergy = getHamiltonian();
+//
+//}
+
 void SquareCellGrid::clearCell(int x, int y)
 {
 	internalGrid[x][y] = Cell(CELL_TYPE::EMPTYSPACE,0);
@@ -188,3 +207,33 @@ Cell& SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
 }
 
+
+
+float SquareCellGrid::getHamiltonian() {
+
+	float energy = 0.0f;
+
+	for (int x = 1; x <= interiorWidth; x++) {
+
+		for (int y = 1; y <= interiorHeight; y++) {
+
+			Cell& active = internalGrid[x][y];
+			vector<Cell*> neighbours = getNeighbours(x, y);
+			
+			for (int i = 0; i < 8; i++) {
+
+				if (neighbours[i]->getType() != active.getType()) {
+					
+					energy += 1.0f;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	return 0.0f;
+
+}

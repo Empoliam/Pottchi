@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
 		for (int x = 1; x <= grid.interiorWidth; x++) {
 
-			for (int y = 1; y < grid.interiorHeight; y++) {
+			for (int y = 1; y <= grid.interiorHeight; y++) {
 
 				Cell c = grid.getCell(x, y);
 				if (c.getType() == CELL_TYPE::GENERIC) {

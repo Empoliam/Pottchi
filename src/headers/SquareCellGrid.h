@@ -16,10 +16,15 @@ public:
 	Cell& getCell(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
+	
+	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid);
+	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
 
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
-	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);
+	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);	
+	
+	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
 	int divideCell(int x, int y);
 	int moveCell(int x, int y);
@@ -27,6 +32,8 @@ public:
 	void clearCell(int x, int y);
 
 	int printGrid();
+
+	float getHamiltonian();
 
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
