@@ -15,8 +15,8 @@
 int SIM_SPEED;
 int MAX_ITERATIONS;
 
-const int width = 30;
-const int height = 30;
+int SIM_WIDTH;
+int SIM_HEIGHT;
 
 const float pDiv = 0.01f;
 const float pMove = 0.01f;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 	}
 	
 	initscr();
-	resize_term(height + 2, width + 2);
+	resize_term(SIM_HEIGHT + 2, SIM_WIDTH + 2);
 
 	if (has_colors() == FALSE) {
 		endwin();
@@ -48,11 +48,11 @@ int main(int argc, char* argv[]) {
 	init_pair(3, COLOR_WHITE, COLOR_GREEN);
 	init_pair(4, COLOR_WHITE, COLOR_BLUE);
 
-	SquareCellGrid grid(width, height);
+	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	grid.getCell(width / 2, height / 2).setType(CELL_TYPE::GENERIC);
+	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2).setType(CELL_TYPE::GENERIC);
 
-	auto temp = grid.getNeighboursCoords((width / 2) + 1, height / 2, CELL_TYPE::GENERIC);
+	auto temp = grid.getNeighboursCoords((SIM_WIDTH / 2) + 1, SIM_HEIGHT / 2, CELL_TYPE::GENERIC);
 
 	grid.printGrid();
 	//getch();
@@ -103,9 +103,11 @@ int simInit(int argc, char* argv[]) {
 
 	po::options_description description("Simulation options:");
 	description.add_options()
-		("help,h", "Display this help message")
+		("help", "Display this help message")
 		("maxI,i", po::value<int>()->default_value(1000), "Maximum iterations")
-		("speed,s", po::value<int>()->default_value(1), "Display speed");
+		("speed,s", po::value<int>()->default_value(1), "Display speed")
+		("height,h", po::value<int>()->default_value(20), "Simulation space height")
+		("width,w", po::value<int>()->default_value(20), "Simulation space width");
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
@@ -122,6 +124,14 @@ int simInit(int argc, char* argv[]) {
 
 	if (vm.count("speed")) {
 		SIM_SPEED = vm["speed"].as<int>();
+	}
+
+	if (vm.count("height")) {
+		SIM_HEIGHT = vm["height"].as<int>();
+	}
+
+	if (vm.count("width")) {
+		SIM_WIDTH = vm["width"].as<int>();
 	}
 
 	return 0;
