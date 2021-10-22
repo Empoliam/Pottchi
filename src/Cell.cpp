@@ -2,56 +2,46 @@
 
 using namespace std;
 
-Cell::Cell(CELL_TYPE type, int generation) {
-	this->type = type;
-	this->generation = generation;
+Cell::Cell(int superCell) {
+	this->superCell = superCell;
 }
 
-Cell::Cell(CELL_TYPE type) : Cell(type, 0){}
+Cell::Cell() : Cell(0) {}
 
-Cell::Cell() : Cell(CELL_TYPE::EMPTYSPACE) {}
+Cell::Cell(CELL_TYPE t, int targetVolume) {
+
+	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume);
+
+}
+
+int Cell::getSuperCell() const {
+	return superCell;
+}
+
+void Cell::setSuperCell(int i) {
+	this->superCell = i;
+}
 
 CELL_TYPE Cell::getType() const {
-	return this->type;
+	return SuperCell::getCellType(superCell);
 }
 
-void Cell::setType(CELL_TYPE type) {
-	this->type = type;
-}
 
 int Cell::getGeneration() const {
-	return generation;
-}
-
-void Cell::setGeneration(int g) {
-	generation = g;
+	return SuperCell::getGeneration(superCell);
 }
 
 void Cell::increaseGeneration() {
-	generation++;
+	SuperCell::increaseGeneration(superCell);
 }
 
-string Cell::toString() const {
-
-	switch (type)
-	{
-	case CELL_TYPE::EMPTYSPACE:
-		return ".";
-		break;
-	case CELL_TYPE::GENERIC:
-		return "C";
-		break;
-	case CELL_TYPE::BOUNDARY:
-		return "#";
-		break;
-	default:
-		return "?";
-		break;
-	}
-
+void Cell::setGeneration(int gen) {
+	SuperCell::setGeneration(superCell, gen);
 }
 
 char Cell::toChar() const {
+
+	CELL_TYPE type = SuperCell::getCellType(superCell);
 
 	switch (type)
 	{
@@ -59,7 +49,7 @@ char Cell::toChar() const {
 		return '.';
 		break;
 	case CELL_TYPE::GENERIC:
-		return 'C';
+		return (char) (superCell+63);
 		break;
 	case CELL_TYPE::BOUNDARY:
 		return '#';

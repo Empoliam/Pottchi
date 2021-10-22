@@ -1,7 +1,7 @@
 #pragma once
 
 enum class CELL_TYPE {
-	EMPTYSPACE,
-	GENERIC,
-	BOUNDARY
+	EMPTYSPACE = 0,
+	BOUNDARY = 1,
+	GENERIC
 };

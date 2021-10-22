@@ -48,14 +48,15 @@ int main(int argc, char* argv[]) {
 	init_pair(3, COLOR_WHITE, COLOR_GREEN);
 	init_pair(4, COLOR_WHITE, COLOR_BLUE);
 
+	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
+
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2).setType(CELL_TYPE::GENERIC);
-
-	auto temp = grid.getNeighboursCoords((SIM_WIDTH / 2) + 1, SIM_HEIGHT / 2, CELL_TYPE::GENERIC);
+	//NOTE FOR FUTURE: This turns into garbage??
+	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 12);
 
 	grid.printGrid();
-	//getch();
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 

@@ -22,8 +22,6 @@ public:
 	virtual int divideCell(int x, int y) = 0;
 	virtual int moveCell(int x, int y) = 0;
 
-	virtual void clearCell(int x, int y) = 0;
-
 	virtual int printGrid() = 0;
 
 	virtual float getHamiltonian(std::vector<std::vector<Cell>>& grid) = 0;

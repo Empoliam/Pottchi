@@ -156,6 +156,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\RandomNumberGenerators.cpp" />
     <ClCompile Include="src\SquareCellGrid.cpp" />
+    <ClCompile Include="src\SuperCell.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\headers\Cell.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="src\headers\RandomNumberGenerators.h" />
     <ClInclude Include="src\headers\SquareCellGrid.h" />
     <ClInclude Include="src\headers\Vector2D.h" />
+    <ClInclude Include="src\headers\SuperCell.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />

@@ -3,35 +3,34 @@
 #include <string>
 #include "../headers/CellTypes.h"
 #include "../headers/Vector2D.h"
+#include "SuperCell.h"
 
 class Cell {
 
 public:
 
-	Cell(CELL_TYPE type, int generation);
-	Cell(CELL_TYPE type);
 	Cell();
+	Cell(int superCell);
+	Cell(CELL_TYPE t, int targetVolume);
 
 	Cell(const Cell& c1) {
-		generation = c1.generation;
-		type = c1.type;
-	}
+		this->superCell = c1.superCell;
+	};
+
+	int getSuperCell() const;
+	void setSuperCell(int i);
 
 	CELL_TYPE getType() const;
-	void setType(CELL_TYPE type);
 
 	int getGeneration()const;
-	void setGeneration(int g);
 	void increaseGeneration();
-
-	std::string toString() const;
+	void setGeneration(int gen);
 
 	char toChar() const;
 
 private:
 
-	CELL_TYPE type;
-	int generation;
+	int superCell;
 
 };
 

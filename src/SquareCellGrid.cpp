@@ -19,13 +19,13 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<C
 	boundaryHeight = h + 2;
 
 	for (int x = 0; x < boundaryWidth; x++) {
-		internalGrid[x][0].setType(CELL_TYPE::BOUNDARY);
-		internalGrid[x][boundaryHeight - 1].setType(CELL_TYPE::BOUNDARY);
+		internalGrid[x][0] = Cell((int)CELL_TYPE::BOUNDARY);
+		internalGrid[x][boundaryHeight - 1] = Cell((int)CELL_TYPE::BOUNDARY);
 	};
 
 	for (int y = 0; y < boundaryHeight; y++) {
-		internalGrid[0][y].setType(CELL_TYPE::BOUNDARY);
-		internalGrid[boundaryWidth - 1][y].setType(CELL_TYPE::BOUNDARY);
+		internalGrid[0][y] = Cell((int)CELL_TYPE::BOUNDARY);
+		internalGrid[boundaryWidth - 1][y] = Cell((int)CELL_TYPE::BOUNDARY);
 	};
 
 }
@@ -112,14 +112,16 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 int SquareCellGrid::divideCell(int x, int y) {
 
 	vector<Cell*> neighbours = getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+	Cell& active = internalGrid[x][y];
 
 	if (neighbours.size() != 0) {
 
-		internalGrid[x][y].increaseGeneration();
+		active.increaseGeneration();
 
 		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
 
-		*neighbours[r] = internalGrid[x][y];
+		*neighbours[r] = Cell(active.getType(),12);
+		neighbours[r]->setGeneration(active.getGeneration());
 
 	}
 
@@ -140,7 +142,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		vector<vector<Cell>> newConfig = internalGrid;
 		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
-		newConfig[x][y] = Cell();
+		newConfig[x][y].setSuperCell(0);
 
 		float newEnergy = getHamiltonian(newConfig);
 		float dEnergy = newEnergy - currentEnergy;
@@ -160,10 +162,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 }
 
-void SquareCellGrid::clearCell(int x, int y)
-{
-	internalGrid[x][y] = Cell(CELL_TYPE::EMPTYSPACE,0);
-}
 
 int SquareCellGrid::printGrid() {
 	
