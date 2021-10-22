@@ -9,6 +9,8 @@
 
 using namespace std;
 
+float BOLTZ_TEMP = 1;
+
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
 
 	interiorWidth = w;
@@ -141,8 +143,12 @@ int SquareCellGrid::moveCell(int x, int y) {
 		newConfig[x][y] = Cell();
 
 		float newEnergy = getHamiltonian(newConfig);
+		float dEnergy = newEnergy - currentEnergy;
+		float probChange = exp(-dEnergy / BOLTZ_TEMP);
 
 		if (newEnergy <= currentEnergy) {
+			internalGrid = newConfig;
+		} else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy/BOLTZ_TEMP)) {
 			internalGrid = newConfig;
 		}
 
