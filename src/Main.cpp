@@ -13,11 +13,8 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-const int pixel_scale = 8;
-
-int SIM_SPEED;
+int pixel_scale = 8;
 int MAX_ITERATIONS;
-
 int SIM_WIDTH;
 int SIM_HEIGHT;
 
@@ -53,47 +50,40 @@ int main(int argc, char* argv[]) {
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 20);
+	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 100);
 
 	grid.printGrid(renderer, pixel_scale);
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
-		for (int x = 1; x <= grid.interiorWidth; x++) {
+		int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+		int y = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
 
-			for (int y = 1; y <= grid.interiorHeight; y++) {
+		bool success = grid.moveCell(x, y);
 
-				Cell c = grid.getCell(x, y);
+		Cell& c = grid.getCell(x, y);
 
-				if (c.getType() == CELL_TYPE::GENERIC) {
+		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 2) {
 
-					if (RandomNumberGenerators::rUnifProb() <= pMove) {
+			if (RandomNumberGenerators::rUnifProb() <= pDiv) {
 
-						grid.moveCell(x, y);
-
-					}
-
-					if (RandomNumberGenerators::rUnifProb() <= pDiv && c.getGeneration() < 4) {
-
-						grid.divideCell(x, y);
-
-					}
-
-				}
+				grid.divideCell(x, y);
 
 			}
-
+		
 		}
 
-		if (i % SIM_SPEED == 0) {
+
+		if (success) {
 			grid.printGrid(renderer, pixel_scale);
 		}
 
-		cout << i << endl;
 
 	}
 
 	grid.printGrid(renderer, pixel_scale);
+
+	cout << "done";
 
 	while (1) {
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
@@ -113,9 +103,9 @@ int simInit(int argc, char* argv[]) {
 	description.add_options()
 		("help", "Display this help message")
 		("maxI,i", po::value<int>()->default_value(1000), "Maximum iterations")
-		("speed,s", po::value<int>()->default_value(1), "Display speed")
-		("height,h", po::value<int>()->default_value(100), "Simulation space height")
-		("width,w", po::value<int>()->default_value(100), "Simulation space width");
+		("pixel,p", po::value<int>()->default_value(8), "Pixels per cell")
+		("height,h", po::value<int>()->default_value(80), "Simulation space height")
+		("width,w", po::value<int>()->default_value(80), "Simulation space width");
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
@@ -130,8 +120,8 @@ int simInit(int argc, char* argv[]) {
 		MAX_ITERATIONS = vm["maxI"].as<int>();
 	}
 
-	if (vm.count("speed")) {
-		SIM_SPEED = vm["speed"].as<int>();
+	if (vm.count("pixel")) {
+		pixel_scale = vm["pixel"].as<int>();
 	}
 
 	if (vm.count("height")) {

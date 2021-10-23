@@ -9,8 +9,9 @@
 
 using namespace std;
 
-const float BOLTZ_TEMP = 1;
-const float LAMBDA = 2;
+const float BOLTZ_TEMP = 1.0f;
+const float LAMBDA = 0.5f;
+const float J = 10.0f;
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
 
@@ -112,7 +113,7 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 
 int SquareCellGrid::divideCell(int x, int y) {
 
-	vector<Cell*> neighbours = getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+	vector<Cell*> neighbours = getNeighbours(x, y);
 	Cell& active = internalGrid[x][y];
 
 	if (neighbours.size() != 0) {
@@ -133,40 +134,37 @@ int SquareCellGrid::divideCell(int x, int y) {
 
 int SquareCellGrid::moveCell(int x, int y) {
 
-	float currentEnergy = getHamiltonian(internalGrid);
+	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
 
-	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
+	int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
 
-	if (!neighbours.empty()) {
+	Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
-		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
+	if (swap.getType() != CELL_TYPE::BOUNDARY() &&
+		swap.getSuperCell() != internalGrid[x][y].getSuperCell() ) {
 
-		Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
+		vector<vector<Cell>> newConfig = internalGrid;
+		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
+		//newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
 
-		if (!(swap.getType() == CELL_TYPE::EMPTYSPACE && internalGrid[x][y].getType() == CELL_TYPE::EMPTYSPACE)) {
+		float currentEnergy = getHamiltonian(internalGrid);
+		float newEnergy = getHamiltonian(newConfig);
 
-			vector<vector<Cell>> newConfig = internalGrid;
-			newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
-			//newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
+		float dEnergy = newEnergy - currentEnergy;
+		float probChange = exp(-dEnergy / BOLTZ_TEMP);
 
-			float newEnergy = getHamiltonian(newConfig);
-			float dEnergy = newEnergy - currentEnergy;
-			float probChange = exp(-dEnergy / BOLTZ_TEMP);
-
-			if (newEnergy <= currentEnergy) {
-				internalGrid = newConfig;
-			}
-			else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
-				internalGrid = newConfig;
-			}
-
+		if (newEnergy <= currentEnergy) {
+			internalGrid = newConfig;
+			return 1;
 		}
-
-		return 0;
+		else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
+			internalGrid = newConfig;
+			return 1;
+		}
 
 	}
 
-	return 1;
+	return 0;
 
 }
 
@@ -177,8 +175,8 @@ int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
 		for (int x = 0; x < boundaryWidth; x++) {
 
 			vector<int> colour = internalGrid[x][y].getColour();
-						
-			SDL_Rect rect = { x*pixelSize, y*pixelSize, pixelSize, pixelSize };
+
+			SDL_Rect rect = { x * pixelSize, y * pixelSize, pixelSize, pixelSize };
 
 			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
 			SDL_RenderFillRect(renderer, &rect);
@@ -221,7 +219,7 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 					if (neighbours[i]->getType() != active.getType()) {
 
-						energy += 1.0f;
+						energy += J;
 
 					}
 
@@ -234,7 +232,7 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 	}
 
 	for (unsigned int i = 2; i < volumes.size(); i++) {
-		energy += (int) pow(volumes[i] - SuperCell::getTargetVolume(i), 2);
+		energy += (int)pow(volumes[i] - SuperCell::getTargetVolume(i), 2);
 	}
 
 	return energy;
