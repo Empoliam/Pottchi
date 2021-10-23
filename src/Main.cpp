@@ -19,7 +19,7 @@ int SIM_WIDTH;
 int SIM_HEIGHT;
 
 const float pDiv = 0.01f;
-const float pMove = 0.01f;
+const float pMove = 0.1f;
 
 using namespace std;
 namespace po = boost::program_options;
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 	if (simInit(argc, argv)) {
 		return 1;
 	}
-	
+
 	initscr();
 	resize_term(SIM_HEIGHT + 2, SIM_WIDTH + 2);
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
 	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
-	
+
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
 			for (int y = 1; y <= grid.interiorHeight; y++) {
 
 				Cell c = grid.getCell(x, y);
+
 				if (c.getType() == CELL_TYPE::GENERIC) {
 
 					if (RandomNumberGenerators::rUnifProb() <= pMove) {

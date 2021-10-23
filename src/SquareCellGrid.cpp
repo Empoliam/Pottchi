@@ -4,13 +4,14 @@
 #include <vector>
 #include <random>
 #include <curses.h>
+#include <math.h>
 
 #include "./headers/RandomNumberGenerators.h"
 
 using namespace std;
 
 const float BOLTZ_TEMP = 1;
-const float LAMBDA = 1;
+const float LAMBDA = 2;
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
 
@@ -141,19 +142,25 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
 
-		vector<vector<Cell>> newConfig = internalGrid;
-		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
-		newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
+		Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
-		float newEnergy = getHamiltonian(newConfig);
-		float dEnergy = newEnergy - currentEnergy;
-		float probChange = exp(-dEnergy / BOLTZ_TEMP);
+		if (!(swap.getType() == CELL_TYPE::EMPTYSPACE && internalGrid[x][y].getType() == CELL_TYPE::EMPTYSPACE)) {
 
-		if (newEnergy <= currentEnergy) {
-			internalGrid = newConfig;
-		}
-		else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
-			internalGrid = newConfig;
+			vector<vector<Cell>> newConfig = internalGrid;
+			newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
+			//newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
+
+			float newEnergy = getHamiltonian(newConfig);
+			float dEnergy = newEnergy - currentEnergy;
+			float probChange = exp(-dEnergy / BOLTZ_TEMP);
+
+			if (newEnergy <= currentEnergy) {
+				internalGrid = newConfig;
+			}
+			else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
+				internalGrid = newConfig;
+			}
+
 		}
 
 		return 0;
@@ -228,7 +235,7 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 	}
 
 	for (unsigned int i = 2; i < volumes.size(); i++) {
-		energy += ((volumes[i] - SuperCell::getTargetVolume(i)) ^ 2);
+		energy += (int) pow(volumes[i] - SuperCell::getTargetVolume(i), 2);
 	}
 
 	return energy;
