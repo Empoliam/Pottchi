@@ -22,7 +22,7 @@ public:
 	virtual int divideCell(int x, int y) = 0;
 	virtual int moveCell(int x, int y) = 0;
 
-	virtual int printGrid(SDL_Renderer* renderer) = 0;
+	virtual int printGrid(SDL_Renderer* renderer, int pixelSize) = 0;
 
 	virtual float getHamiltonian(std::vector<std::vector<Cell>>& grid) = 0;
 

@@ -13,7 +13,7 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-
+const int pixel_scale = 8;
 
 int SIM_SPEED;
 int MAX_ITERATIONS;
@@ -22,7 +22,7 @@ int SIM_WIDTH;
 int SIM_HEIGHT;
 
 const float pDiv = 0.01f;
-const float pMove = 0.1f;
+const float pMove = 0.01f;
 
 using namespace std;
 namespace po = boost::program_options;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window;
 
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer(200, 200, 0, &window, &renderer);
+	SDL_CreateWindowAndRenderer((SIM_WIDTH+2)*pixel_scale, (SIM_HEIGHT + 2) * pixel_scale, 0, &window, &renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
@@ -55,8 +55,7 @@ int main(int argc, char* argv[]) {
 
 	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 20);
 
-	grid.printGrid(renderer);
-
+	grid.printGrid(renderer, pixel_scale);
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -87,13 +86,14 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (i % SIM_SPEED == 0) {
-			grid.printGrid(renderer);
+			grid.printGrid(renderer, pixel_scale);
 		}
 
-		
+		cout << i << endl;
+
 	}
 
-	grid.printGrid(renderer);
+	grid.printGrid(renderer, pixel_scale);
 
 	while (1) {
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT)

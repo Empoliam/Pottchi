@@ -171,15 +171,17 @@ int SquareCellGrid::moveCell(int x, int y) {
 }
 
 
-int SquareCellGrid::printGrid(SDL_Renderer* renderer) {
+int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
 
 	for (int y = 0; y < boundaryHeight; y++) {
 		for (int x = 0; x < boundaryWidth; x++) {
 
 			vector<int> colour = internalGrid[x][y].getColour();
+						
+			SDL_Rect rect = { x*pixelSize, y*pixelSize, pixelSize, pixelSize };
 
 			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
-			SDL_RenderDrawPoint(renderer, x, y);
+			SDL_RenderFillRect(renderer, &rect);
 
 		}
 

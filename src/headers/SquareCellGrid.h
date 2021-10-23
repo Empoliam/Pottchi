@@ -28,7 +28,7 @@ public:
 	int divideCell(int x, int y);
 	int moveCell(int x, int y);
 
-	int printGrid(SDL_Renderer* renderer);
+	int printGrid(SDL_Renderer* renderer, int pixelSize);
 
 	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
 
