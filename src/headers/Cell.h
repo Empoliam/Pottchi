@@ -28,6 +28,8 @@ public:
 
 	int getTargetVolume() const;
 
+	std::vector<int> getColour() const;
+
 	char toChar() const;
 
 private:

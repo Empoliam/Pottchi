@@ -55,3 +55,17 @@ int SuperCell::getCounter()
 {
 	return idCounter;
 }
+
+
+void SuperCell::setColour(int i, int r, int g, int b, int a) {
+	SuperCell& C = superCells[i];
+	C.colour[0] = r;
+	C.colour[1] = g;
+	C.colour[2] = b;
+	C.colour[3] = a;
+
+}
+
+std::vector<int> SuperCell::getColour(int i) {
+	return superCells[i].colour;
+}

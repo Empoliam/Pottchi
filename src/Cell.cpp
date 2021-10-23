@@ -1,6 +1,6 @@
 #include "./headers/Cell.h"
 
-using namespace std;
+#include "./headers/RandomNumberGenerators.h"
 
 Cell::Cell(int superCell) {
 	this->superCell = superCell;
@@ -11,6 +11,7 @@ Cell::Cell() : Cell((int)CELL_TYPE::EMPTYSPACE) {}
 Cell::Cell(CELL_TYPE t, int targetVolume) {
 
 	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume);
+	SuperCell::setColour(superCell, RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255));
 
 }
 
@@ -41,6 +42,10 @@ void Cell::setGeneration(int gen) {
 
 int Cell::getTargetVolume() const {
 	return SuperCell::getTargetVolume(superCell);
+}
+
+std::vector<int> Cell::getColour() const {
+	return SuperCell::getColour(superCell);
 }
 
 char Cell::toChar() const {

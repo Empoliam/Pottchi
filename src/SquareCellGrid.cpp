@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 #include <random>
-#include <curses.h>
 #include <math.h>
 
 #include "./headers/RandomNumberGenerators.h"
@@ -172,23 +171,21 @@ int SquareCellGrid::moveCell(int x, int y) {
 }
 
 
-int SquareCellGrid::printGrid() {
+int SquareCellGrid::printGrid(SDL_Renderer* renderer) {
 
 	for (int y = 0; y < boundaryHeight; y++) {
 		for (int x = 0; x < boundaryWidth; x++) {
 
-			Cell c = internalGrid[x][y];
+			vector<int> colour = internalGrid[x][y].getColour();
 
-			move(y, x);
-			attron(COLOR_PAIR(c.getGeneration()));
-			addch(c.toChar());
-			attroff(COLOR_PAIR(c.getGeneration()));
+			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
+			SDL_RenderDrawPoint(renderer, x, y);
 
 		}
 
 	}
 
-	refresh();
+	SDL_RenderPresent(renderer);
 
 	return 0;
 }

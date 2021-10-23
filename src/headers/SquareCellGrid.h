@@ -2,7 +2,6 @@
 
 #include "CellGrid.h"
 
-
 class SquareCellGrid : public CellGrid {
 
 public:
@@ -29,7 +28,7 @@ public:
 	int divideCell(int x, int y);
 	int moveCell(int x, int y);
 
-	int printGrid();
+	int printGrid(SDL_Renderer* renderer);
 
 	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CellTypes.h"
+#include <vector>
 
 class SuperCell {
 
@@ -19,6 +20,9 @@ public:
 
 	static int getCounter();
 
+	static void setColour(int i, int r, int g, int b, int a);
+	static std::vector<int> getColour(int i);
+
 private:
 
 	int ID;
@@ -28,6 +32,8 @@ private:
 	CELL_TYPE type;
 
 	SuperCell(CELL_TYPE type, int generation, int targetVolume);
+
+	std::vector<int> colour = std::vector<int>(4,0);
 
 };
 

@@ -1,3 +1,3 @@
 Cellular automata simulation of human blastocyst
 
-Requires PDCurses-3.9, and boost-program-options
+Requires SDL2, and boost-program-options

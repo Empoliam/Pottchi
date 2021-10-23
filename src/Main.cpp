@@ -3,14 +3,17 @@
 #include <thread>
 #include <iostream>
 
-#include <curses.h>
+#include <boost/program_options.hpp>
+
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
 
 #include "./headers/Cell.h"
 #include "./headers/SquareCellGrid.h"
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-#include "boost/program_options.hpp"
+
 
 int SIM_SPEED;
 int MAX_ITERATIONS;
@@ -32,31 +35,28 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	initscr();
-	resize_term(SIM_HEIGHT + 2, SIM_WIDTH + 2);
+	SDL_SetMainReady();
+	SDL_Event event;
+	SDL_Renderer* renderer;
+	SDL_Window* window;
 
-	if (has_colors() == FALSE) {
-		endwin();
-		cout << "No colour support";
-		exit(1);
-	}
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_CreateWindowAndRenderer(200, 200, 0, &window, &renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderClear(renderer);
 
-	start_color();
-	init_pair(0, COLOR_WHITE, COLOR_BLACK);
-	init_pair(1, COLOR_WHITE, COLOR_RED);
-	init_pair(2, COLOR_WHITE, COLOR_YELLOW);
-	init_pair(3, COLOR_WHITE, COLOR_GREEN);
-	init_pair(4, COLOR_WHITE, COLOR_BLUE);
 
 	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
+	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
-
+	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
 	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 20);
 
-	grid.printGrid();
+	grid.printGrid(renderer);
+
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -86,17 +86,23 @@ int main(int argc, char* argv[]) {
 
 		}
 
-
 		if (i % SIM_SPEED == 0) {
-			grid.printGrid();
-			this_thread::sleep_for(chrono::milliseconds(1000 / 60));
+			grid.printGrid(renderer);
 		}
+
+		
 	}
 
-	grid.printGrid();
+	grid.printGrid(renderer);
 
-	getch();
-	endwin();
+	while (1) {
+		if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
+			break;
+	}
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 
 	return 0;
 }
@@ -108,8 +114,8 @@ int simInit(int argc, char* argv[]) {
 		("help", "Display this help message")
 		("maxI,i", po::value<int>()->default_value(1000), "Maximum iterations")
 		("speed,s", po::value<int>()->default_value(1), "Display speed")
-		("height,h", po::value<int>()->default_value(20), "Simulation space height")
-		("width,w", po::value<int>()->default_value(20), "Simulation space width");
+		("height,h", po::value<int>()->default_value(100), "Simulation space height")
+		("width,w", po::value<int>()->default_value(100), "Simulation space width");
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
