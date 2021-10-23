@@ -6,7 +6,7 @@ Cell::Cell(int superCell) {
 	this->superCell = superCell;
 }
 
-Cell::Cell() : Cell(0) {}
+Cell::Cell() : Cell((int)CELL_TYPE::EMPTYSPACE) {}
 
 Cell::Cell(CELL_TYPE t, int targetVolume) {
 
@@ -37,6 +37,10 @@ void Cell::increaseGeneration() {
 
 void Cell::setGeneration(int gen) {
 	SuperCell::setGeneration(superCell, gen);
+}
+
+int Cell::getTargetVolume() const {
+	return SuperCell::getTargetVolume(superCell);
 }
 
 char Cell::toChar() const {

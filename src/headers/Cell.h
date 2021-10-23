@@ -26,6 +26,8 @@ public:
 	void increaseGeneration();
 	void setGeneration(int gen);
 
+	int getTargetVolume() const;
+
 	char toChar() const;
 
 private:

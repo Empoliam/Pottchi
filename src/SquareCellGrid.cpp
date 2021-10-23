@@ -9,7 +9,8 @@
 
 using namespace std;
 
-float BOLTZ_TEMP = 1;
+const float BOLTZ_TEMP = 1;
+const float LAMBDA = 1;
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
 
@@ -49,7 +50,7 @@ vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, std::vector<std::v
 }
 
 vector<Cell*> SquareCellGrid::getNeighbours(int row, int col) {
-	return getNeighbours(row,col,internalGrid);
+	return getNeighbours(row, col, internalGrid);
 }
 
 std::vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
@@ -61,10 +62,10 @@ vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, std::vector<std::v
 	vector<Cell*> neighbours = getNeighbours(row, col, grid);
 
 	neighbours.erase(std::remove_if(
-		neighbours.begin(), 
-		neighbours.end(), 
-		[t](const Cell* c){ return c->getType() != t; })
-		,neighbours.end()
+		neighbours.begin(),
+		neighbours.end(),
+		[t](const Cell* c) { return c->getType() != t; })
+		, neighbours.end()
 	);
 
 	return neighbours;
@@ -76,14 +77,14 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 	vector<Vector2D<int>> neighbours;
 
 	neighbours.reserve(8);
-	neighbours.push_back(Vector2D<int>(row - 1,col - 1));
-	neighbours.push_back(Vector2D<int>(row,col - 1));
-	neighbours.push_back(Vector2D<int>(row + 1,col - 1));
-	neighbours.push_back(Vector2D<int>(row - 1,col));
-	neighbours.push_back(Vector2D<int>(row + 1,col));
-	neighbours.push_back(Vector2D<int>(row - 1,col + 1));
-	neighbours.push_back(Vector2D<int>(row,col + 1));
-	neighbours.push_back(Vector2D<int>(row + 1,col + 1));
+	neighbours.push_back(Vector2D<int>(row - 1, col - 1));
+	neighbours.push_back(Vector2D<int>(row, col - 1));
+	neighbours.push_back(Vector2D<int>(row + 1, col - 1));
+	neighbours.push_back(Vector2D<int>(row - 1, col));
+	neighbours.push_back(Vector2D<int>(row + 1, col));
+	neighbours.push_back(Vector2D<int>(row - 1, col + 1));
+	neighbours.push_back(Vector2D<int>(row, col + 1));
+	neighbours.push_back(Vector2D<int>(row + 1, col + 1));
 
 	return neighbours;
 }
@@ -120,7 +121,7 @@ int SquareCellGrid::divideCell(int x, int y) {
 
 		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
 
-		*neighbours[r] = Cell(active.getType(),12);
+		*neighbours[r] = Cell(active.getType(), active.getTargetVolume());
 		neighbours[r]->setGeneration(active.getGeneration());
 
 	}
@@ -142,7 +143,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		vector<vector<Cell>> newConfig = internalGrid;
 		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
-		newConfig[x][y].setSuperCell(0);
+		newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
 
 		float newEnergy = getHamiltonian(newConfig);
 		float dEnergy = newEnergy - currentEnergy;
@@ -150,7 +151,8 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		if (newEnergy <= currentEnergy) {
 			internalGrid = newConfig;
-		} else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy/BOLTZ_TEMP)) {
+		}
+		else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
 			internalGrid = newConfig;
 		}
 
@@ -164,19 +166,19 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 
 int SquareCellGrid::printGrid() {
-	
+
 	for (int y = 0; y < boundaryHeight; y++) {
 		for (int x = 0; x < boundaryWidth; x++) {
 
 			Cell c = internalGrid[x][y];
-			
+
 			move(y, x);
 			attron(COLOR_PAIR(c.getGeneration()));
 			addch(c.toChar());
 			attroff(COLOR_PAIR(c.getGeneration()));
-			
+
 		}
-		
+
 	}
 
 	refresh();
@@ -193,8 +195,10 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 	float energy = 0.0f;
 
-	int xBounds = grid.size()-2;
-	int yBounds = grid[0].size()-2;
+	int xBounds = grid.size() - 2;
+	int yBounds = grid[0].size() - 2;
+
+	vector<int> volumes(SuperCell::getCounter());
 
 	for (int x = 1; x <= xBounds; x++) {
 
@@ -202,12 +206,18 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 			Cell& active = grid[x][y];
 			vector<Cell*> neighbours = getNeighbours(x, y, grid);
-			
+
+			volumes[active.getSuperCell()]++;
+
 			for (int i = 0; i < 8; i++) {
 
-				if (neighbours[i]->getType() != active.getType()) {
-					
-					energy += 1.0f;
+				if (neighbours[i]->getSuperCell() != active.getSuperCell()) {
+
+					if (neighbours[i]->getType() != active.getType()) {
+
+						energy += 1.0f;
+
+					}
 
 				}
 
@@ -215,6 +225,10 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 		}
 
+	}
+
+	for (unsigned int i = 2; i < volumes.size(); i++) {
+		energy += ((volumes[i] - SuperCell::getTargetVolume(i)) ^ 2);
 	}
 
 	return energy;

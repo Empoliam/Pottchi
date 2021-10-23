@@ -48,13 +48,13 @@ int main(int argc, char* argv[]) {
 	init_pair(3, COLOR_WHITE, COLOR_GREEN);
 	init_pair(4, COLOR_WHITE, COLOR_BLUE);
 
-	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
 	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
+	
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	//NOTE FOR FUTURE: This turns into garbage??
-	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 12);
+	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 20);
 
 	grid.printGrid();
 
