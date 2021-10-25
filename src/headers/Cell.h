@@ -27,6 +27,7 @@ public:
 	void setGeneration(int gen);
 
 	int getTargetVolume() const;
+	int getVolume() const;
 
 	std::vector<int> getColour() const;
 

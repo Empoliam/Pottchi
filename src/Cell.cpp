@@ -43,6 +43,10 @@ int Cell::getTargetVolume() const {
 	return SuperCell::getTargetVolume(superCell);
 }
 
+int Cell::getVolume() const{
+	return SuperCell::getVolume(superCell);
+}
+
 std::vector<int> Cell::getColour() const {
 	return SuperCell::getColour(superCell);
 }

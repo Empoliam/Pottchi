@@ -33,8 +33,6 @@ public:
 
 	int printGrid(SDL_Renderer* renderer, int pixelSize);
 
-	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
-
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 

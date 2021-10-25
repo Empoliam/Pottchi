@@ -66,9 +66,11 @@ int main(int argc, char* argv[]) {
 
 		Cell& c = grid.getCell(x, y);
 
-		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 0) {
+		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
 
-			if (RandomNumberGenerators::rUnifProb() <= pDiv) {
+			float divProb = pDiv * (float)c.getVolume() / (float)c.getTargetVolume();
+
+			if (RandomNumberGenerators::rUnifProb() <= divProb) {
 
 				grid.divideCell(x, y);
 
@@ -80,7 +82,6 @@ int main(int argc, char* argv[]) {
 		if (success) {
 			grid.printGrid(renderer, pixel_scale);
 		}
-
 
 	}
 
@@ -105,10 +106,10 @@ int simInit(int argc, char* argv[]) {
 	po::options_description description("Simulation options:");
 	description.add_options()
 		("help", "Display this help message")
-		("maxI,i", po::value<int>()->default_value(10000), "Maximum iterations")
+		("maxI,i", po::value<int>()->default_value(1000000), "Maximum iterations")
 		("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
-		("height,h", po::value<int>()->default_value(80), "Simulation space height")
-		("width,w", po::value<int>()->default_value(80), "Simulation space width");
+		("height,h", po::value<int>()->default_value(75), "Simulation space height")
+		("width,w", po::value<int>()->default_value(75), "Simulation space width");
 
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
