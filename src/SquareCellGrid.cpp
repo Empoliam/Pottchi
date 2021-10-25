@@ -9,8 +9,8 @@
 
 using namespace std;
 
-const float BOLTZ_TEMP = 1.0f;
-const float LAMBDA = 0.5f;
+const float BOLTZ_TEMP = 10.0f;
+const float LAMBDA = 1.0f;
 const float J = 10.0f;
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
@@ -141,7 +141,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
 	if (swap.getType() != CELL_TYPE::BOUNDARY() &&
-		swap.getSuperCell() != internalGrid[x][y].getSuperCell() ) {
+		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
 		vector<vector<Cell>> newConfig = internalGrid;
 		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
@@ -217,11 +217,8 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 				if (neighbours[i]->getSuperCell() != active.getSuperCell()) {
 
-					if (neighbours[i]->getType() != active.getType()) {
+					energy += J;
 
-						energy += J;
-
-					}
 
 				}
 
@@ -232,7 +229,8 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 	}
 
 	for (unsigned int i = 2; i < volumes.size(); i++) {
-		energy += (int)pow(volumes[i] - SuperCell::getTargetVolume(i), 2);
+		if (volumes[i] == 0) energy += 10000000;
+		energy += LAMBDA * (int)pow(volumes[i] - SuperCell::getTargetVolume(i), 2);
 	}
 
 	return energy;

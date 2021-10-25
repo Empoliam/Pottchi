@@ -50,7 +50,10 @@ int main(int argc, char* argv[]) {
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	grid.getCell(SIM_WIDTH / 2, SIM_HEIGHT / 2) = Cell(CELL_TYPE::GENERIC, 100);
+	int midX = SIM_WIDTH / 2;
+	int midY = SIM_HEIGHT / 2;
+
+	grid.getCell(midX, midY) = Cell(CELL_TYPE::GENERIC, 100);
 
 	grid.printGrid(renderer, pixel_scale);
 
@@ -63,7 +66,7 @@ int main(int argc, char* argv[]) {
 
 		Cell& c = grid.getCell(x, y);
 
-		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 2) {
+		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
 
 			if (RandomNumberGenerators::rUnifProb() <= pDiv) {
 
@@ -102,8 +105,8 @@ int simInit(int argc, char* argv[]) {
 	po::options_description description("Simulation options:");
 	description.add_options()
 		("help", "Display this help message")
-		("maxI,i", po::value<int>()->default_value(1000), "Maximum iterations")
-		("pixel,p", po::value<int>()->default_value(8), "Pixels per cell")
+		("maxI,i", po::value<int>()->default_value(10000), "Maximum iterations")
+		("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
 		("height,h", po::value<int>()->default_value(80), "Simulation space height")
 		("width,w", po::value<int>()->default_value(80), "Simulation space width");
 
