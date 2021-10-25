@@ -148,7 +148,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		vector<vector<Cell>> newConfig = internalGrid;
 		newConfig[neighbours[r][0]][neighbours[r][1]] = internalGrid[x][y];
-		//newConfig[x][y].setSuperCell((int)CELL_TYPE::EMPTYSPACE);
 
 		float currentEnergy = getHamiltonian(internalGrid);
 		float newEnergy = getHamiltonian(newConfig);
@@ -267,5 +266,7 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 		- (float) pow(sourceVol-sourceTarget, 2)
 		- (float) pow(destVol - destTarget, 2);
 
-	return 0.0f;
+	deltaH*=LAMBDA;
+
+	return deltaH;
 }

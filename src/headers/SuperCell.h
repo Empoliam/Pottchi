@@ -33,7 +33,7 @@ private:
 	int ID;
 	int generation;
 	int targetVolume;
-	int volume;
+	int volume = 0;
 	
 	CELL_TYPE type;
 

@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
 		Cell& c = grid.getCell(x, y);
 
-		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
+		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 0) {
 
 			if (RandomNumberGenerators::rUnifProb() <= pDiv) {
 
