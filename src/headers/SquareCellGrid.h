@@ -35,7 +35,7 @@ public:
 
 	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
 
-	float getAdhesionDelta();
+	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
 protected:

@@ -11,7 +11,11 @@ using namespace std;
 
 const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 1.0f;
-const float J = 10.0f;
+const float J[3][3] = {
+	{10000.0f, 10000.0f, 10000.0f},
+	{10000.0f, 10000.0f, 10.0f},
+	{10000.0f, 10.0f, 10.0f} 
+};
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
 
@@ -246,8 +250,28 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 }
 
-float SquareCellGrid::getAdhesionDelta() {
-	return 0.0f;
+float SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
+
+	Cell& source = internalGrid[sourceX][sourceY];
+	Cell& dest = internalGrid[destX][destY];
+
+	int sourceSuper = source.getSuperCell();
+	int destSuper = source.getSuperCell();
+
+	float initH = 0.0f;
+	float postH = 0.0f;
+
+	vector<Cell*> neighbours = getNeighbours(destX, destY);
+	for (int i = 0; i < 8; i++) {
+		
+		int nSuper = neighbours[i]->getSuperCell();
+
+		initH += J[(int)neighbours[i]->getType()][(int)dest.getType()] * (nSuper != destSuper);
+		postH += J[(int)neighbours[i]->getType()][(int)source.getType()] * (nSuper != sourceSuper);
+
+	}
+
+	return (postH - initH);
 }
 
 float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
