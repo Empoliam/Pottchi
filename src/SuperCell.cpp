@@ -2,6 +2,8 @@
 
 #include<vector>
 
+#include "headers/RandomNumberGenerators.h"
+
 using namespace std;
 
 static vector<SuperCell> superCells = vector<SuperCell>();
@@ -14,6 +16,11 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume) {
 	this->generation = generation;
 	this->targetVolume = targetVolume;
 
+	this->colour[0] = RandomNumberGenerators::rUnifInt(0, 255);
+	this->colour[1] = RandomNumberGenerators::rUnifInt(0, 255);
+	this->colour[2] = RandomNumberGenerators::rUnifInt(0, 255);
+	this->colour[3] = 255;
+
 }
 
 int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV) {
@@ -21,6 +28,7 @@ int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV) {
 
 	SuperCell sc = SuperCell(type, gen, targetV);
 	superCells.push_back(sc);
+
 
 	return idCounter++;
 
@@ -68,4 +76,12 @@ void SuperCell::setColour(int i, int r, int g, int b, int a) {
 
 std::vector<int> SuperCell::getColour(int i) {
 	return superCells[i].colour;
+}
+
+void SuperCell::changeVolume(int i, int delta) {
+	superCells[i].volume += delta;
+}
+
+int SuperCell::getVolume(int i) {
+	return superCells[i].volume;
 }

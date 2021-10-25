@@ -52,8 +52,8 @@ int main(int argc, char* argv[]) {
 
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
-
-	grid.getCell(midX, midY) = Cell(CELL_TYPE::GENERIC, 100);
+	
+	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
 
 	grid.printGrid(renderer, pixel_scale);
 

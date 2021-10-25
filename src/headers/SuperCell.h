@@ -16,6 +16,9 @@ public:
 	static void setGeneration(int i, int gen);
 
 	static int getTargetVolume(int i);
+	static void changeVolume(int i, int delta);
+	static int getVolume(int i);
+	
 	static CELL_TYPE getCellType(int i);
 
 	static int getCounter();
@@ -23,11 +26,14 @@ public:
 	static void setColour(int i, int r, int g, int b, int a);
 	static std::vector<int> getColour(int i);
 
+	
+
 private:
 
 	int ID;
 	int generation;
 	int targetVolume;
+	int volume;
 	
 	CELL_TYPE type;
 

@@ -113,7 +113,7 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 
 int SquareCellGrid::divideCell(int x, int y) {
 
-	vector<Cell*> neighbours = getNeighbours(x, y);
+	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
 	Cell& active = internalGrid[x][y];
 
 	if (neighbours.size() != 0) {
@@ -121,9 +121,11 @@ int SquareCellGrid::divideCell(int x, int y) {
 		active.increaseGeneration();
 
 		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
+		Vector2D<int>& target = neighbours[r];
 
-		*neighbours[r] = Cell(active.getType(), active.getTargetVolume());
-		neighbours[r]->setGeneration(active.getGeneration());
+		int s = SuperCell::makeNewSuperCell(active.getType(), active.getGeneration(), active.getTargetVolume());
+
+		setCell(target[0], target[1], s);
 
 	}
 
@@ -138,6 +140,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 	int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
 
+	Cell& origin = internalGrid[x][y];
 	Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
 	if (swap.getType() != CELL_TYPE::BOUNDARY() &&
@@ -153,12 +156,13 @@ int SquareCellGrid::moveCell(int x, int y) {
 		float dEnergy = newEnergy - currentEnergy;
 		float probChange = exp(-dEnergy / BOLTZ_TEMP);
 
-		if (newEnergy <= currentEnergy) {
+		if ((newEnergy <= currentEnergy) || (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP))) {
+			
+			SuperCell::changeVolume(origin.getSuperCell(), 1);
+			SuperCell::changeVolume(swap.getSuperCell(), -1);
+
 			internalGrid = newConfig;
-			return 1;
-		}
-		else if (RandomNumberGenerators::rUnifProb() < exp(-dEnergy / BOLTZ_TEMP)) {
-			internalGrid = newConfig;
+						
 			return 1;
 		}
 
@@ -193,6 +197,12 @@ int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
 
 Cell& SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
+}
+
+void SquareCellGrid::setCell(int x, int y, int superCell) {
+	SuperCell::changeVolume(internalGrid[x][y].getSuperCell(),-1);
+	internalGrid[x][y].setSuperCell(superCell);
+	SuperCell::changeVolume(superCell, 1);
 }
 
 float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
@@ -235,4 +245,27 @@ float SquareCellGrid::getHamiltonian(std::vector<std::vector<Cell>>& grid) {
 
 	return energy;
 
+}
+
+float SquareCellGrid::getAdhesionDelta() {
+	return 0.0f;
+}
+
+float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
+
+	int sourceSuper = internalGrid[sourceX][sourceY].getSuperCell();
+	int destSuper = internalGrid[destX][destY].getSuperCell();
+
+	int sourceVol = SuperCell::getVolume(sourceSuper);
+	int destVol = SuperCell::getVolume(destSuper);
+
+	int sourceTarget = SuperCell::getTargetVolume(sourceSuper);
+	int destTarget = SuperCell::getTargetVolume(destSuper);
+
+	float deltaH = (float) pow(sourceVol + 1 - sourceTarget, 2)
+		+ (float) pow(destVol - 1 - destTarget, 2)
+		- (float) pow(sourceVol-sourceTarget, 2)
+		- (float) pow(destVol - destTarget, 2);
+
+	return 0.0f;
 }

@@ -13,6 +13,9 @@ public:
 	SquareCellGrid(int w, int h);
 
 	Cell& getCell(int row, int col);
+
+	void setCell(int row, int col, int superCell);
+
 	std::vector<Cell*> getNeighbours(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
 	
@@ -31,6 +34,9 @@ public:
 	int printGrid(SDL_Renderer* renderer, int pixelSize);
 
 	float getHamiltonian(std::vector<std::vector<Cell>>& grid);
+
+	float getAdhesionDelta();
+	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
 protected:
 	std::vector<std::vector<Cell>> internalGrid;

@@ -11,7 +11,6 @@ Cell::Cell() : Cell((int)CELL_TYPE::EMPTYSPACE) {}
 Cell::Cell(CELL_TYPE t, int targetVolume) {
 
 	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume);
-	SuperCell::setColour(superCell, RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255), RandomNumberGenerators::rUnifInt(0, 255));
 
 }
 
