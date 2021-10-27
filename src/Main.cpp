@@ -119,7 +119,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			break;
 		}
 
-		//std::this_thread::sleep_for(std::chrono::nanoseconds(SIM_DELAY));
+		if(i%1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 	}
 
@@ -140,7 +140,7 @@ int simInit(int argc, char* argv[]) {
 			("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
 			("height,h", po::value<int>()->default_value(75), "Simulation space height")
 			("width,w", po::value<int>()->default_value(75), "Simulation space width")
-			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, ns, for visual purposes");
+			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible");
 
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
