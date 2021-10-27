@@ -15,10 +15,11 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-int pixel_scale = 8;
+int PIXEL_SCALE = 8;
 int MAX_ITERATIONS;
 int SIM_WIDTH;
 int SIM_HEIGHT;
+int SIM_DELAY;
 
 const float pDiv = 0.01f;
 const float pMove = 0.01f;
@@ -29,6 +30,7 @@ namespace po = boost::program_options;
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
+int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef);
 
 int main(int argc, char* argv[]) {
 
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window;
 
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer((SIM_WIDTH+2)*pixel_scale, (SIM_HEIGHT + 2) * pixel_scale, 0, &window, &renderer);
+	SDL_CreateWindowAndRenderer((SIM_WIDTH+2)*PIXEL_SCALE, (SIM_HEIGHT + 2) * PIXEL_SCALE, 0, &window, &renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
@@ -58,21 +60,29 @@ int main(int argc, char* argv[]) {
 	
 	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
 
-	grid.printGrid(renderer, pixel_scale);
-
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
-		
-	while (1) {
+	
+	printGrid(renderer, grid);
+
+	bool quit = false;
+
+	while (!quit) {
+
+		printGrid(renderer, grid);
 
 		if (done) {
 			done = false;
 			simLoopThread.join();
-			grid.printGrid(renderer, pixel_scale);
+			printGrid(renderer, grid);
 			cout << "done";
 		}
 
-		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) break;
+		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
+			done = true;
+			quit = true;
+		}
+
 	}
 
 	SDL_DestroyRenderer(renderer);
@@ -88,8 +98,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midY = SIM_HEIGHT / 2;
 
 	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
-
-	//grid.printGrid(renderer, pixel_scale);
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -112,10 +120,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		}
 
-
-		/*if (success) {
-			grid.printGrid(renderer, pixel_scale);
-		}*/
+		if (done) {
+			break;
+		}
 
 	}
 
@@ -149,7 +156,7 @@ int simInit(int argc, char* argv[]) {
 	}
 
 	if (vm.count("pixel")) {
-		pixel_scale = vm["pixel"].as<int>();
+		PIXEL_SCALE = vm["pixel"].as<int>();
 	}
 
 	if (vm.count("height")) {
@@ -159,6 +166,34 @@ int simInit(int argc, char* argv[]) {
 	if (vm.count("width")) {
 		SIM_WIDTH = vm["width"].as<int>();
 	}
+
+	return 0;
+
+}
+
+int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef) {
+
+	const std::vector<std::vector<std::vector<int>>> internalGridRef = gridRef.getColourGrid();
+
+	for (int y = 0; y < (int) internalGridRef[0].size(); y++) {
+		for (int x = 0; x < (int) internalGridRef.size(); x++) {
+
+			vector<int> colour = internalGridRef[x][y];
+
+			if (colour.size() < 4) {
+				colour = { 0,0,0,0 };
+			}
+
+			SDL_Rect rect = { x * PIXEL_SCALE, y * PIXEL_SCALE, PIXEL_SCALE, PIXEL_SCALE };
+
+			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
+			SDL_RenderFillRect(renderer, &rect);
+
+		}
+
+	}
+
+	SDL_RenderPresent(renderer);
 
 	return 0;
 

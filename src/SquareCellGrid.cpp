@@ -260,3 +260,17 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 
 	return deltaH;
 }
+
+std::vector<std::vector<std::vector<int>>> SquareCellGrid::getColourGrid() const {
+
+	std::vector<std::vector<std::vector<int>>> superCellGrid(boundaryWidth, std::vector<std::vector<int>>(boundaryHeight, std::vector<int>(0)));
+
+	for (int x = 0; x < boundaryWidth; x++) {
+		for (int y = 0; y < boundaryHeight; y++) {
+			superCellGrid[x][y] = internalGrid[x][y].getColour();
+		}
+	}
+
+	return superCellGrid;
+
+}

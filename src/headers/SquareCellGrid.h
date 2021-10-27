@@ -36,6 +36,8 @@ public:
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
+	std::vector<std::vector<std::vector<int>>> getColourGrid() const;
+
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
 };
