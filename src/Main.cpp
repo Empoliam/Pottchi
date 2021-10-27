@@ -2,6 +2,8 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <atomic>
+#include <thread>
 
 #include <boost/program_options.hpp>
 
@@ -24,6 +26,8 @@ const float pMove = 0.01f;
 using namespace std;
 namespace po = boost::program_options;
 
+
+int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
 
 int main(int argc, char* argv[]) {
@@ -42,7 +46,6 @@ int main(int argc, char* argv[]) {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
-
 	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
@@ -56,6 +59,37 @@ int main(int argc, char* argv[]) {
 	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
 
 	grid.printGrid(renderer, pixel_scale);
+
+	std::atomic<bool> done(false);
+	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
+		
+	while (1) {
+
+		if (done) {
+			done = false;
+			simLoopThread.join();
+			grid.printGrid(renderer, pixel_scale);
+			cout << "done";
+		}
+
+		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) break;
+	}
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+
+	return 0;
+}
+
+int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
+
+	int midX = SIM_WIDTH / 2;
+	int midY = SIM_HEIGHT / 2;
+
+	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
+
+	//grid.printGrid(renderer, pixel_scale);
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -75,30 +109,20 @@ int main(int argc, char* argv[]) {
 				grid.divideCell(x, y);
 
 			}
-		
+
 		}
 
 
-		if (success) {
+		/*if (success) {
 			grid.printGrid(renderer, pixel_scale);
-		}
+		}*/
 
 	}
 
-	grid.printGrid(renderer, pixel_scale);
 
-	cout << "done";
-
-	while (1) {
-		if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
-			break;
-	}
-
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-
+	done = true;
 	return 0;
+
 }
 
 int simInit(int argc, char* argv[]) {

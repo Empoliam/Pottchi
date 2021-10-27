@@ -137,7 +137,6 @@ int SquareCellGrid::divideCell(int x, int y) {
 
 }
 
-
 int SquareCellGrid::moveCell(int x, int y) {
 
 	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
@@ -166,7 +165,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 }
 
-
 int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
 
 	for (int y = 0; y < boundaryHeight; y++) {
@@ -187,7 +185,6 @@ int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
 
 	return 0;
 }
-
 
 Cell& SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
