@@ -15,7 +15,7 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-int PIXEL_SCALE = 8;
+int PIXEL_SCALE;
 int MAX_ITERATIONS;
 int SIM_WIDTH;
 int SIM_HEIGHT;
@@ -34,7 +34,7 @@ int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef);
 
 int main(int argc, char* argv[]) {
 
-	if (simInit(argc, argv)) {
+	if (simInit(argc, argv) > 0) {
 		return 1;
 	}
 
@@ -55,11 +55,6 @@ int main(int argc, char* argv[]) {
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 
-	int midX = SIM_WIDTH / 2;
-	int midY = SIM_HEIGHT / 2;
-	
-	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
-
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
 	
@@ -73,8 +68,8 @@ int main(int argc, char* argv[]) {
 
 		if (done) {
 			done = false;
-			simLoopThread.join();
 			printGrid(renderer, grid);
+			simLoopThread.join();
 			cout << "done";
 		}
 
@@ -124,6 +119,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			break;
 		}
 
+		//std::this_thread::sleep_for(std::chrono::nanoseconds(SIM_DELAY));
+
 	}
 
 
@@ -134,40 +131,54 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 int simInit(int argc, char* argv[]) {
 
-	po::options_description description("Simulation options:");
-	description.add_options()
-		("help", "Display this help message")
-		("maxI,i", po::value<int>()->default_value(1000000), "Maximum iterations")
-		("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
-		("height,h", po::value<int>()->default_value(75), "Simulation space height")
-		("width,w", po::value<int>()->default_value(75), "Simulation space width");
+	try {
 
-	po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
-	po::notify(vm);
+		po::options_description description("Simulation options:");
+		description.add_options()
+			("help", "Display this help message")
+			("maxI,i", po::value<int>()->default_value(1000000), "Maximum iterations")
+			("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
+			("height,h", po::value<int>()->default_value(75), "Simulation space height")
+			("width,w", po::value<int>()->default_value(75), "Simulation space width")
+			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, ns, for visual purposes");
 
-	if (vm.count("help")) {
-		std::cout << description;
+		po::variables_map vm;
+		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
+		po::notify(vm);
+
+		if (vm.count("help")) {
+			std::cout << description;
+			return 1;
+		}
+
+		if (vm.count("maxI")) {
+			MAX_ITERATIONS = vm["maxI"].as<int>();
+		}
+
+		if (vm.count("pixel")) {
+			PIXEL_SCALE = vm["pixel"].as<int>();
+		}
+
+		if (vm.count("height")) {
+			SIM_HEIGHT = vm["height"].as<int>();
+		}
+
+		if (vm.count("width")) {
+			SIM_WIDTH = vm["width"].as<int>();
+		}
+
+		if (vm.count("delay")) {
+			SIM_DELAY = vm["delay"].as<int>();
+		}
+
+		return 0;
+
+	}
+	catch (const std::exception& e){
+		cout << "uh oh fucky wucky" << endl;
+		cout << e.what();
 		return 1;
 	}
-
-	if (vm.count("maxI")) {
-		MAX_ITERATIONS = vm["maxI"].as<int>();
-	}
-
-	if (vm.count("pixel")) {
-		PIXEL_SCALE = vm["pixel"].as<int>();
-	}
-
-	if (vm.count("height")) {
-		SIM_HEIGHT = vm["height"].as<int>();
-	}
-
-	if (vm.count("width")) {
-		SIM_WIDTH = vm["width"].as<int>();
-	}
-
-	return 0;
 
 }
 
