@@ -152,7 +152,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Cell.cpp" />
-    <ClCompile Include="src\headers\CellGrid.h" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\RandomNumberGenerators.cpp" />
     <ClCompile Include="src\SquareCellGrid.cpp" />

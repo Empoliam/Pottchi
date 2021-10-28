@@ -20,6 +20,7 @@ int MAX_ITERATIONS;
 int SIM_WIDTH;
 int SIM_HEIGHT;
 int SIM_DELAY;
+int RENDER_FPS;
 
 const float pDiv = 0.01f;
 const float pMove = 0.01f;
@@ -27,10 +28,9 @@ const float pMove = 0.01f;
 using namespace std;
 namespace po = boost::program_options;
 
-
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
-int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef);
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid);
 
 int main(int argc, char* argv[]) {
 
@@ -54,11 +54,13 @@ int main(int argc, char* argv[]) {
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
+	
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, grid.boundaryWidth, grid.boundaryHeight);
+	printGrid(renderer, texture, grid);
 
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
-	printGrid(renderer, grid);
-
+	
 	bool quit = false;
 	bool waitForEnd = false;
 
@@ -74,17 +76,17 @@ int main(int argc, char* argv[]) {
 
 			if (done) {				
 				cout << "done";
-				printGrid(renderer, grid);
+				printGrid(renderer, texture, grid);
 				simLoopThread.join();
 				waitForEnd = true;
 			}
 			else {
 
-				if (tickDelta > 1000 / 24.0) {
+				if (tickDelta > (double) 1000 / (double) RENDER_FPS) {
 
 					cout << "fps: " << 1000 / tickDelta << "\n";
 					tickB = tickA;
-					printGrid(renderer, grid);
+					printGrid(renderer, texture, grid);
 
 				}
 
@@ -99,6 +101,7 @@ int main(int argc, char* argv[]) {
 
 	}
 
+	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -159,7 +162,8 @@ int simInit(int argc, char* argv[]) {
 			("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
 			("height,h", po::value<int>()->default_value(75), "Simulation space height")
 			("width,w", po::value<int>()->default_value(75), "Simulation space width")
-			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible");
+			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
+			("fps,f", po::value<int>()->default_value(24), "Simulation target fps, default 24");
 
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
@@ -190,39 +194,30 @@ int simInit(int argc, char* argv[]) {
 			SIM_DELAY = vm["delay"].as<int>();
 		}
 
+		if (vm.count("fps")) {
+			RENDER_FPS = vm["fps"].as<int>();
+		}
+
 		return 0;
 
 	}
 	catch (const std::exception& e) {
-		cout << "uh oh fucky wucky" << endl;
+		cout << "Unexpected argument" << endl;
+		cout << "use --help for help" << endl;
 		cout << e.what();
 		return 1;
 	}
 
 }
 
-int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef) {
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid) {
 
-	const std::vector<std::vector<std::vector<int>>> internalGridRef = gridRef.getColourGrid();
+	grid.fullTextureRefresh();
 
-	for (int y = 0; y < (int)internalGridRef[0].size(); y++) {
-		for (int x = 0; x < (int)internalGridRef.size(); x++) {
+	std::vector<unsigned char> pixels = grid.getPixels();
 
-			vector<int> colour = internalGridRef[x][y];
-
-			if (colour.size() < 4) {
-				colour = { 0,0,0,0 };
-			}
-
-			SDL_Rect rect = { x * PIXEL_SCALE, y * PIXEL_SCALE, PIXEL_SCALE, PIXEL_SCALE };
-
-			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
-			SDL_RenderFillRect(renderer, &rect);
-
-		}
-
-	}
-
+	SDL_UpdateTexture(texture, NULL, pixels.data(), grid.boundaryWidth * 4);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 
 	return 0;

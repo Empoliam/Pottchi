@@ -10,14 +10,14 @@
 using namespace std;
 
 const float BOLTZ_TEMP = 10.0f;
-const float LAMBDA = 1.0f;
+const float LAMBDA = 5.0f;
 const float J[3][3] = {
 	{10.0f, 10.0f, 10.0f},
 	{10.0f, 10.0f, 10.0f},
 	{10.0f, 10.0f, 10.0f}
 };
 
-SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)) {
+SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
 
 	interiorWidth = w;
 	interiorHeight = h;
@@ -33,6 +33,7 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<C
 		internalGrid[0][y] = Cell((int)CELL_TYPE::BOUNDARY);
 		internalGrid[boundaryWidth - 1][y] = Cell((int)CELL_TYPE::BOUNDARY);
 	};
+	
 
 }
 
@@ -272,5 +273,35 @@ std::vector<std::vector<std::vector<int>>> SquareCellGrid::getColourGrid() const
 	}
 
 	return superCellGrid;
+
+}
+
+void SquareCellGrid::fullTextureRefresh() {
+
+	for (int x = 0; x < boundaryWidth; x++) {
+
+		for (int y = 0; y < boundaryHeight; y++) {
+
+			const unsigned pixOffset = (boundaryWidth * 4 * y) + x * 4;
+			vector<int> colour = internalGrid[x][y].getColour();
+
+			if (colour.size() == 0) {
+				colour = { 0,0,0,0 };
+			}
+
+			pixels[pixOffset + 0] = (char) colour[0];
+			pixels[pixOffset + 1] = (char) colour[1];
+			pixels[pixOffset + 2] = (char) colour[2];
+			pixels[pixOffset + 3] = SDL_ALPHA_OPAQUE;
+
+		}
+
+	}
+
+}
+
+std::vector<unsigned char> SquareCellGrid::getPixels() {
+
+	return pixels;
 
 }

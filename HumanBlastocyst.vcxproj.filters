@@ -24,9 +24,6 @@
     <ClCompile Include="src\SquareCellGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\headers\CellGrid.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\RandomNumberGenerators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

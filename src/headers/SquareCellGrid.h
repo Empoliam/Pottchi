@@ -1,8 +1,9 @@
 #pragma once
 
-#include "CellGrid.h"
+#include "Cell.h"
+#include "SDL2/SDL.h"
 
-class SquareCellGrid : public CellGrid {
+class SquareCellGrid {
 
 public:
 	int boundaryWidth;
@@ -38,6 +39,12 @@ public:
 
 	std::vector<std::vector<std::vector<int>>> getColourGrid() const;
 
+	void fullTextureRefresh();
+	std::vector<unsigned char> getPixels();
+
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
+
+	std::vector<unsigned char> pixels;
+
 };
