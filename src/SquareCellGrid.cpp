@@ -118,20 +118,60 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 
 int SquareCellGrid::divideCell(int x, int y) {
 
-	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
+	int minX = interiorWidth;
+	int minY = interiorHeight;
+	int maxX = 1;
+	int maxY = 1;
+
 	Cell& active = internalGrid[x][y];
 
-	if (neighbours.size() != 0) {
+	vector<Vector2D<int>> cellList;
+	vector<Vector2D<int>> newList;
 
-		active.increaseGeneration();
+	for (int X = 1; X <= interiorWidth; X++) {
+		for (int Y = 1; Y <= interiorHeight; Y++) {
 
-		int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
-		Vector2D<int>& target = neighbours[r];
+			if (internalGrid[X][Y].getSuperCell() == active.getSuperCell()) {
+				cellList.push_back(Vector2D<int>(X, Y));
 
-		int s = SuperCell::makeNewSuperCell(active.getType(), active.getGeneration(), active.getTargetVolume());
+				if (X < minX) minX = X;
+				if (X > maxX) maxX = X;
+				if (Y < minY) minY = Y;
+				if (Y > maxY) maxY = Y;
 
-		setCell(target[0], target[1], s);
+			}
 
+		}
+	}
+
+	if (cellList.size() <= 1) {
+		return 1;
+	}
+
+	int splitAxis;
+	int midPoint;
+
+	if ((maxX - minX) > (maxY - minY)) {
+		splitAxis = 0;
+		midPoint = (maxX + minX) / 2;
+	}
+	else {
+		splitAxis = 1;
+		midPoint = (maxY + minY) / 2;
+	}
+
+	for (unsigned int c = 0; c < cellList.size(); c++) {
+		if (cellList[c][splitAxis] < midPoint) {
+			newList.push_back(cellList[c]);
+		}
+	}
+
+	active.increaseGeneration();
+	int newSuperCell = SuperCell::makeNewSuperCell(active.getType(), active.getGeneration(), active.getTargetVolume());
+
+	for (unsigned int c = 0; c < newList.size(); c++) {
+		Vector2D<int>& V = newList[c];
+		setCell(V[0], V[1], newSuperCell);
 	}
 
 	return 0;
