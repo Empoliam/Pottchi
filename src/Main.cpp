@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window;
 
 	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer((SIM_WIDTH+2)*PIXEL_SCALE, (SIM_HEIGHT + 2) * PIXEL_SCALE, 0, &window, &renderer);
+	SDL_CreateWindowAndRenderer((SIM_WIDTH + 2) * PIXEL_SCALE, (SIM_HEIGHT + 2) * PIXEL_SCALE, 0, &window, &renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
@@ -57,20 +57,39 @@ int main(int argc, char* argv[]) {
 
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
-	
 	printGrid(renderer, grid);
 
 	bool quit = false;
+	bool waitForEnd = false;
+
+	unsigned int tickA, tickB, tickDelta;
+	tickB = SDL_GetTicks();
 
 	while (!quit) {
 
-		printGrid(renderer, grid);
+		if (!waitForEnd) {
 
-		if (done) {
-			done = false;
-			printGrid(renderer, grid);
-			simLoopThread.join();
-			cout << "done";
+			tickA = SDL_GetTicks();
+			tickDelta = tickA - tickB;
+
+			if (done) {				
+				cout << "done";
+				printGrid(renderer, grid);
+				simLoopThread.join();
+				waitForEnd = true;
+			}
+			else {
+
+				if (tickDelta > 1000 / 24.0) {
+
+					cout << "fps: " << 1000 / tickDelta << "\n";
+					tickB = tickA;
+					printGrid(renderer, grid);
+
+				}
+
+			}
+
 		}
 
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
@@ -119,12 +138,12 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			break;
 		}
 
-		if(i%1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
+		if (i % 1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 	}
 
-
 	done = true;
+	
 	return 0;
 
 }
@@ -174,7 +193,7 @@ int simInit(int argc, char* argv[]) {
 		return 0;
 
 	}
-	catch (const std::exception& e){
+	catch (const std::exception& e) {
 		cout << "uh oh fucky wucky" << endl;
 		cout << e.what();
 		return 1;
@@ -186,8 +205,8 @@ int printGrid(SDL_Renderer* renderer, SquareCellGrid& gridRef) {
 
 	const std::vector<std::vector<std::vector<int>>> internalGridRef = gridRef.getColourGrid();
 
-	for (int y = 0; y < (int) internalGridRef[0].size(); y++) {
-		for (int x = 0; x < (int) internalGridRef.size(); x++) {
+	for (int y = 0; y < (int)internalGridRef[0].size(); y++) {
+		for (int x = 0; x < (int)internalGridRef.size(); x++) {
 
 			vector<int> colour = internalGridRef[x][y];
 
