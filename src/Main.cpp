@@ -22,7 +22,7 @@ int SIM_HEIGHT;
 int SIM_DELAY;
 int RENDER_FPS;
 
-const float pDiv = 0.01f;
+const float pDiv = 0.0001f;
 const float pMove = 0.01f;
 
 using namespace std;
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
 			}
 			else {
 
-				if (tickDelta > (double) 1000 / (double) RENDER_FPS) {
+				if (tickDelta > 1000 / RENDER_FPS) {
 
-					cout << "fps: " << 1000 / tickDelta << "\n";
+					cout << "fps: " << (float)1000 / tickDelta << "\n";
 					tickB = tickA;
 					printGrid(renderer, texture, grid);
 
@@ -127,7 +127,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
 
-			float divProb = pDiv * (float)c.getVolume() / (float)c.getTargetVolume();
+			float divProb = pDiv * pow(((float)c.getVolume() / (float)c.getTargetVolume()),2);
 
 			if (RandomNumberGenerators::rUnifProb() <= divProb) {
 
@@ -141,7 +141,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			break;
 		}
 
-		if (i % 1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
+		if (SIM_DELAY != 0 && i % 1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 	}
 
@@ -158,7 +158,7 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxI,i", po::value<int>()->default_value(1000000), "Maximum iterations")
+			("maxI,i", po::value<int>()->default_value(10000000), "Maximum iterations")
 			("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
 			("height,h", po::value<int>()->default_value(75), "Simulation space height")
 			("width,w", po::value<int>()->default_value(75), "Simulation space width")

@@ -12,9 +12,9 @@ using namespace std;
 const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 5.0f;
 const float J[3][3] = {
-	{10.0f, 10.0f, 10.0f},
-	{10.0f, 10.0f, 10.0f},
-	{10.0f, 10.0f, 10.0f}
+	{1000000.0f, 1000000.0f, 1000000.0f},
+	{1000000.0f, 10.0f, 10.0f},
+	{1000000.0f, 10.0f, 10.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
@@ -260,20 +260,6 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 	deltaH *= LAMBDA;
 
 	return deltaH;
-}
-
-std::vector<std::vector<std::vector<int>>> SquareCellGrid::getColourGrid() const {
-
-	std::vector<std::vector<std::vector<int>>> superCellGrid(boundaryWidth, std::vector<std::vector<int>>(boundaryHeight, std::vector<int>(0)));
-
-	for (int x = 0; x < boundaryWidth; x++) {
-		for (int y = 0; y < boundaryHeight; y++) {
-			superCellGrid[x][y] = internalGrid[x][y].getColour();
-		}
-	}
-
-	return superCellGrid;
-
 }
 
 void SquareCellGrid::fullTextureRefresh() {

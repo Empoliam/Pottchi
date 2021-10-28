@@ -37,14 +37,11 @@ public:
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
-	std::vector<std::vector<std::vector<int>>> getColourGrid() const;
-
 	void fullTextureRefresh();
 	std::vector<unsigned char> getPixels();
 
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
-
 	std::vector<unsigned char> pixels;
 
 };
