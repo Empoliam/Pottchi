@@ -16,6 +16,7 @@ public:
 	static void setGeneration(int i, int gen);
 
 	static int getTargetVolume(int i);
+	static void setTargetVolume(int i, int target);
 	static void changeVolume(int i, int delta);
 	static int getVolume(int i);
 	

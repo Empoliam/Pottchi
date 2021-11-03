@@ -39,6 +39,10 @@ void Cell::setGeneration(int gen) {
 	SuperCell::setGeneration(superCell, gen);
 }
 
+void Cell::setTargetVolume(int target) {
+	SuperCell::setTargetVolume(superCell, target);
+}
+
 int Cell::getTargetVolume() const {
 	return SuperCell::getTargetVolume(superCell);
 }

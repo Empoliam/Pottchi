@@ -26,6 +26,7 @@ public:
 	void increaseGeneration();
 	void setGeneration(int gen);
 
+	void setTargetVolume(int target);
 	int getTargetVolume() const;
 	int getVolume() const;
 

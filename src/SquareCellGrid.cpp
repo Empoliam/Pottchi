@@ -13,8 +13,8 @@ const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 5.0f;
 const float J[3][3] = {
 	{1000000.0f, 1000000.0f, 1000000.0f},
-	{1000000.0f, 10.0f, 10.0f},
-	{1000000.0f, 10.0f, 10.0f}
+	{1000000.0f, 0.0f, 50.0f},
+	{1000000.0f, 50.0f, 20.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
@@ -174,8 +174,21 @@ int SquareCellGrid::divideCell(int x, int y) {
 		setCell(V[0], V[1], newSuperCell);
 	}
 
-	return 0;
+	return newSuperCell;
 
+}
+
+int SquareCellGrid::cleaveCell(int x, int y) {
+
+	int superCellA = getCell(x, y).getSuperCell();
+	int superCellB = divideCell(x, y);
+
+	int newTargetVolume = getCell(x, y).getTargetVolume() / 2;
+
+	SuperCell::setTargetVolume(superCellA, newTargetVolume);
+	SuperCell::setTargetVolume(superCellB, newTargetVolume);
+
+	return superCellB;
 }
 
 int SquareCellGrid::moveCell(int x, int y) {

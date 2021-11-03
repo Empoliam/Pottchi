@@ -54,6 +54,12 @@ int SuperCell::getTargetVolume(int i) {
 	return superCells[i].targetVolume;
 }
 
+void SuperCell::setTargetVolume(int i, int target) {
+
+	superCells[i].targetVolume = target;
+
+}
+
 CELL_TYPE SuperCell::getCellType(int i)
 {
 	return superCells[i].type;

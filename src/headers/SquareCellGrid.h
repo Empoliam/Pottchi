@@ -30,6 +30,8 @@ public:
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
 	int divideCell(int x, int y);
+	int cleaveCell(int x, int y);
+
 	int moveCell(int x, int y);
 
 	int printGrid(SDL_Renderer* renderer, int pixelSize);

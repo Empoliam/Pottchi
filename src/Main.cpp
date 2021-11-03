@@ -22,11 +22,10 @@ int SIM_HEIGHT;
 int SIM_DELAY;
 int RENDER_FPS;
 
-const float pDiv = 0.0001f;
-const float pMove = 0.01f;
+const float pDiv = 0.01f;
 
-using namespace std;
 namespace po = boost::program_options;
+using namespace std;
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
@@ -114,7 +113,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
-	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 100));
+	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 1000));
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 
@@ -127,11 +126,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		if (c.getType() == CELL_TYPE::GENERIC && c.getGeneration() < 4) {
 
-			float divProb = pDiv * pow(((float)c.getVolume() / (float)c.getTargetVolume()),2);
+			float divProb = pDiv * ((float)c.getVolume() / pow((float)c.getTargetVolume(),2));
 
 			if (RandomNumberGenerators::rUnifProb() <= divProb) {
 
-				grid.divideCell(x, y);
+				grid.cleaveCell(x, y);
 
 			}
 
