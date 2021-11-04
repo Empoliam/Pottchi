@@ -11,10 +11,11 @@ using namespace std;
 
 const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 5.0f;
-const float J[3][3] = {
-	{1000000.0f, 1000000.0f, 1000000.0f},
-	{1000000.0f, 0.0f, 50.0f},
-	{1000000.0f, 50.0f, 20.0f}
+const float J[4][4] = {
+	{1000000.0f, 1000000.0f,	1000000.0f, 1000000.0f},
+	{1000000.0f, 0.0f,			0.0f,		50.0f},
+	{1000000.0f, 0.0f,			0.0f,		50.0f},
+	{1000000.0f, 50.0f,			50.0f,		50.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
@@ -203,7 +204,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	Cell& origin = internalGrid[x][y];
 	Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
-	if (swap.getType() != CELL_TYPE::BOUNDARY() &&
+	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
 		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY);
@@ -217,27 +218,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 	return 0;
 
-}
-
-int SquareCellGrid::printGrid(SDL_Renderer* renderer, int pixelSize) {
-
-	for (int y = 0; y < boundaryHeight; y++) {
-		for (int x = 0; x < boundaryWidth; x++) {
-
-			vector<int> colour = internalGrid[x][y].getColour();
-
-			SDL_Rect rect = { x * pixelSize, y * pixelSize, pixelSize, pixelSize };
-
-			SDL_SetRenderDrawColor(renderer, colour[0], colour[1], colour[2], colour[3]);
-			SDL_RenderFillRect(renderer, &rect);
-
-		}
-
-	}
-
-	SDL_RenderPresent(renderer);
-
-	return 0;
 }
 
 Cell& SquareCellGrid::getCell(int row, int col) {

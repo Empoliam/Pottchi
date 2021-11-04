@@ -51,6 +51,8 @@ int main(int argc, char* argv[]) {
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
+	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0);
+	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 0, 0, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 	
@@ -113,7 +115,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
-	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 1000));
+	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 1600));
 
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 

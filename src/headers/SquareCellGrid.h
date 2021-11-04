@@ -34,8 +34,6 @@ public:
 
 	int moveCell(int x, int y);
 
-	int printGrid(SDL_Renderer* renderer, int pixelSize);
-
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
