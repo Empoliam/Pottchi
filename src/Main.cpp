@@ -15,12 +15,12 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 
-int PIXEL_SCALE;
-int MAX_ITERATIONS;
-int SIM_WIDTH;
-int SIM_HEIGHT;
-int SIM_DELAY;
-int RENDER_FPS;
+unsigned int PIXEL_SCALE;
+unsigned int MAX_ITERATIONS;
+unsigned int SIM_WIDTH;
+unsigned int SIM_HEIGHT;
+unsigned int SIM_DELAY;
+unsigned int RENDER_FPS;
 
 const float pDiv = 0.000001f;
 
@@ -117,7 +117,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 1600));
 
-	for (int i = 0; i < MAX_ITERATIONS; i++) {
+	for (unsigned int i = 0; i < MAX_ITERATIONS; i++) {
 
 		int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
 		int y = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
@@ -161,12 +161,12 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxI,i", po::value<int>()->default_value(10000000), "Maximum iterations")
-			("pixel,p", po::value<int>()->default_value(10), "Pixels per cell")
-			("height,h", po::value<int>()->default_value(75), "Simulation space height")
-			("width,w", po::value<int>()->default_value(75), "Simulation space width")
-			("delay,d", po::value<int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
-			("fps,f", po::value<int>()->default_value(24), "Simulation target fps, default 24");
+			("maxI,i", po::value<unsigned int>()->default_value(10000000), "Maximum iterations")
+			("pixel,p", po::value<unsigned int>()->default_value(10), "Pixels per cell")
+			("height,h", po::value<unsigned int>()->default_value(75), "Simulation space height")
+			("width,w", po::value<unsigned int>()->default_value(75), "Simulation space width")
+			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
+			("fps,f", po::value<unsigned int>()->default_value(24), "Simulation target fps, default 24");
 
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
@@ -178,27 +178,27 @@ int simInit(int argc, char* argv[]) {
 		}
 
 		if (vm.count("maxI")) {
-			MAX_ITERATIONS = vm["maxI"].as<int>();
+			MAX_ITERATIONS = vm["maxI"].as<unsigned int>();
 		}
 
 		if (vm.count("pixel")) {
-			PIXEL_SCALE = vm["pixel"].as<int>();
+			PIXEL_SCALE = vm["pixel"].as<unsigned int>();
 		}
 
 		if (vm.count("height")) {
-			SIM_HEIGHT = vm["height"].as<int>();
+			SIM_HEIGHT = vm["height"].as<unsigned int>();
 		}
 
 		if (vm.count("width")) {
-			SIM_WIDTH = vm["width"].as<int>();
+			SIM_WIDTH = vm["width"].as<unsigned int>();
 		}
 
 		if (vm.count("delay")) {
-			SIM_DELAY = vm["delay"].as<int>();
+			SIM_DELAY = vm["delay"].as<unsigned int>();
 		}
 
 		if (vm.count("fps")) {
-			RENDER_FPS = vm["fps"].as<int>();
+			RENDER_FPS = vm["fps"].as<unsigned int>();
 		}
 
 		return 0;
