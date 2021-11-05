@@ -88,6 +88,10 @@ void SuperCell::changeVolume(int i, int delta) {
 	superCells[i].volume += delta;
 }
 
+void SuperCell::setVolume(int i, int v) {
+	superCells[i].volume = v;
+}
+
 int SuperCell::getVolume(int i) {
 	return superCells[i].volume;
 }
