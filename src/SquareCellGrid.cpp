@@ -13,9 +13,9 @@ const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 5.0f;
 const float J[4][4] = {
 	{1000000.0f, 1000000.0f,	1000000.0f, 1000000.0f},
+	{1000000.0f, 0.0f,			0.0f,		0.0f},
 	{1000000.0f, 0.0f,			0.0f,		50.0f},
-	{1000000.0f, 0.0f,			0.0f,		50.0f},
-	{1000000.0f, 50.0f,			50.0f,		50.0f}
+	{1000000.0f, 50.0f,			50.0f,		25.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {

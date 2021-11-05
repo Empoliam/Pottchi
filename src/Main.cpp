@@ -16,13 +16,13 @@
 #include "./headers/RandomNumberGenerators.h"
 
 unsigned int PIXEL_SCALE;
-unsigned int MAX_ITERATIONS;
+unsigned int MAX_MCS;
 unsigned int SIM_WIDTH;
 unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
-const float pDiv = 0.000001f;
+const float pDiv = 0.01f;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -115,14 +115,24 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
-	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 1600));
+	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 3200));
 
-	for (unsigned int i = 0; i < MAX_ITERATIONS; i++) {
+	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
 
-		int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
-		int y = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
-		bool success = grid.moveCell(x, y);
+		for (unsigned int i = 0; i < iMCS; i++) {
+
+			int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+			int y = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+
+			bool success = grid.moveCell(x, y);
+
+			if (done) {
+				break;
+			}
+
+		}
 
 		for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
@@ -140,11 +150,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		}
 
+		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
+
 		if (done) {
 			break;
 		}
-
-		if (SIM_DELAY != 0 && i % 1000 == 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 	}
 
@@ -161,10 +171,10 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxI,i", po::value<unsigned int>()->default_value(10000000), "Maximum iterations")
-			("pixel,p", po::value<unsigned int>()->default_value(10), "Pixels per cell")
-			("height,h", po::value<unsigned int>()->default_value(75), "Simulation space height")
-			("width,w", po::value<unsigned int>()->default_value(75), "Simulation space width")
+			("maxMCS,i", po::value<unsigned int>()->default_value(1600), "Number of MCS")
+			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
+			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
+			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
 			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
 			("fps,f", po::value<unsigned int>()->default_value(24), "Simulation target fps, default 24");
 
@@ -177,8 +187,8 @@ int simInit(int argc, char* argv[]) {
 			return 1;
 		}
 
-		if (vm.count("maxI")) {
-			MAX_ITERATIONS = vm["maxI"].as<unsigned int>();
+		if (vm.count("maxMCS")) {
+			MAX_MCS = vm["maxMCS"].as<unsigned int>();
 		}
 
 		if (vm.count("pixel")) {
