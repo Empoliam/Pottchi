@@ -15,7 +15,7 @@ const float J[4][4] = {
 	{1000000.0f, 1000000.0f,	1000000.0f, 1000000.0f},
 	{1000000.0f, 0.0f,			0.0f,		0.0f},
 	{1000000.0f, 0.0f,			0.0f,		50.0f},
-	{1000000.0f, 50.0f,			50.0f,		25.0f}
+	{1000000.0f, 50.0f,			50.0f,		40.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {

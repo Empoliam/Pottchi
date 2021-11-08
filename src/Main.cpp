@@ -124,7 +124,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		for (unsigned int i = 0; i < iMCS; i++) {
 
 			int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
-			int y = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+			int y = RandomNumberGenerators::rUnifInt(1, grid.interiorHeight);
 
 			bool success = grid.moveCell(x, y);
 
@@ -174,7 +174,7 @@ int simInit(int argc, char* argv[]) {
 			("maxMCS,i", po::value<unsigned int>()->default_value(1600), "Number of MCS")
 			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
-			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
+			("width,w", po::value<unsigned int>()->default_value(50), "Simulation space width")
 			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
 			("fps,f", po::value<unsigned int>()->default_value(24), "Simulation target fps, default 24");
 
