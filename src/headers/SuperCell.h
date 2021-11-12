@@ -15,6 +15,10 @@ public:
 	static void increaseGeneration(int i);
 	static void setGeneration(int i, int gen);
 
+	static int getMCS(int c);
+	static void setMCS(int c, int i);
+	static void increaseMCS();
+
 	static int getTargetVolume(int i);
 	static void setTargetVolume(int i, int target);
 
@@ -38,6 +42,8 @@ private:
 	int targetVolume;
 	int volume = 0;
 	
+	int lastDivMCS = 0;
+
 	CELL_TYPE type;
 
 	SuperCell(CELL_TYPE type, int generation, int targetVolume);

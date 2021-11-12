@@ -172,6 +172,9 @@ int SquareCellGrid::divideCell(int c) {
 	SuperCell::increaseGeneration(c);
 	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c));
 
+	SuperCell::setMCS(c, 0);
+	SuperCell::setMCS(newSuperCell, 0);
+
 	for (unsigned int c = 0; c < newList.size(); c++) {
 		Vector2D<int>& V = newList[c];
 		setCell(V[0], V[1], newSuperCell);

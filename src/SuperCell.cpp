@@ -50,6 +50,20 @@ void SuperCell::setGeneration(int i, int gen) {
 	superCells[i].generation = gen;
 }
 
+int SuperCell::getMCS(int c) {
+	return superCells[c].lastDivMCS;
+}
+
+void SuperCell::setMCS(int c, int i) {
+	superCells[c].lastDivMCS = i;
+}
+
+void SuperCell::increaseMCS() {
+	for (int x = 0; x < superCells.size(); x++) {
+		superCells[x].lastDivMCS++;
+	}
+}
+
 int SuperCell::getTargetVolume(int i) {
 	return superCells[i].targetVolume;
 }

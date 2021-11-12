@@ -22,7 +22,8 @@ unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
-const float pDiv = 0.01f;
+const float pDiv = 0.1f;
+const float mcsDivTarget = 100.0f;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -85,7 +86,7 @@ int main(int argc, char* argv[]) {
 
 				if (tickDelta > 1000 / RENDER_FPS) {
 
-					cout << "fps: " << (float)1000 / tickDelta << "\n";
+					//cout << "fps: " << (float)1000 / tickDelta << "\n";
 					tickB = tickA;
 					printGrid(renderer, texture, grid);
 
@@ -138,10 +139,12 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
 
-				float divProb = pDiv * ((float)SuperCell::getVolume(c) / (float)(float)SuperCell::getTargetVolume(c));
-
+				float divProb = pDiv * (float) pow(((float)SuperCell::getMCS(c) / mcsDivTarget),3);
+								
 				if (RandomNumberGenerators::rUnifProb() <= divProb) {
-
+					
+					cout << SuperCell::getMCS(c) << endl;
+					cout << divProb << endl;
 					grid.cleaveCell(c);
 
 				}
@@ -155,6 +158,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		if (done) {
 			break;
 		}
+
+		SuperCell::increaseMCS();
 
 	}
 
