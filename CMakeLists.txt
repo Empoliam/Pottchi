@@ -17,3 +17,5 @@ add_executable (HumanBlastocyst ${SRC} ${HDR})
 find_package(SDL2 CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 target_link_libraries(HumanBlastocyst PRIVATE SDL2::SDL2 SDL2::SDL2main ${Boost_LIBRARIES})
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
