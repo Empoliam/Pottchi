@@ -1,6 +1,7 @@
 #include "./headers/SquareCellGrid.h"
 
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <random>
 #include <math.h>
