@@ -10,13 +10,15 @@
 
 using namespace std;
 
+const float  PI_F = 3.14159265358979f;
+
 const float BOLTZ_TEMP = 10.0f;
 const float LAMBDA = 5.0f;
 const float J[4][4] = {
 	{1000000.0f, 1000000.0f,	1000000.0f, 1000000.0f},
 	{1000000.0f, 0.0f,			0.0f,		0.0f},
 	{1000000.0f, 0.0f,			0.0f,		50.0f},
-	{1000000.0f, 50.0f,			50.0f,		40.0f}
+	{1000000.0f, 50.0f,			50.0f,		30.0f}
 };
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
@@ -184,10 +186,72 @@ int SquareCellGrid::divideCell(int c) {
 
 }
 
+int SquareCellGrid::divideCellRandomAxis(int c) {
+
+	int minX = interiorWidth;
+	int minY = interiorHeight;
+	int maxX = 1;
+	int maxY = 1;
+
+	vector<Vector2D<int>> cellList;
+	vector<Vector2D<int>> newList;
+
+	for (int X = 1; X <= interiorWidth; X++) {
+		for (int Y = 1; Y <= interiorHeight; Y++) {
+
+			if (internalGrid[X][Y].getSuperCell() == c) {
+
+				cellList.push_back(Vector2D<int>(X, Y));
+
+				if (X < minX) minX = X;
+				if (X > maxX) maxX = X;
+				if (Y < minY) minY = Y;
+				if (Y > maxY) maxY = Y;
+
+			}
+
+		}
+	}
+
+	if (cellList.size() <= 1) {
+		return -1;
+	}
+
+	int midX = (int)(0.5 * (minX + maxX));
+	int midY = (int)(0.5 * (minY + maxY));
+
+	int gradM = RandomNumberGenerators::rUnifInt(-89, 89);
+	float grad = tan(gradM*PI_F/180.f);
+
+	cout << gradM << endl;
+
+	for (unsigned int k = 0; k < cellList.size(); k++) {
+		if (cellList[k][1] > grad*(cellList[k][0]-midX)+midY) {
+			newList.push_back(cellList[k]);
+		}
+	}
+
+	SuperCell::increaseGeneration(c);
+	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c));
+
+	SuperCell::setMCS(c, 0);
+	SuperCell::setMCS(newSuperCell, 0);
+
+	for (unsigned int c = 0; c < newList.size(); c++) {
+		Vector2D<int>& V = newList[c];
+		setCell(V[0], V[1], newSuperCell);
+	}
+
+	return newSuperCell;
+
+}
+
 int SquareCellGrid::cleaveCell(int c) {
 
 	int superCellA = c;
-	int superCellB = divideCell(c);
+	int superCellB = divideCellRandomAxis(c);
+
+	if (superCellB == -1) return -1;
 
 	int newTargetVolume = SuperCell::getTargetVolume(c) / 2;
 
@@ -201,7 +265,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
 
-	int r = RandomNumberGenerators::rUnifInt(0, neighbours.size() - 1);
+	int r = RandomNumberGenerators::rUnifInt(0, (int)neighbours.size() - 1);
 
 	int targetX = neighbours[r][0];
 	int targetY = neighbours[r][1];

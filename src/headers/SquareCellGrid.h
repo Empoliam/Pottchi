@@ -30,6 +30,7 @@ public:
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
 	int divideCell(int c);
+	int divideCellRandomAxis(int c);
 	int cleaveCell(int c);
 
 	int moveCell(int x, int y);

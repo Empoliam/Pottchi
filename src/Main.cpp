@@ -26,8 +26,10 @@ unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
-const float mcsDivTarget = 1000.0f;
-const float stdevDivTarget = 25.0f;
+const float MCS_HOUR_EST = 1000.0f;
+
+const float mcsDivTarget = 12*MCS_HOUR_EST;
+const float stdevDivTarget = MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -125,8 +127,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int targetInitCellsSqrt = (int)sqrt(targetInitCells);
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 3200);
 
-	cout << newSuperCell;
-
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
 		
@@ -154,7 +154,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
+			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 6) {
 
 				float divProb = normCDF((SuperCell::getMCS(c) - mcsDivTarget)/stdevDivTarget);
 								
@@ -193,7 +193,7 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value(5000), "Number of MCS")
+			("maxMCS,i", po::value<unsigned int>()->default_value((int) (3*24*MCS_HOUR_EST)), "Number of MCS")
 			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
