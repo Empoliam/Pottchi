@@ -4,6 +4,10 @@
 #include <iostream>
 #include <atomic>
 #include <thread>
+#include <math.h>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include <boost/program_options.hpp>
 
@@ -22,8 +26,8 @@ unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
-const float pDiv = 0.1f;
-const float mcsDivTarget = 100.0f;
+const float mcsDivTarget = 1000.0f;
+const float stdevDivTarget = 25.0f;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -31,6 +35,7 @@ using namespace std;
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid);
+float normCDF(float i);
 
 int main(int argc, char* argv[]) {
 
@@ -116,8 +121,20 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
-	grid.setCell(midX, midY, SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 3200));
+	int targetInitCells = 3200;
+	int targetInitCellsSqrt = (int)sqrt(targetInitCells);
+	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 3200);
 
+	cout << newSuperCell;
+
+	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
+		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
+		
+			grid.setCell(x, y, newSuperCell);
+
+		}
+	}
+	
 	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
 
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
@@ -139,7 +156,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
 
-				float divProb = pDiv * (float) pow(((float)SuperCell::getMCS(c) / mcsDivTarget),3);
+				float divProb = normCDF((SuperCell::getMCS(c) - mcsDivTarget)/stdevDivTarget);
 								
 				if (RandomNumberGenerators::rUnifProb() <= divProb) {
 					
@@ -176,7 +193,7 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value(1600), "Number of MCS")
+			("maxMCS,i", po::value<unsigned int>()->default_value(5000), "Number of MCS")
 			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
@@ -240,4 +257,8 @@ int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid
 
 	return 0;
 
+}
+
+float normCDF(float i) {
+	return  0.5f * (float) erfc(-i*M_SQRT1_2);
 }
