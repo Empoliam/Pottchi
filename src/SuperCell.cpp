@@ -64,6 +64,14 @@ void SuperCell::increaseMCS() {
 	}
 }
 
+int SuperCell::getNextDiv(int c) {
+	return superCells[c].nextDivMCS;
+}
+
+void SuperCell::setNextDiv(int c, int i) {
+	superCells[c].nextDivMCS = i;
+}
+
 int SuperCell::getTargetVolume(int i) {
 	return superCells[i].targetVolume;
 }

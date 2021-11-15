@@ -18,6 +18,8 @@ public:
 	static int getMCS(int c);
 	static void setMCS(int c, int i);
 	static void increaseMCS();
+	static int getNextDiv(int c);
+	static void setNextDiv(int c, int i);
 
 	static int getTargetVolume(int i);
 	static void setTargetVolume(int i, int target);
@@ -43,6 +45,7 @@ private:
 	int volume = 0;
 	
 	int lastDivMCS = 0;
+	int nextDivMCS = 9999999;
 
 	CELL_TYPE type;
 

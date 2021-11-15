@@ -28,8 +28,10 @@ unsigned int RENDER_FPS;
 
 const float MCS_HOUR_EST = 1000.0f;
 
-const float mcsDivTarget = 12*MCS_HOUR_EST;
-const float stdevDivTarget = MCS_HOUR_EST;
+const int TARGET_INIT_CELLS = 3200;
+
+const float MCS_DIV_TARGET = 12*MCS_HOUR_EST;
+const float DIV_TARGET_SDEV = MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -120,12 +122,14 @@ int main(int argc, char* argv[]) {
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
+	bool compacted = false;
+
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
-	int targetInitCells = 3200;
-	int targetInitCellsSqrt = (int)sqrt(targetInitCells);
-	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, 3200);
+	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
+	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS);
+	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,DIV_TARGET_SDEV));
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -154,15 +158,15 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 6) {
-
-				float divProb = normCDF((SuperCell::getMCS(c) - mcsDivTarget)/stdevDivTarget);
+			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
 								
-				if (RandomNumberGenerators::rUnifProb() <= divProb) {
+				if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 					
 					cout << SuperCell::getMCS(c) << endl;
-					cout << divProb << endl;
-					grid.cleaveCell(c);
+					int newSuper = grid.cleaveCell(c);
+
+					SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, DIV_TARGET_SDEV));
+					SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, DIV_TARGET_SDEV));
 
 				}
 
