@@ -26,7 +26,7 @@ unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
-const float MCS_HOUR_EST = 1000.0f;
+const float MCS_HOUR_EST = 500.0f;
 
 const int TARGET_INIT_CELLS = 3200;
 
@@ -160,35 +160,39 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		}
 
-		for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
-
-			if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
-								
-				if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
-					
-					cout << SuperCell::getMCS(c) << endl;
-					int newSuper = grid.cleaveCell(c);
-
-					SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
-					SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
-
-				}
-
-			}
-
-		}
-
-		if (!compacted && m >= compactionTime) {
+		if (!compacted) {
 			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-				if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
-					SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
-					cout << "compact" << endl;
-					compacted = true;
+				if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
+
+					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
+
+						cout << SuperCell::getMCS(c) << endl;
+						int newSuper = grid.cleaveCell(c);
+
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
+
+					}
+
 				}
 
 			}
-		}
+
+			if (m >= compactionTime) {
+				for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
+
+					if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
+						SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
+
+					}
+
+				}
+				cout << "compact" << endl;
+				compacted = true;
+			}
+
+		}	
 
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
