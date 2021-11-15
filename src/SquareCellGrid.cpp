@@ -245,7 +245,7 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 int SquareCellGrid::cleaveCell(int c) {
 
 	int superCellA = c;
-	int superCellB = divideCellRandomAxis(c);
+	int superCellB = divideCell(c);
 
 	if (superCellB == -1) return -1;
 

@@ -72,8 +72,8 @@ void SuperCell::setNextDiv(int c, int i) {
 	superCells[c].nextDivMCS = i;
 }
 
-int SuperCell::getTargetVolume(int i) {
-	return superCells[i].targetVolume;
+int SuperCell::getTargetVolume(int c) {
+	return superCells[c].targetVolume;
 }
 
 void SuperCell::setTargetVolume(int i, int target) {
@@ -82,13 +82,15 @@ void SuperCell::setTargetVolume(int i, int target) {
 
 }
 
-CELL_TYPE SuperCell::getCellType(int i)
-{
-	return superCells[i].type;
+CELL_TYPE SuperCell::getCellType(int c) {
+	return superCells[c].type;
 }
 
-int SuperCell::getCounter()
-{
+void SuperCell::setCellType(int c, CELL_TYPE t) {
+	superCells[c].type = t;
+}
+
+int SuperCell::getCounter() {
 	return idCounter;
 }
 

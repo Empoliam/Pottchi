@@ -31,7 +31,10 @@ const float MCS_HOUR_EST = 1000.0f;
 const int TARGET_INIT_CELLS = 3200;
 
 const float MCS_DIV_TARGET = 12*MCS_HOUR_EST;
-const float DIV_TARGET_SDEV = MCS_HOUR_EST;
+const float SD_DIV_TARGET = 0.5*MCS_HOUR_EST;
+
+const float MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
+const float SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -121,15 +124,16 @@ int main(int argc, char* argv[]) {
 }
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
-
-	bool compacted = false;
-
+	
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS);
-	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,DIV_TARGET_SDEV));
+	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
+
+	bool compacted = false;
+	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_COMPACT_TARGET,SD_COMPACT_TARGET);
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -165,13 +169,25 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 					cout << SuperCell::getMCS(c) << endl;
 					int newSuper = grid.cleaveCell(c);
 
-					SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, DIV_TARGET_SDEV));
-					SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, DIV_TARGET_SDEV));
+					SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
+					SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
 
 				}
 
 			}
 
+		}
+
+		if (!compacted && m >= compactionTime) {
+			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
+
+				if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
+					SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
+					cout << "compact" << endl;
+					compacted = true;
+				}
+
+			}
 		}
 
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
@@ -197,7 +213,7 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value((int) (3*24*MCS_HOUR_EST)), "Number of MCS")
+			("maxMCS,i", po::value<unsigned int>()->default_value((int) (4*24*MCS_HOUR_EST)), "Number of MCS")
 			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")

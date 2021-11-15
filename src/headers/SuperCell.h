@@ -21,14 +21,15 @@ public:
 	static int getNextDiv(int c);
 	static void setNextDiv(int c, int i);
 
-	static int getTargetVolume(int i);
+	static int getTargetVolume(int c);
 	static void setTargetVolume(int i, int target);
 
 	static void changeVolume(int i, int delta);
 	static void setVolume(int i, int v);
 	static int getVolume(int i);
 	
-	static CELL_TYPE getCellType(int i);
+	static CELL_TYPE getCellType(int c);
+	static void setCellType(int c, CELL_TYPE t);
 
 	static int getCounter();
 
