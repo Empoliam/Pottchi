@@ -19,7 +19,7 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume) {
 	if (type == CELL_TYPE::GENERIC) {
 
 		int r = RandomNumberGenerators::rUnifInt(150, 255);
-		int gb = RandomNumberGenerators::rUnifInt(0, 100);
+		int gb = RandomNumberGenerators::rUnifInt(0, 75);
 
 		this->colour[0] = r;
 		this->colour[1] = gb;

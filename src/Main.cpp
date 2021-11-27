@@ -30,11 +30,17 @@ const float MCS_HOUR_EST = 500.0f;
 
 const int TARGET_INIT_CELLS = 3200;
 
+//Target time morula cell division spacing
 const float MCS_DIV_TARGET = 12*MCS_HOUR_EST;
 const float SD_DIV_TARGET = 0.5*MCS_HOUR_EST;
 
+//Target time of compaction
 const float MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
 const float SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
+
+//Target time of intiial differentiation
+const float MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
+const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -125,6 +131,14 @@ int main(int argc, char* argv[]) {
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	
+	//Target times for key events
+	bool compacted = false;
+	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_COMPACT_TARGET, SD_COMPACT_TARGET);
+
+	bool differentationA = false;
+	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
+
+	//Initial cell setup
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
@@ -132,8 +146,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS);
 	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
 
-	bool compacted = false;
-	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_COMPACT_TARGET,SD_COMPACT_TARGET);
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -143,10 +155,13 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		}
 	}
 	
+	//Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
 
+	//Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
+		//Monte Carlo Step
 		for (unsigned int i = 0; i < iMCS; i++) {
 
 			int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
@@ -160,6 +175,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		}
 
+		//Morula division stage
 		if (!compacted) {
 			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
@@ -167,7 +183,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
-						cout << SuperCell::getMCS(c) << endl;
+						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 						int newSuper = grid.cleaveCell(c);
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
@@ -179,27 +195,42 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 			}
 
+			//Compaction stage
 			if (m >= compactionTime) {
 				for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
 					if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
+						
 						SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
 
 					}
 
 				}
-				cout << "compact" << endl;
+				cout << "Compaction at: " << m << endl;
 				compacted = true;
 			}
 
 		}	
 
+		if (compacted && !differentationA) {
+				
+			if (m >= differentiationTime) {
+
+				cout << "Differentiation at: " << m << endl;
+				differentationA = true;
+
+			}
+
+		}
+
+		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 		if (done) {
 			break;
 		}
 
+		//Increase MCS count for each cell
 		SuperCell::increaseMCS();
 
 	}
@@ -217,7 +248,7 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value((int) (4*24*MCS_HOUR_EST)), "Number of MCS")
+			("maxMCS,i", po::value<unsigned int>()->default_value((int) (7*24*MCS_HOUR_EST)), "Number of MCS")
 			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
