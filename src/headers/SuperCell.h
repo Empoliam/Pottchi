@@ -34,8 +34,9 @@ public:
 	static int getCounter();
 
 	static void setColour(int i, int r, int g, int b, int a);
+	static void setColour(int i, std::vector<int> col);
 	static std::vector<int> getColour(int i);
-
+	static std::vector<int> generateNewColour(CELL_TYPE c);
 	
 
 private:

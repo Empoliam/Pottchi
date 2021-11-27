@@ -21,6 +21,7 @@ public:
 	void setSuperCell(int i);
 
 	CELL_TYPE getType() const;
+	void setType(CELL_TYPE t);
 
 	int getGeneration()const;
 	void increaseGeneration();
@@ -31,6 +32,7 @@ public:
 	int getVolume() const;
 
 	std::vector<int> getColour() const;
+	void generateNewColour();
 
 	char toChar() const;
 

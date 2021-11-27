@@ -26,6 +26,9 @@ CELL_TYPE Cell::getType() const {
 	return SuperCell::getCellType(superCell);
 }
 
+void Cell::setType(CELL_TYPE t) {
+	SuperCell::setCellType(superCell, t);
+}
 
 int Cell::getGeneration() const {
 	return SuperCell::getGeneration(superCell);
@@ -53,6 +56,10 @@ int Cell::getVolume() const{
 
 std::vector<int> Cell::getColour() const {
 	return SuperCell::getColour(superCell);
+}
+
+void Cell::generateNewColour() {
+	SuperCell::setColour(superCell, SuperCell::generateNewColour(getType()));
 }
 
 char Cell::toChar() const {

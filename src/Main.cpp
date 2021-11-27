@@ -155,6 +155,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		}
 	}
 	
+	grid.fullTextureRefresh();
+
 	//Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
 
@@ -185,6 +187,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 						int newSuper = grid.cleaveCell(c);
+						grid.fullTextureRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
@@ -217,7 +220,47 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			if (m >= differentiationTime) {
 
 				cout << "Differentiation at: " << m << endl;
+				
+				for (int y = 1; y <= grid.interiorHeight; y++) {
+					for (int x = 1; x <= grid.interiorWidth; x++) {
+
+						Cell& c = grid.getCell(x, y);
+
+						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
+							
+							auto N = grid.getNeighbours(x,y,CELL_TYPE::EMPTYSPACE);
+							
+							if (!N.empty()) {
+																
+								c.setType(CELL_TYPE::TROPHECTODERM);
+								c.generateNewColour();
+
+							}
+
+						}
+
+					}
+
+				}
+
+				for (int y = 1; y <= grid.interiorHeight; y++) {
+					for (int x = 1; x <= grid.interiorWidth; x++) {
+
+						Cell& c = grid.getCell(x, y);
+
+						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
+
+							c.setType(CELL_TYPE::ICM);
+							c.generateNewColour();
+							
+						}
+
+					}
+
+				}
+
 				differentationA = true;
+				grid.fullTextureRefresh();
 
 			}
 
@@ -253,7 +296,7 @@ int simInit(int argc, char* argv[]) {
 			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
 			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
-			("fps,f", po::value<unsigned int>()->default_value(24), "Simulation target fps, default 24");
+			("fps,f", po::value<unsigned int>()->default_value(30), "Simulation target fps, default 24");
 
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
@@ -301,9 +344,7 @@ int simInit(int argc, char* argv[]) {
 }
 
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid) {
-
-	grid.fullTextureRefresh();
-
+	
 	std::vector<unsigned char> pixels = grid.getPixels();
 
 	SDL_UpdateTexture(texture, NULL, pixels.data(), grid.boundaryWidth * 4);

@@ -16,21 +16,7 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume) {
 	this->generation = generation;
 	this->targetVolume = targetVolume;
 
-	if (type == CELL_TYPE::GENERIC) {
-
-		int r = RandomNumberGenerators::rUnifInt(150, 255);
-		int gb = RandomNumberGenerators::rUnifInt(0, 75);
-
-		this->colour[0] = r;
-		this->colour[1] = gb;
-		this->colour[2] = gb;
-		this->colour[3] = 255;
-	} else {
-		this->colour[0] = RandomNumberGenerators::rUnifInt(0, 255);
-		this->colour[1] = RandomNumberGenerators::rUnifInt(0, 255);
-		this->colour[2] = RandomNumberGenerators::rUnifInt(0, 255);
-		this->colour[3] = 255;
-	}
+	this->colour = generateNewColour(type);
 
 }
 
@@ -105,7 +91,6 @@ int SuperCell::getCounter() {
 	return idCounter;
 }
 
-
 void SuperCell::setColour(int i, int r, int g, int b, int a) {
 	SuperCell& C = superCells[i];
 	C.colour[0] = b;
@@ -115,8 +100,57 @@ void SuperCell::setColour(int i, int r, int g, int b, int a) {
 
 }
 
+void SuperCell::setColour(int i, std::vector<int> col) {
+	superCells[i].colour = col;
+}
+
 std::vector<int> SuperCell::getColour(int i) {
 	return superCells[i].colour;
+}
+
+std::vector<int> SuperCell::generateNewColour(CELL_TYPE c) {
+
+	std::vector<int> newCol = std::vector<int>(4, 0);
+
+	if (c == CELL_TYPE::GENERIC) {
+
+		int r = RandomNumberGenerators::rUnifInt(150, 255);
+		int gb = RandomNumberGenerators::rUnifInt(0, 75);
+
+		newCol[0] = r;
+		newCol[1] = gb;
+		newCol[2] = gb;
+		newCol[3] = 255;
+	}
+	else if (c == CELL_TYPE::TROPHECTODERM) {
+
+		int b = RandomNumberGenerators::rUnifInt(150, 255);
+		int rg = RandomNumberGenerators::rUnifInt(0, 75);
+
+		newCol[0] = rg;
+		newCol[1] = rg;
+		newCol[2] = b;
+		newCol[3] = 255;
+	}
+	else if (c == CELL_TYPE::ICM) {
+
+		int g = RandomNumberGenerators::rUnifInt(150, 255);
+		int rb = RandomNumberGenerators::rUnifInt(0, 75);
+
+		newCol[0] = rb;
+		newCol[1] = g;
+		newCol[2] = rb;
+		newCol[3] = 255;
+	}
+	else {
+		newCol[0] = RandomNumberGenerators::rUnifInt(0, 255);
+		newCol[1] = RandomNumberGenerators::rUnifInt(0, 255);
+		newCol[2] = RandomNumberGenerators::rUnifInt(0, 255);
+		newCol[3] = 255;
+	}
+
+	return newCol;
+
 }
 
 void SuperCell::changeVolume(int i, int delta) {

@@ -276,7 +276,11 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
-			return 1;
+			
+			localTextureRefresh(x, y);
+			localTextureRefresh(targetX, targetY);
+
+			return 1;	
 		}
 
 	}
@@ -311,8 +315,8 @@ float SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int 
 
 		int nSuper = neighbours[i]->getSuperCell();
 
-		initH += J[(int)neighbours[i]->getType()][(int)dest.getType()] * (nSuper != destSuper);
-		postH += J[(int)neighbours[i]->getType()][(int)source.getType()] * (nSuper != sourceSuper);
+		initH += J[(int)dest.getType()][(int)neighbours[i]->getType()] * (nSuper != destSuper);
+		postH += J[(int)source.getType()][(int)neighbours[i]->getType()] * (nSuper != sourceSuper);
 
 	}
 
@@ -336,6 +340,7 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 
 	float deltaH = 0.0f;
 
+	//Prevent medium volume from affecting energy
 	if (sourceSuper == (int)CELL_TYPE::EMPTYSPACE) {
 
 		deltaH = (float)pow(destVol - 1 - destTarget, 2)- (float)pow(destVol - destTarget, 2);
@@ -366,7 +371,7 @@ void SquareCellGrid::fullTextureRefresh() {
 
 		for (int y = 0; y < boundaryHeight; y++) {
 
-			const unsigned pixOffset = (boundaryWidth * 4 * y) + x * 4;
+			const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
 			vector<int> colourIn = internalGrid[x][y].getColour();
 
 			if (colourIn.size() == 0) {
@@ -381,6 +386,22 @@ void SquareCellGrid::fullTextureRefresh() {
 		}
 
 	}
+
+}
+
+void SquareCellGrid::localTextureRefresh(int x, int y) {
+
+	const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
+	vector<int> colourIn = internalGrid[x][y].getColour();
+
+	if (colourIn.size() == 0) {
+		colourIn = { 0,0,0,0 };
+	}
+
+	pixels[pixOffset + 3] = (char)colourIn[0];
+	pixels[pixOffset + 2] = (char)colourIn[1];
+	pixels[pixOffset + 1] = (char)colourIn[2];
+	pixels[pixOffset + 0] = SDL_ALPHA_OPAQUE;
 
 }
 

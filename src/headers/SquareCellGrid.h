@@ -23,7 +23,6 @@ public:
 	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid);
 	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
-
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);	
 	
@@ -39,6 +38,7 @@ public:
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
 	void fullTextureRefresh();
+	void localTextureRefresh(int x, int y);
 	std::vector<unsigned char> getPixels();
 
 protected:
