@@ -65,11 +65,11 @@ int main(int argc, char* argv[]) {
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0);
-	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 0, 0, 255);
+	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
 	
-	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, grid.boundaryWidth, grid.boundaryHeight);
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid.boundaryWidth, grid.boundaryHeight);
 	printGrid(renderer, texture, grid);
 
 	std::atomic<bool> done(false);

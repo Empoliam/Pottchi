@@ -16,10 +16,21 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume) {
 	this->generation = generation;
 	this->targetVolume = targetVolume;
 
-	this->colour[0] = RandomNumberGenerators::rUnifInt(0, 255);
-	this->colour[1] = RandomNumberGenerators::rUnifInt(0, 255);
-	this->colour[2] = RandomNumberGenerators::rUnifInt(0, 255);
-	this->colour[3] = 255;
+	if (type == CELL_TYPE::GENERIC) {
+
+		int r = RandomNumberGenerators::rUnifInt(150, 255);
+		int gb = RandomNumberGenerators::rUnifInt(0, 100);
+
+		this->colour[0] = r;
+		this->colour[1] = gb;
+		this->colour[2] = gb;
+		this->colour[3] = 255;
+	} else {
+		this->colour[0] = RandomNumberGenerators::rUnifInt(0, 255);
+		this->colour[1] = RandomNumberGenerators::rUnifInt(0, 255);
+		this->colour[2] = RandomNumberGenerators::rUnifInt(0, 255);
+		this->colour[3] = 255;
+	}
 
 }
 

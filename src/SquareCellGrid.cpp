@@ -367,16 +367,16 @@ void SquareCellGrid::fullTextureRefresh() {
 		for (int y = 0; y < boundaryHeight; y++) {
 
 			const unsigned pixOffset = (boundaryWidth * 4 * y) + x * 4;
-			vector<int> colour = internalGrid[x][y].getColour();
+			vector<int> colourIn = internalGrid[x][y].getColour();
 
-			if (colour.size() == 0) {
-				colour = { 0,0,0,0 };
+			if (colourIn.size() == 0) {
+				colourIn = { 0,0,0,0 };
 			}
 
-			pixels[pixOffset + 0] = (char) colour[0];
-			pixels[pixOffset + 1] = (char) colour[1];
-			pixels[pixOffset + 2] = (char) colour[2];
-			pixels[pixOffset + 3] = SDL_ALPHA_OPAQUE;
+			pixels[pixOffset + 3] = (char) colourIn[0];
+			pixels[pixOffset + 2] = (char) colourIn[1];
+			pixels[pixOffset + 1] = (char) colourIn[2];
+			pixels[pixOffset + 0] = SDL_ALPHA_OPAQUE;
 
 		}
 
