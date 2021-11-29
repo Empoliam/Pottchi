@@ -26,6 +26,7 @@ unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
+//Number of MCS per real hour
 const float MCS_HOUR_EST = 500.0f;
 
 const int TARGET_INIT_CELLS = 3200;
@@ -41,6 +42,10 @@ const float SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
 //Target time of intiial differentiation
 const float MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
 const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
+
+//Fluid cell growth parameters
+const int TARGET_MAX_FLUID = 3200;
+const float TARGET_SCALE_FLUID = 48 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -137,6 +142,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	bool differentationA = false;
 	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
+
+	unsigned int fluidStartMCS;
+	int superCellFluid;
 
 	//Initial cell setup
 	int midX = SIM_WIDTH / 2;
@@ -259,10 +267,40 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 				}
 
+				bool fluidCreation = false;
+				while (!fluidCreation) {
+
+					int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
+					int y = RandomNumberGenerators::rUnifInt(1, grid.interiorHeight);
+
+					Cell& c = grid.getCell(x, y);
+
+					if (c.getType() == CELL_TYPE::ICM) {
+
+						superCellFluid = SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 50);
+						c.setSuperCell(superCellFluid);
+						SuperCell::setColour(superCellFluid, vector<int> {154, 102, 102, 255});
+						
+						fluidStartMCS = m;
+						fluidCreation = true;
+						
+					}
+
+				}
+
 				differentationA = true;
 				grid.fullTextureRefresh();
 
 			}
+
+		}
+
+		if (differentationA) {
+
+			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-fluidStartMCS)/(TARGET_SCALE_FLUID))))));
+			SuperCell::setTargetVolume(superCellFluid, newFluidVolume);
+
+			cout << newFluidVolume << endl;
 
 		}
 
