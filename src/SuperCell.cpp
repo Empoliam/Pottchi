@@ -31,10 +31,8 @@ int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int target
 
 }
 
-int SuperCell::makeNewSuperCell(Cell& c)
-{
-	int cSuper = c.getSuperCell();
-	return SuperCell::makeNewSuperCell(SuperCell::getCellType(cSuper), SuperCell::getGeneration(cSuper), SuperCell::getTargetVolume(cSuper), SuperCell::getTargetSurface(cSuper));
+int SuperCell::makeNewSuperCell(int sC){
+	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC), SuperCell::getTargetSurface(sC));
 }
 
 int SuperCell::getID(int i) {

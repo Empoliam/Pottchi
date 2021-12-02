@@ -4,14 +4,12 @@
 #include <vector>
 #include "Cell.h"
 
-class Cell;
-
 class SuperCell {
 
 public:
 	
 	static int makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface);
-	static int makeNewSuperCell(Cell& c);
+	static int makeNewSuperCell(int sC);
 
 	static int getID(int i);
 

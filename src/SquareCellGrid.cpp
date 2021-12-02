@@ -181,7 +181,7 @@ int SquareCellGrid::divideCell(int c) {
 	}
 
 	SuperCell::increaseGeneration(c);
-	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c), SuperCell::getTargetSurface(c));
+	int newSuperCell = SuperCell::makeNewSuperCell(c);
 
 	SuperCell::setMCS(c, 0);
 	SuperCell::setMCS(newSuperCell, 0);
@@ -241,7 +241,7 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	}
 
 	SuperCell::increaseGeneration(c);
-	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c), SuperCell::getTargetSurface(c));
+	int newSuperCell = SuperCell::makeNewSuperCell(c);
 
 	SuperCell::setMCS(c, 0);
 	SuperCell::setMCS(newSuperCell, 0);
