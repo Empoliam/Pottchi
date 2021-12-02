@@ -9,26 +9,32 @@ using namespace std;
 static vector<SuperCell> superCells = vector<SuperCell>();
 static int idCounter = 0;
 
-SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume) {
+SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface) {
 	
 	this->ID = idCounter;
 	this->type = type;
 	this->generation = generation;
 	this->targetVolume = targetVolume;
+	this->targetSurface = targetSurface;
 
 	this->colour = generateNewColour(type);
 
 }
 
-int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV) {
+int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface) {
 
 
-	SuperCell sc = SuperCell(type, gen, targetV);
+	SuperCell sc = SuperCell(type, gen, targetV, targetSurface);
 	superCells.push_back(sc);
-
 
 	return idCounter++;
 
+}
+
+int SuperCell::makeNewSuperCell(Cell& c)
+{
+	int cSuper = c.getSuperCell();
+	return SuperCell::makeNewSuperCell(SuperCell::getCellType(cSuper), SuperCell::getGeneration(cSuper), SuperCell::getTargetVolume(cSuper), SuperCell::getTargetSurface(cSuper));
 }
 
 int SuperCell::getID(int i) {
@@ -163,4 +169,30 @@ void SuperCell::setVolume(int i, int v) {
 
 int SuperCell::getVolume(int i) {
 	return superCells[i].volume;
+}
+
+void SuperCell::setTargetSurface(int c, int t) {
+
+	superCells[c].targetSurface = t;
+
+}
+
+int SuperCell::getTargetSurface(int c) {
+	return superCells[c].targetSurface;
+}
+
+void SuperCell::setSurface(int c, int l) {
+	
+	superCells[c].surface = l;
+
+}
+
+int SuperCell::getSurface(int c) {
+	return superCells[c].surface;
+}
+
+void SuperCell::increaseSurface(int c, int delta) {
+
+	superCells[c].surface += delta;
+
 }

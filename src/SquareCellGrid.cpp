@@ -118,6 +118,19 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 	return neighbours;
 }
 
+bool SquareCellGrid::checkSurface(int row, int col) {
+
+	Cell& c = internalGrid[row][col];
+
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			if (c.getSuperCell() != internalGrid[row + x][col + y].getSuperCell()) return true;
+		}
+	}
+
+	return false;
+}
+
 int SquareCellGrid::divideCell(int c) {
 
 	int minX = interiorWidth;
@@ -168,7 +181,7 @@ int SquareCellGrid::divideCell(int c) {
 	}
 
 	SuperCell::increaseGeneration(c);
-	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c));
+	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c), SuperCell::getTargetSurface(c));
 
 	SuperCell::setMCS(c, 0);
 	SuperCell::setMCS(newSuperCell, 0);
@@ -228,7 +241,7 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	}
 
 	SuperCell::increaseGeneration(c);
-	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c));
+	int newSuperCell = SuperCell::makeNewSuperCell(SuperCell::getCellType(c), SuperCell::getGeneration(c), SuperCell::getTargetVolume(c), SuperCell::getTargetSurface(c));
 
 	SuperCell::setMCS(c, 0);
 	SuperCell::setMCS(newSuperCell, 0);
@@ -250,9 +263,13 @@ int SquareCellGrid::cleaveCell(int c) {
 	if (superCellB == -1) return -1;
 
 	int newTargetVolume = SuperCell::getTargetVolume(c) / 2;
+	int newTargetSurface = (int)2 * sqrt(3.14159 * newTargetVolume);
 
 	SuperCell::setTargetVolume(superCellA, newTargetVolume);
 	SuperCell::setTargetVolume(superCellB, newTargetVolume);
+
+	SuperCell::setTargetSurface(superCellA, newTargetSurface);
+	SuperCell::setTargetSurface(superCellB, newTargetSurface);
 
 	return superCellB;
 }
@@ -286,6 +303,32 @@ int SquareCellGrid::moveCell(int x, int y) {
 	}
 
 	return 0;
+
+}
+
+void SquareCellGrid::recalculateCellSurfaces() {
+
+	for (int s = 0; s < SuperCell::getCounter(); s++) {
+
+		SuperCell::setSurface(s, 0);
+
+	}
+
+	for (int x = 1; x <= interiorWidth; x++) {
+
+		for (int y = 1; y <= interiorHeight; y++) {
+
+			Cell& c = internalGrid[x][y];
+
+			if (checkSurface(x, y)) {
+				
+				c.increaseSurface(1);
+
+			}
+
+		}
+
+	}
 
 }
 

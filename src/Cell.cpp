@@ -8,9 +8,9 @@ Cell::Cell(int superCell) {
 
 Cell::Cell() : Cell((int)CELL_TYPE::EMPTYSPACE) {}
 
-Cell::Cell(CELL_TYPE t, int targetVolume) {
+Cell::Cell(CELL_TYPE t, int targetVolume, int targetSurface) {
 
-	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume);
+	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume, targetSurface);
 
 }
 
@@ -52,6 +52,10 @@ int Cell::getTargetVolume() const {
 
 int Cell::getVolume() const{
 	return SuperCell::getVolume(superCell);
+}
+
+void Cell::increaseSurface(int delta) {
+	SuperCell::increaseSurface(superCell, delta);
 }
 
 std::vector<int> Cell::getColour() const {

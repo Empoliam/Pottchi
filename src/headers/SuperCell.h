@@ -2,12 +2,16 @@
 
 #include "CellTypes.h"
 #include <vector>
+#include "Cell.h"
+
+class Cell;
 
 class SuperCell {
 
 public:
 	
-	static int makeNewSuperCell(CELL_TYPE type, int gen, int targetV);
+	static int makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface);
+	static int makeNewSuperCell(Cell& c);
 
 	static int getID(int i);
 
@@ -28,6 +32,13 @@ public:
 	static void setVolume(int i, int v);
 	static int getVolume(int i);
 	
+	static void setTargetSurface(int c, int t);
+	static int getTargetSurface(int c);
+
+	static void setSurface(int c, int l);
+	static int getSurface(int c);
+	static void increaseSurface(int c, int delta);
+
 	static CELL_TYPE getCellType(int c);
 	static void setCellType(int c, CELL_TYPE t);
 
@@ -43,15 +54,19 @@ private:
 
 	int ID;
 	int generation;
+	
 	int targetVolume;
 	int volume = 0;
 	
+	int targetSurface;
+	int surface = 0;
+
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
 
 	CELL_TYPE type;
 
-	SuperCell(CELL_TYPE type, int generation, int targetVolume);
+	SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface);
 
 	std::vector<int> colour = std::vector<int>(4,0);
 

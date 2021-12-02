@@ -28,11 +28,15 @@ public:
 	
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
+	bool checkSurface(int row, int col);
+
 	int divideCell(int c);
 	int divideCellRandomAxis(int c);
 	int cleaveCell(int c);
 
 	int moveCell(int x, int y);
+
+	void recalculateCellSurfaces();
 
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);

@@ -71,11 +71,11 @@ int main(int argc, char* argv[]) {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
-	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
-	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
-	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
@@ -151,9 +151,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS);
+	int targetInitCellLength = (int)2 * sqrt(3.14159 * TARGET_INIT_CELLS);
+	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
-
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -277,7 +277,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 					if (c.getType() == CELL_TYPE::ICM) {
 
-						superCellFluid = SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 50);
+						superCellFluid = SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 50, 0);
 						c.setSuperCell(superCellFluid);
 						SuperCell::setColour(superCellFluid, vector<int> {154, 102, 102, 255});
 						
@@ -299,10 +299,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-fluidStartMCS)/(TARGET_SCALE_FLUID))))));
 			SuperCell::setTargetVolume(superCellFluid, newFluidVolume);
-
-			cout << newFluidVolume << endl;
-
+			
 		}
+
+		//Recalculate Cell Surfaces
+		grid.recalculateCellSurfaces();
 
 		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));

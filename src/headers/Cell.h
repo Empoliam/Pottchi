@@ -11,7 +11,7 @@ public:
 
 	Cell();
 	Cell(int superCell);
-	Cell(CELL_TYPE t, int targetVolume);
+	Cell(CELL_TYPE t, int targetVolume, int targetSurface);
 
 	Cell(const Cell& c1) {
 		this->superCell = c1.superCell;
@@ -30,6 +30,11 @@ public:
 	void setTargetVolume(int target);
 	int getTargetVolume() const;
 	int getVolume() const;
+
+	void setTargetSurface(int target);
+	int getTargeSurface() const;
+	int getSurface() const;
+	void increaseSurface(int delta);
 
 	std::vector<int> getColour() const;
 	void generateNewColour();
