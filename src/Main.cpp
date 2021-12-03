@@ -29,7 +29,7 @@ unsigned int RENDER_FPS;
 //Number of MCS per real hour
 const float MCS_HOUR_EST = 500.0f;
 
-const int TARGET_INIT_CELLS = 3200;
+const int TARGET_INIT_CELLS = 1600;
 
 //Target time morula cell division spacing
 const float MCS_DIV_TARGET = 12*MCS_HOUR_EST;
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
-	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 0);
+	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 50);
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
@@ -144,14 +144,13 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
 
 	unsigned int fluidStartMCS;
-	int superCellFluid;
 
 	//Initial cell setup
 	int midX = SIM_WIDTH / 2;
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int targetInitCellLength = (int)2 * sqrt(3.14159 * TARGET_INIT_CELLS);
+	int targetInitCellLength = (int) (2 * sqrt(3.14159 * TARGET_INIT_CELLS));
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
 
@@ -277,9 +276,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 					if (c.getType() == CELL_TYPE::ICM) {
 
-						superCellFluid = SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 50, 0);
-						c.setSuperCell(superCellFluid);
-						SuperCell::setColour(superCellFluid, vector<int> {154, 102, 102, 255});
+						c.setSuperCell((int) CELL_TYPE::FLUID);
+						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
 						
 						fluidStartMCS = m;
 						fluidCreation = true;
@@ -298,7 +296,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		if (differentationA) {
 
 			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-fluidStartMCS)/(TARGET_SCALE_FLUID))))));
-			SuperCell::setTargetVolume(superCellFluid, newFluidVolume);
+			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
 			
 		}
 

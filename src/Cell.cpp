@@ -55,7 +55,7 @@ int Cell::getVolume() const{
 }
 
 void Cell::increaseSurface(int delta) {
-	SuperCell::increaseSurface(superCell, delta);
+	SuperCell::changeSurface(superCell, delta);
 }
 
 std::vector<int> Cell::getColour() const {

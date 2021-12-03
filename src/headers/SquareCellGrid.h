@@ -16,6 +16,7 @@ public:
 	Cell& getCell(int row, int col);
 
 	void setCell(int row, int col, int superCell);
+	Vector2D<int> calcSurfaceChange(int row, int col, int superCell);
 
 	std::vector<Cell*> getNeighbours(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
@@ -29,6 +30,7 @@ public:
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
 
 	bool checkSurface(int row, int col);
+	bool checkSurface(int row, int col, int sC);
 
 	int divideCell(int c);
 	int divideCellRandomAxis(int c);
@@ -40,6 +42,7 @@ public:
 
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
+	float getSurfaceDelta(int sourceX, int sourceY, int destX, int destY);
 
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);

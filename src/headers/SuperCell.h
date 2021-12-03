@@ -35,7 +35,7 @@ public:
 
 	static void setSurface(int c, int l);
 	static int getSurface(int c);
-	static void increaseSurface(int c, int delta);
+	static void changeSurface(int c, int delta);
 
 	static CELL_TYPE getCellType(int c);
 	static void setCellType(int c, CELL_TYPE t);

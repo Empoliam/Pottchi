@@ -189,7 +189,7 @@ int SuperCell::getSurface(int c) {
 	return superCells[c].surface;
 }
 
-void SuperCell::increaseSurface(int c, int delta) {
+void SuperCell::changeSurface(int c, int delta) {
 
 	superCells[c].surface += delta;
 
