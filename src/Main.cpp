@@ -150,9 +150,12 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int targetInitCellLength = (int) (2 * sqrt(3.14159 * TARGET_INIT_CELLS));
+	int targetInitCellLength = (int) (2 * sqrt(3.14159 * TARGET_INIT_CELLS)) * 4;
+
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
+
 	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
+	grid.recalculateCellSurfaces();
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -198,6 +201,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
+
+						//Recalculate Cell Surfaces
+						grid.recalculateCellSurfaces();
 
 					}
 
@@ -299,10 +305,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
 			
 		}
-
-		//Recalculate Cell Surfaces
-		grid.recalculateCellSurfaces();
-
+		
 		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 

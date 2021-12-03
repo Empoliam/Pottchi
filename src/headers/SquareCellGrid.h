@@ -32,6 +32,9 @@ public:
 	bool checkSurface(int row, int col);
 	bool checkSurface(int row, int col, int sC);
 
+	int getPerimeter(int row, int col);
+	int getPerimeter(int row, int col, int sC);
+
 	int divideCell(int c);
 	int divideCellRandomAxis(int c);
 	int cleaveCell(int c);

@@ -125,14 +125,11 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, std:
 
 bool SquareCellGrid::checkSurface(int row, int col) {
 
-	Cell& c = internalGrid[row][col];
-	return checkSurface(row, col, c.getSuperCell());
+	return checkSurface(row, col, internalGrid[row][col].getSuperCell());
 
 }
 
 bool SquareCellGrid::checkSurface(int row, int col, int sC) {
-
-	Cell& c = internalGrid[row][col];
 
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
@@ -142,6 +139,25 @@ bool SquareCellGrid::checkSurface(int row, int col, int sC) {
 	}
 
 	return false;
+}
+
+int SquareCellGrid::getPerimeter(int row, int col){
+
+	return getPerimeter(row, col, internalGrid[row][col].getSuperCell());
+}
+
+int SquareCellGrid::getPerimeter(int row, int col, int sC) {
+
+	int perimeter = 0;
+
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			if (sC != internalGrid[row + x][col + y].getSuperCell()) perimeter++;
+		}
+	}
+
+	return perimeter;
 }
 
 int SquareCellGrid::divideCell(int c) {
@@ -333,11 +349,10 @@ void SquareCellGrid::recalculateCellSurfaces() {
 
 			Cell& c = internalGrid[x][y];
 
-			if (checkSurface(x, y)) {
-				
-				c.increaseSurface(1);
+			if (c.getType() == CELL_TYPE::EMPTYSPACE || c.getType() == CELL_TYPE::FLUID) continue;
 
-			}
+			c.increaseSurface(getPerimeter(x,y));
+						
 
 		}
 
@@ -393,10 +408,10 @@ Vector2D<int> SquareCellGrid::calcSurfaceChange(int row, int col, int superCell)
 	int destPre = 0;
 
 	for (Vector2D<int> n : Nsource) {
-		if (checkSurface(n[0], n[1])) sourcePre++;
+		sourcePre += getPerimeter(n[0], n[1]);
 	}
 	for (Vector2D<int> n : Ndest) {
-		if (checkSurface(n[0], n[1])) destPre++;
+		destPre += getPerimeter(n[0], n[1]);
 	}
 
 	//Calculate local boundary size after:
@@ -405,10 +420,10 @@ Vector2D<int> SquareCellGrid::calcSurfaceChange(int row, int col, int superCell)
 	int destPost = 0;
 
 	for (Vector2D<int> n : Nsource) {
-		if (checkSurface(n[0], n[1]), superSource) sourcePost++;
+		sourcePost += getPerimeter(n[0], n[1], superSource);
 	}
 	for (Vector2D<int> n : Ndest) {
-		if (checkSurface(n[0], n[1], superSource)) destPost++;
+		destPost += checkSurface(n[0], n[1], superSource);
 	}
 
 	int deltaSource = sourcePost - sourcePre;
@@ -476,48 +491,10 @@ float SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int d
 	int superSource = internalGrid[sourceX][sourceY].getSuperCell();
 	int superDest = internalGrid[destX][destY].getSuperCell();
 
-	auto N = getNeighboursCoords(destX, destY);
-	std::vector<Vector2D<int>> Nsource;
-	std::vector<Vector2D<int>> Ndest;
+	Vector2D<int> changes = calcSurfaceChange(destX, destY, superSource);
 
-	for (Vector2D<int> n : N) {
-		
-		int c = internalGrid[n[0]][n[1]].getSuperCell();
-		if (c == superSource) {
-			Nsource.push_back(n);
-		}
-		else if (c == superDest) {
-			Ndest.push_back(n);
-		}
-
-	}
-
-	//Calculate local boundary size before:
-
-	int sourcePre = 0;
-	int destPre = 0;
-
-	for (Vector2D<int> n : Nsource) {
-		if (checkSurface(n[0], n[1])) sourcePre++;
-	}
-	for (Vector2D<int> n : Ndest) {
-		if (checkSurface(n[0], n[1])) destPre++;
-	}
-
-	//Calculate local boundary size after:
-	
-	int sourcePost = 0;
-	int destPost = 0;
-
-	for (Vector2D<int> n : Nsource) {
-		if (checkSurface(n[0], n[1]), superSource) sourcePost++;
-	}
-	for (Vector2D<int> n : Ndest) {
-		if (checkSurface(n[0], n[1], superSource)) destPost++;
-	}
-
-	int deltaSource = sourcePost - sourcePre;
-	int deltaDest = destPost - destPre;
+	int deltaSource = changes[0];
+	int deltaDest = changes[1];
 
 	int sourceSurf = SuperCell::getSurface(superSource);
 	int sourceTarget = SuperCell::getTargetSurface(superSource);
