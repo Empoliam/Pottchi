@@ -44,7 +44,7 @@ const float MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
 const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 //Fluid cell growth parameters
-const int TARGET_MAX_FLUID = 3200;
+const int TARGET_MAX_FLUID = 1600;
 const float TARGET_SCALE_FLUID = 48 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;

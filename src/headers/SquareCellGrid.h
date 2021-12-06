@@ -21,13 +21,8 @@ public:
 	std::vector<Cell*> getNeighbours(int row, int col);
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
 	
-	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid);
-	std::vector<Cell*> getNeighbours(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
-
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
-	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);	
-	
-	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, std::vector<std::vector<Cell>>& grid, CELL_TYPE t);
+	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);
 
 	bool checkSurface(int row, int col);
 	bool checkSurface(int row, int col, int sC);
