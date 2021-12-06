@@ -336,7 +336,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid.divideCellRandomAxis(c);
+						int newSuper = grid.divideCellShortAxis(c);
 						grid.fullTextureRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
@@ -382,10 +382,10 @@ int simInit(int argc, char* argv[]) {
 		po::options_description description("Simulation options:");
 		description.add_options()
 			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value((int) (7*24*MCS_HOUR_EST)), "Number of MCS")
-			("pixel,p", po::value<unsigned int>()->default_value(6), "Pixels per cell")
-			("height,h", po::value<unsigned int>()->default_value(125), "Simulation space height")
-			("width,w", po::value<unsigned int>()->default_value(125), "Simulation space width")
+			("maxMCS,i", po::value<unsigned int>()->default_value((int) (6*24*MCS_HOUR_EST)), "Number of MCS")
+			("pixel,p", po::value<unsigned int>()->default_value(4), "Pixels per cell")
+			("height,h", po::value<unsigned int>()->default_value(150), "Simulation space height")
+			("width,w", po::value<unsigned int>()->default_value(150), "Simulation space width")
 			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
 			("fps,f", po::value<unsigned int>()->default_value(30), "Simulation target fps, default 24");
 

@@ -254,8 +254,6 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	int gradM = RandomNumberGenerators::rUnifInt(-89, 89);
 	float grad = tan(gradM*PI_F/180.f);
 
-	cout << gradM << endl;
-
 	for (unsigned int k = 0; k < cellList.size(); k++) {
 		if (cellList[k][1] > grad*(cellList[k][0]-midX)+midY) {
 			newList.push_back(cellList[k]);
@@ -277,10 +275,91 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 
 }
 
+int SquareCellGrid::divideCellShortAxis(int c) {
+
+	vector<Vector2D<int>> cellList;
+	vector<Vector2D<int>> newList;
+
+	//Find all subcells in cell
+	for (int X = 1; X <= interiorWidth; X++) {
+		for (int Y = 1; Y <= interiorHeight; Y++) {
+
+			if (internalGrid[X][Y].getSuperCell() == c) {
+
+				cellList.push_back(Vector2D<int>(X, Y));
+
+			}
+
+		}
+
+	}
+	
+	//Abort if cell less than one subcell
+	if (cellList.size() <= 1) {
+		return -1;
+	}
+
+	//Calculate short axis of cell
+	float m00 = calculateRawImageMoment(cellList, 0, 0);
+	float m10 = calculateRawImageMoment(cellList, 1, 0);
+	float m01 = calculateRawImageMoment(cellList, 0, 1);
+
+	float xBar = m10 / m00;
+	float yBar = m01 / m00;
+
+	float mu20 = (calculateRawImageMoment(cellList, 2, 0) / m00) - pow(xBar, 2);
+	float mu02 = (calculateRawImageMoment(cellList, 0, 2) / m00) - pow(yBar, 2);
+	float mu11 = (calculateRawImageMoment(cellList, 1, 1) / m00) - xBar*yBar;
+
+	float covTrace = mu20 + mu02;
+	float covDet = mu20 * mu02 - pow(mu11,2);
+
+	float eigA = (- covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+	float eigB = (- covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+
+	float smallEig = min(abs(eigA), abs(eigB));
+
+	Vector2D<float> eigVec(mu11, smallEig-mu20);
+	float grad = eigVec[1] / eigVec[0];
+
+	for (unsigned int k = 0; k < cellList.size(); k++) {
+		if (cellList[k][1] > grad * (cellList[k][0] - xBar) + yBar) {
+			newList.push_back(cellList[k]);
+		}
+	}
+
+	SuperCell::increaseGeneration(c);
+	int newSuperCell = SuperCell::makeNewSuperCell(c);
+
+	SuperCell::setMCS(c, 0);
+	SuperCell::setMCS(newSuperCell, 0);
+
+	for (unsigned int c = 0; c < newList.size(); c++) {
+		Vector2D<int>& V = newList[c];
+		setCell(V[0], V[1], newSuperCell);
+	}
+
+	return newSuperCell;
+
+}
+
+float SquareCellGrid::calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO) {
+	
+	float moment = 0.0f;
+	
+	for (Vector2D<int> V : data) {
+
+		moment += pow(V[0], iO) * pow(V[1], jO);
+
+	}
+
+	return moment;
+}
+
 int SquareCellGrid::cleaveCell(int c) {
 
 	int superCellA = c;
-	int superCellB = divideCell(c);
+	int superCellB = divideCellShortAxis(c);
 
 	if (superCellB == -1) return -1;
 

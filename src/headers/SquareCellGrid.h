@@ -32,6 +32,7 @@ public:
 
 	int divideCell(int c);
 	int divideCellRandomAxis(int c);
+	int divideCellShortAxis(int c);
 	int cleaveCell(int c);
 
 	int moveCell(int x, int y);
@@ -49,5 +50,7 @@ public:
 protected:
 	std::vector<std::vector<Cell>> internalGrid;
 	std::vector<unsigned char> pixels;
+
+	float calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO);
 
 };
