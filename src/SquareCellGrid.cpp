@@ -311,7 +311,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
-		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY) + getSurfaceDelta(x, y, targetX, targetY);
+		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY); //+ getSurfaceDelta(x, y, targetX, targetY);
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());

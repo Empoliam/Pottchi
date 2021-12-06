@@ -66,6 +66,23 @@ void Cell::generateNewColour() {
 	SuperCell::setColour(superCell, SuperCell::generateNewColour(getType()));
 }
 
+int Cell::getMCS() {
+	return SuperCell::getMCS(superCell);
+}
+
+void Cell::setMCS(int i) {
+	SuperCell::setMCS(superCell, i);
+}
+
+int Cell::getNextDiv() {
+	return SuperCell::getNextDiv(superCell);
+}
+
+void Cell::setNextDiv(int i) {
+	SuperCell::setNextDiv(superCell, i);
+}
+
+
 char Cell::toChar() const {
 
 	CELL_TYPE type = SuperCell::getCellType(superCell);

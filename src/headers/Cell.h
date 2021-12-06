@@ -39,6 +39,11 @@ public:
 	std::vector<int> getColour() const;
 	void generateNewColour();
 
+	int getMCS();
+	void setMCS(int i);
+	int getNextDiv();
+	void setNextDiv(int i);
+
 	char toChar() const;
 
 private:

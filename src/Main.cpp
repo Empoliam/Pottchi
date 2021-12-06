@@ -32,8 +32,8 @@ const float MCS_HOUR_EST = 500.0f;
 const int TARGET_INIT_CELLS = 1600;
 
 //Target time morula cell division spacing
-const float MCS_DIV_TARGET = 12*MCS_HOUR_EST;
-const float SD_DIV_TARGET = 0.5*MCS_HOUR_EST;
+const float MCS_M_DIV_TARGET = 12*MCS_HOUR_EST;
+const float SD_M_DIV_TARGET = 0.5*MCS_HOUR_EST;
 
 //Target time of compaction
 const float MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
@@ -44,8 +44,16 @@ const float MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
 const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 //Fluid cell growth parameters
-const int TARGET_MAX_FLUID = 1600;
+const int TARGET_MAX_FLUID = 6400;
 const float TARGET_SCALE_FLUID = 48 * MCS_HOUR_EST;
+
+//Trophectoderm division
+const float MCS_T_DIV_TARGET = 12 * MCS_HOUR_EST;
+const float SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
+
+//ICM division parameters
+const float MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
+const float SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -154,7 +162,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
-	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET,SD_DIV_TARGET));
+	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET,SD_M_DIV_TARGET));
 	grid.recalculateCellSurfaces();
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
@@ -199,8 +207,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						int newSuper = grid.cleaveCell(c);
 						grid.fullTextureRefresh();
 
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_DIV_TARGET, SD_DIV_TARGET));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 
 						//Recalculate Cell Surfaces
 						grid.recalculateCellSurfaces();
@@ -247,6 +255,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 																
 								c.setType(CELL_TYPE::TROPHECTODERM);
 								c.generateNewColour();
+								c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
+								c.setMCS(0);
 
 							}
 
@@ -265,6 +275,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 							c.setType(CELL_TYPE::ICM);
 							c.generateNewColour();
+							c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+							c.setMCS(0);
 							
 						}
 
@@ -301,6 +313,45 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		if (differentationA) {
 
+			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
+
+				if (SuperCell::getCellType(c) == CELL_TYPE::TROPHECTODERM) {
+
+					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
+
+						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
+						int newSuper = grid.divideCellRandomAxis(c);
+						grid.fullTextureRefresh();
+
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
+
+						//Recalculate Cell Surfaces
+						grid.recalculateCellSurfaces();
+
+					}
+
+				} else if(SuperCell::getCellType(c) == CELL_TYPE::ICM) {
+
+					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
+
+						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
+						int newSuper = grid.divideCellRandomAxis(c);
+						grid.fullTextureRefresh();
+
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+
+						//Recalculate Cell Surfaces
+						grid.recalculateCellSurfaces();
+
+					}
+
+				}
+
+			}
+
+			//Fluid expansion
 			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-fluidStartMCS)/(TARGET_SCALE_FLUID))))));
 			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
 			
