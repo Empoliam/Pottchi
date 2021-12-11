@@ -45,7 +45,7 @@ const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 //Fluid cell growth parameters
 const int TARGET_MAX_FLUID = 6400;
-const float TARGET_SCALE_FLUID = 48 * MCS_HOUR_EST;
+const float TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
 
 //Trophectoderm division
 const float MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
@@ -57,7 +57,7 @@ int inline funcTrophectoderm(int m) {
 }
 
 //ICM division parameters
-const float MCS_I_DIV_TARGET = 8 * MCS_HOUR_EST;
+const float MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
 const float SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
@@ -324,12 +324,50 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
-						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid.divideCellRandomAxis(c);
-						grid.fullTextureRefresh();
+						bool divideSuccess = false;
+						vector<reference_wrapper<Cell>> cList;
 
+						for (int x = 0; x <= grid.interiorWidth; x++) {
+
+							for (int y = 0; y <= grid.interiorHeight; y++) {
+
+								Cell& activeCell = grid.getCell(x, y);
+
+								if (activeCell.getSuperCell() == c) {
+
+									auto N = grid.getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+
+									cList.push_back(activeCell);
+
+									if (!N.empty()) {
+
+										cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
+										int newSuper = grid.divideCellRandomAxis(c);
+										
+										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
+
+										
+										divideSuccess = true;
+										goto endLoop;
+
+									}
+
+								}
+
+							}
+
+						}
+
+						if (!divideSuccess) {
+							for (int L = 0; L < cList.size(); L++) {
+								cList[L].get().setSuperCell((int)CELL_TYPE::FLUID);
+							}
+						}
+
+						endLoop:
+											
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
+						grid.fullTextureRefresh();
 
 						//Recalculate Cell Surfaces
 						//grid.recalculateCellSurfaces();
