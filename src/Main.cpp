@@ -48,11 +48,16 @@ const int TARGET_MAX_FLUID = 6400;
 const float TARGET_SCALE_FLUID = 48 * MCS_HOUR_EST;
 
 //Trophectoderm division
-const float MCS_T_DIV_TARGET = 12 * MCS_HOUR_EST;
+const float MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
+const float MCS_T_DIV_SCALE_TIME = 250;
 const float SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
 
+int inline funcTrophectoderm(int m) {
+	return MCS_T_DIV_TARGET_INIT + pow(m / MCS_T_DIV_SCALE_TIME, 2);
+}
+
 //ICM division parameters
-const float MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
+const float MCS_I_DIV_TARGET = 8 * MCS_HOUR_EST;
 const float SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
@@ -151,7 +156,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	bool differentationA = false;
 	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
 
-	unsigned int fluidStartMCS;
+	unsigned int diffStartMCS;
 
 	//Initial cell setup
 	int midX = SIM_WIDTH / 2;
@@ -255,7 +260,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 																
 								c.setType(CELL_TYPE::TROPHECTODERM);
 								c.generateNewColour();
-								c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
+								c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(0), SD_T_DIV_TARGET));
 								c.setMCS(0);
 
 							}
@@ -296,14 +301,14 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						c.setSuperCell((int) CELL_TYPE::FLUID);
 						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
-						
-						fluidStartMCS = m;
+												
 						fluidCreation = true;
 						
 					}
 
 				}
 
+				diffStartMCS = m;
 				differentationA = true;
 				grid.fullTextureRefresh();
 
@@ -323,11 +328,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						int newSuper = grid.divideCellRandomAxis(c);
 						grid.fullTextureRefresh();
 
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_T_DIV_TARGET, SD_T_DIV_TARGET));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
 						//Recalculate Cell Surfaces
-						grid.recalculateCellSurfaces();
+						//grid.recalculateCellSurfaces();
 
 					}
 
@@ -343,7 +348,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 
 						//Recalculate Cell Surfaces
-						grid.recalculateCellSurfaces();
+						//grid.recalculateCellSurfaces();
 
 					}
 
@@ -352,7 +357,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			}
 
 			//Fluid expansion
-			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-fluidStartMCS)/(TARGET_SCALE_FLUID))))));
+			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-diffStartMCS)/(TARGET_SCALE_FLUID))))));
 			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
 			
 		}
@@ -387,7 +392,7 @@ int simInit(int argc, char* argv[]) {
 			("height,h", po::value<unsigned int>()->default_value(150), "Simulation space height")
 			("width,w", po::value<unsigned int>()->default_value(150), "Simulation space width")
 			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
-			("fps,f", po::value<unsigned int>()->default_value(30), "Simulation target fps, default 24");
+			("fps,f", po::value<unsigned int>()->default_value(30), "Simulation target fps, default 30");
 
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
