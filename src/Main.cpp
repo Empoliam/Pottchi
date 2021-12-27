@@ -28,38 +28,38 @@ unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
 //Number of MCS per real hour
-const float MCS_HOUR_EST = 500.0f;
+const double MCS_HOUR_EST = 500.0f;
 
 const int TARGET_INIT_CELLS = 1600;
 
 //Target time morula cell division spacing
-const float MCS_M_DIV_TARGET = 12*MCS_HOUR_EST;
-const float SD_M_DIV_TARGET = 0.5*MCS_HOUR_EST;
+const double MCS_M_DIV_TARGET = 12*MCS_HOUR_EST;
+const double SD_M_DIV_TARGET = 0.5*MCS_HOUR_EST;
 
 //Target time of compaction
-const float MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
-const float SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
+const double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
+const double SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
 
 //Target time of intiial differentiation
-const float MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
-const float SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
+const double MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
+const double SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 //Fluid cell growth parameters
 const int TARGET_MAX_FLUID = 6400;
-const float TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
+const double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
 
 //Trophectoderm division
-const float MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
-const float MCS_T_DIV_SCALE_TIME = 250;
-const float SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
+const double MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
+const double MCS_T_DIV_SCALE_TIME = 250;
+const double SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
 
 int inline funcTrophectoderm(int m) {
 	return MCS_T_DIV_TARGET_INIT + pow(m / MCS_T_DIV_SCALE_TIME, 2);
 }
 
 //ICM division parameters
-const float MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
-const float SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
+const double MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
+const double SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 namespace po = boost::program_options;
 using namespace std;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
 				if (tickDelta > 1000 / RENDER_FPS) {
 
-					//cout << "fps: " << (float)1000 / tickDelta << "\n";
+					//cout << "fps: " << (double)1000 / tickDelta << "\n";
 					tickB = tickA;
 					printGrid(renderer, texture, grid);
 
@@ -151,10 +151,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	
 	//Target times for key events
 	bool compacted = false;
-	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_COMPACT_TARGET, SD_COMPACT_TARGET);
+	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalDouble(MCS_COMPACT_TARGET, SD_COMPACT_TARGET);
 
 	bool differentationA = false;
-	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalFloat(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
+	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalDouble(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
 
 	unsigned int diffStartMCS;
 
@@ -167,7 +167,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
-	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET,SD_M_DIV_TARGET));
+	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET,SD_M_DIV_TARGET));
 	
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
@@ -215,8 +215,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						grid.fullTextureRefresh();
 						grid.fullPerimeterRefresh();
 
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 
 					}
 
@@ -260,7 +260,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 																
 								c.setType(CELL_TYPE::TROPHECTODERM);
 								c.generateNewColour();
-								c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(0), SD_T_DIV_TARGET));
+								c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
 								c.setMCS(0);
 
 							}
@@ -280,7 +280,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 							c.setType(CELL_TYPE::ICM);
 							c.generateNewColour();
-							c.setNextDiv((int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+							c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 							c.setMCS(0);
 							
 						}
@@ -346,7 +346,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 										cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 										int newSuper = grid.divideCellRandomAxis(c);
 										
-										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
+										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
 										
 										divideSuccess = true;
@@ -368,7 +368,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						endLoop:
 											
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
 
 						grid.fullTextureRefresh();
 						grid.fullPerimeterRefresh();
@@ -385,8 +385,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						grid.fullTextureRefresh();
 						grid.fullPerimeterRefresh();
 
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 
 
 					}

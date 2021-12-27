@@ -34,8 +34,8 @@ public:
 
 	void fullPerimeterRefresh();
 
-	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
-	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
+	double getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
+	double getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);
@@ -45,6 +45,6 @@ protected:
 	std::vector<std::vector<Cell>> internalGrid;
 	std::vector<unsigned char> pixels;
 
-	float calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO);
+	double calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO);
 
 };

@@ -7,9 +7,9 @@ unsigned long long seed = std::chrono::system_clock::now().time_since_epoch().co
 
 static std::default_random_engine randGen((int)seed);
 
-static std::uniform_real_distribution<float> rUnif(0.0f, 1.0f);
+static std::uniform_real_distribution<double> rUnif(0.0f, 1.0f);
 
-float RandomNumberGenerators::rUnifProb()
+double RandomNumberGenerators::rUnifProb()
 {
 	return rUnif(randGen);
 }
@@ -21,9 +21,9 @@ int RandomNumberGenerators::rUnifInt(int min, int max) {
 
 }
 
-float RandomNumberGenerators::rNormalFloat(float mu, float stdev) {
+double RandomNumberGenerators::rNormalDouble(double mu, double stdev) {
 
-	std::normal_distribution<float> rNorm(mu, stdev);
+	std::normal_distribution<double> rNorm(mu, stdev);
 	return rNorm(randGen);
 
 }

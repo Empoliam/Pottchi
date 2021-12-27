@@ -11,13 +11,13 @@
 
 using namespace std;
 
-const float BOLTZ_TEMP = 10.0f;
+const double BOLTZ_TEMP = 10.0f;
 
 //Volume Constraint Strength
-const float LAMBDA = 5.0f;
+const double LAMBDA = 5.0f;
 
 //Surface constraint strength
-const float SIGMA = 0.0f;
+const double SIGMA = 0.0f;
 
 const auto J = CellTypes::J;
 
@@ -214,7 +214,7 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	int midY = (int)(0.5 * (minY + maxY));
 
 	int gradM = RandomNumberGenerators::rUnifInt(-89, 89);
-	float grad = tan(gradM*PI_F/180.f);
+	double grad = tan(gradM*PI_D/180.f);
 
 	for (unsigned int k = 0; k < cellList.size(); k++) {
 		if (cellList[k][1] > grad*(cellList[k][0]-midX)+midY) {
@@ -262,27 +262,27 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 	}
 
 	//Calculate short axis of cell
-	float m00 = calculateRawImageMoment(cellList, 0, 0);
-	float m10 = calculateRawImageMoment(cellList, 1, 0);
-	float m01 = calculateRawImageMoment(cellList, 0, 1);
+	double m00 = calculateRawImageMoment(cellList, 0, 0);
+	double m10 = calculateRawImageMoment(cellList, 1, 0);
+	double m01 = calculateRawImageMoment(cellList, 0, 1);
 
-	float xBar = m10 / m00;
-	float yBar = m01 / m00;
+	double xBar = m10 / m00;
+	double yBar = m01 / m00;
 
-	float mu20 = (calculateRawImageMoment(cellList, 2, 0) / m00) - pow(xBar, 2);
-	float mu02 = (calculateRawImageMoment(cellList, 0, 2) / m00) - pow(yBar, 2);
-	float mu11 = (calculateRawImageMoment(cellList, 1, 1) / m00) - xBar*yBar;
+	double mu20 = (calculateRawImageMoment(cellList, 2, 0) / m00) - pow(xBar, 2);
+	double mu02 = (calculateRawImageMoment(cellList, 0, 2) / m00) - pow(yBar, 2);
+	double mu11 = (calculateRawImageMoment(cellList, 1, 1) / m00) - xBar*yBar;
 
-	float covTrace = mu20 + mu02;
-	float covDet = mu20 * mu02 - pow(mu11,2);
+	double covTrace = mu20 + mu02;
+	double covDet = mu20 * mu02 - pow(mu11,2);
 
-	float eigA = (- covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
-	float eigB = (- covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+	double eigA = (- covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+	double eigB = (- covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
 
-	float smallEig = min(abs(eigA), abs(eigB));
+	double smallEig = min(abs(eigA), abs(eigB));
 
-	Vector2D<float> eigVec(mu11, smallEig-mu20);
-	float grad = eigVec[1] / eigVec[0];
+	Vector2D<double> eigVec(mu11, smallEig-mu20);
+	double grad = eigVec[1] / eigVec[0];
 
 	for (unsigned int k = 0; k < cellList.size(); k++) {
 		if (cellList[k][1] > grad * (cellList[k][0] - xBar) + yBar) {
@@ -305,9 +305,9 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 
 }
 
-float SquareCellGrid::calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO) {
+double SquareCellGrid::calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO) {
 	
-	float moment = 0.0f;
+	double moment = 0.0f;
 	
 	for (Vector2D<int> V : data) {
 
@@ -352,7 +352,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
-		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY);
+		double deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY);
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
@@ -417,7 +417,7 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 
 }
 
-float SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
+double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	Cell& source = internalGrid[sourceX][sourceY];
 	Cell& dest = internalGrid[destX][destY];
@@ -425,8 +425,8 @@ float SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int 
 	int sourceSuper = source.getSuperCell();
 	int destSuper = dest.getSuperCell();
 
-	float initH = 0.0f;
-	float postH = 0.0f;
+	double initH = 0.0f;
+	double postH = 0.0f;
 
 	vector<Cell*> neighbours = getNeighbours(destX, destY);
 	for (int i = 0; i < 8; i++) {
@@ -441,7 +441,7 @@ float SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int 
 	return (postH - initH);
 }
 
-float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
+double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int destSuper = internalGrid[destX][destY].getSuperCell();
 
@@ -456,14 +456,14 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 	int sourceTarget = SuperCell::getTargetVolume(sourceSuper);
 	int destTarget = SuperCell::getTargetVolume(destSuper);
 
-	float deltaH = 0.0f;
+	double deltaH = 0.0f;
 
 	//Prevent medium volume from affecting energy
 	bool sourceIgnore = sourceSuper == (int)CELL_TYPE::EMPTYSPACE;
 	bool destIgnore = destSuper == (int)CELL_TYPE::EMPTYSPACE;
 
-	deltaH = (!sourceIgnore)*((float)pow(sourceVol + 1 - sourceTarget, 2) - (float)pow(sourceVol - sourceTarget, 2))
-			+ (!destIgnore)*((float)pow(destVol - 1 - destTarget, 2) - (float)pow(destVol - destTarget, 2));
+	deltaH = (!sourceIgnore)*((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2))
+			+ (!destIgnore)*((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
 
 	deltaH *= LAMBDA;
 
