@@ -134,25 +134,6 @@ bool SquareCellGrid::checkSurface(int row, int col, int sC) {
 	return false;
 }
 
-int SquareCellGrid::getPerimeter(int row, int col){
-
-	return getPerimeter(row, col, internalGrid[row][col].getSuperCell());
-}
-
-int SquareCellGrid::getPerimeter(int row, int col, int sC) {
-
-	int perimeter = 0;
-
-	for (int x = -1; x <= 1; x++) {
-		for (int y = -1; y <= 1; y++) {
-			if (x == 0 && y == 0) continue;
-			if (sC != internalGrid[row + x][col + y].getSuperCell()) perimeter++;
-		}
-	}
-
-	return perimeter;
-}
-
 int SquareCellGrid::divideCell(int c) {
 
 	int minX = interiorWidth;
@@ -390,7 +371,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
-		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY); //+ getSurfaceDelta(x, y, targetX, targetY);
+		float deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY);
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
@@ -407,31 +388,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 }
 
-void SquareCellGrid::recalculateCellSurfaces() {
-
-	for (int s = 0; s < SuperCell::getCounter(); s++) {
-
-		SuperCell::setSurface(s, 0);
-
-	}
-
-	for (int x = 1; x <= interiorWidth; x++) {
-
-		for (int y = 1; y <= interiorHeight; y++) {
-
-			Cell& c = internalGrid[x][y];
-
-			if (c.getType() == CELL_TYPE::EMPTYSPACE || c.getType() == CELL_TYPE::FLUID) continue;
-
-			c.increaseSurface(getPerimeter(x,y));
-						
-
-		}
-
-	}
-
-}
-
 Cell& SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
 }
@@ -444,64 +400,7 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 	SuperCell::changeVolume(originalSuper, -1);
 	SuperCell::changeVolume(superCell, 1);
 
-	//Surface Change
-	Vector2D<int> surfaceChanges = calcSurfaceChange(x, y, superCell);
-	SuperCell::changeSurface(superCell, surfaceChanges[0]);
-	SuperCell::changeSurface(originalSuper, surfaceChanges[1]);
-
 	internalGrid[x][y].setSuperCell(superCell);
-
-}
-
-Vector2D<int> SquareCellGrid::calcSurfaceChange(int row, int col, int superCell){
-	
-	int superSource = superCell;
-	int superDest = internalGrid[row][col].getSuperCell();
-
-	auto N = getNeighboursCoords(row, col);
-	std::vector<Vector2D<int>> Nsource;
-	std::vector<Vector2D<int>> Ndest;
-
-	for (Vector2D<int> n : N) {
-
-		int c = internalGrid[n[0]][n[1]].getSuperCell();
-		if (c == superSource) {
-			Nsource.push_back(n);
-		}
-		else if (c == superDest) {
-			Ndest.push_back(n);
-		}
-
-	}
-
-	//Calculate local boundary size before:
-
-	int sourcePre = 0;
-	int destPre = 0;
-
-	for (Vector2D<int> n : Nsource) {
-		sourcePre += getPerimeter(n[0], n[1]);
-	}
-	for (Vector2D<int> n : Ndest) {
-		destPre += getPerimeter(n[0], n[1]);
-	}
-
-	//Calculate local boundary size after:
-
-	int sourcePost = 0;
-	int destPost = 0;
-
-	for (Vector2D<int> n : Nsource) {
-		sourcePost += getPerimeter(n[0], n[1], superSource);
-	}
-	for (Vector2D<int> n : Ndest) {
-		destPost += checkSurface(n[0], n[1], superSource);
-	}
-
-	int deltaSource = sourcePost - sourcePre;
-	int deltaDest = destPost - destPre;
-
-	return Vector2D<int>(deltaSource, deltaDest);
 
 }
 
@@ -556,33 +455,6 @@ float SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int de
 	deltaH *= LAMBDA;
 
 	return deltaH;
-}
-
-float SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
-	
-	int superSource = internalGrid[sourceX][sourceY].getSuperCell();
-	int superDest = internalGrid[destX][destY].getSuperCell();
-
-	Vector2D<int> changes = calcSurfaceChange(destX, destY, superSource);
-
-	int deltaSource = changes[0];
-	int deltaDest = changes[1];
-
-	int sourceSurf = SuperCell::getSurface(superSource);
-	int sourceTarget = SuperCell::getTargetSurface(superSource);
-
-	int destSurf = SuperCell::getSurface(superDest);
-	int destTarget = SuperCell::getTargetSurface(superDest);
-
-	//Ignore surface of fluid/medium
-	bool ignoreSource = (superSource == (int)CELL_TYPE::EMPTYSPACE) || (superSource == (int)CELL_TYPE::FLUID);
-	bool ignoreDest = (superDest == (int)CELL_TYPE::EMPTYSPACE) || (superDest == (int)CELL_TYPE::FLUID);
-
-	float deltaH = (!ignoreSource) * ((float)pow(sourceSurf + deltaSource - sourceTarget, 2) - (float)pow(sourceSurf - sourceTarget, 2))
-					+ (!ignoreDest) * ((float)pow(destSurf + deltaDest  - destTarget, 2) - (float)pow(destSurf - destTarget, 2));
-
-	return SIGMA * deltaH;
-
 }
 
 void SquareCellGrid::fullTextureRefresh() {

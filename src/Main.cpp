@@ -66,7 +66,6 @@ using namespace std;
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
 int simInit(int argc, char* argv[]);
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid);
-float normCDF(float i);
 
 int main(int argc, char* argv[]) {
 
@@ -168,7 +167,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
 	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET,SD_M_DIV_TARGET));
-	grid.recalculateCellSurfaces();
+	
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -214,9 +213,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
-
-						//Recalculate Cell Surfaces
-						grid.recalculateCellSurfaces();
 
 					}
 
@@ -369,9 +365,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
 						grid.fullTextureRefresh();
 
-						//Recalculate Cell Surfaces
-						//grid.recalculateCellSurfaces();
-
 					}
 
 				} else if(SuperCell::getCellType(c) == CELL_TYPE::ICM) {
@@ -385,8 +378,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 
-						//Recalculate Cell Surfaces
-						//grid.recalculateCellSurfaces();
 
 					}
 
@@ -487,8 +478,4 @@ int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid
 
 	return 0;
 
-}
-
-float normCDF(float i) {
-	return  0.5f * (float) erfc(-i*M_SQRT1_2);
 }
