@@ -8,12 +8,6 @@ Cell::Cell(int superCell) {
 
 Cell::Cell() : Cell((int)CELL_TYPE::EMPTYSPACE) {}
 
-Cell::Cell(CELL_TYPE t, int targetVolume, int targetSurface) {
-
-	superCell =  SuperCell::makeNewSuperCell(t, 0, targetVolume, targetSurface);
-
-}
-
 int Cell::getSuperCell() const {
 	return superCell;
 }
@@ -80,27 +74,4 @@ int Cell::getNextDiv() {
 
 void Cell::setNextDiv(int i) {
 	SuperCell::setNextDiv(superCell, i);
-}
-
-
-char Cell::toChar() const {
-
-	CELL_TYPE type = SuperCell::getCellType(superCell);
-
-	switch (type)
-	{
-	case CELL_TYPE::EMPTYSPACE:
-		return '.';
-		break;
-	case CELL_TYPE::GENERIC:
-		return (char) (superCell+63);
-		break;
-	case CELL_TYPE::BOUNDARY:
-		return '#';
-		break;
-	default:
-		return '?';
-		break;
-	}
-
 }

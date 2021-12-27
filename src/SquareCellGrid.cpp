@@ -7,10 +7,9 @@
 #include <math.h>
 
 #include "./headers/RandomNumberGenerators.h"
+#include "./headers/MathConstants.h"
 
 using namespace std;
-
-const float  PI_F = 3.14159265358979f;
 
 const float BOLTZ_TEMP = 10.0f;
 
@@ -114,24 +113,6 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col,
 	}
 	return neighbours;
 
-}
-
-bool SquareCellGrid::checkSurface(int row, int col) {
-
-	return checkSurface(row, col, internalGrid[row][col].getSuperCell());
-
-}
-
-bool SquareCellGrid::checkSurface(int row, int col, int sC) {
-
-	for (int x = -1; x <= 1; x++) {
-		for (int y = -1; y <= 1; y++) {
-			if (x == 0 && y == 0) continue;
-			if (sC != internalGrid[row + x][col + y].getSuperCell()) return true;
-		}
-	}
-
-	return false;
 }
 
 int SquareCellGrid::divideCell(int c) {
@@ -345,7 +326,7 @@ int SquareCellGrid::cleaveCell(int c) {
 	if (superCellB == -1) return -1;
 
 	int newTargetVolume = SuperCell::getTargetVolume(c) / 2;
-	int newTargetSurface = (int)2 * sqrt(3.14159 * newTargetVolume);
+	int newTargetSurface = (int) sqrt(newTargetVolume) * BORDER_CONST;
 
 	SuperCell::setTargetVolume(superCellA, newTargetVolume);
 	SuperCell::setTargetVolume(superCellB, newTargetVolume);
@@ -385,6 +366,38 @@ int SquareCellGrid::moveCell(int x, int y) {
 	}
 
 	return 0;
+
+}
+
+int SquareCellGrid::calcSubCellPerimeter(int x, int y) {
+	
+	int activeSuper = internalGrid[x][y].getSuperCell();
+	int perimeterCount = 0;
+
+	if (internalGrid[x][y - 1].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x][y + 1].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x-1][y].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x+1][y].getSuperCell() != activeSuper) perimeterCount++;
+
+	return perimeterCount;
+
+}
+
+void SquareCellGrid::fullPerimeterRefresh() {
+
+	for (int s = 0; s < SuperCell::getCounter(); s++) {
+		SuperCell::setSurface(s, 0);
+	}
+
+	for (int x = 1; x <= interiorWidth; x++) {
+		for (int y = 1; y < interiorHeight; y++) {
+
+			int activeSuper = internalGrid[x][y].getSuperCell();
+
+			SuperCell::changeSurface(activeSuper, calcSubCellPerimeter(x, y));
+
+		}
+	}
 
 }
 

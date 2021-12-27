@@ -18,6 +18,7 @@
 #include "./headers/SquareCellGrid.h"
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
+#include "./headers/MathConstants.h"
 
 unsigned int PIXEL_SCALE;
 unsigned int MAX_MCS;
@@ -162,7 +163,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int targetInitCellLength = (int) (2 * sqrt(3.14159 * TARGET_INIT_CELLS)) * 4;
+	int targetInitCellLength = (int) BORDER_CONST * sqrt(TARGET_INIT_CELLS);
 
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
@@ -178,6 +179,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	}
 	
 	grid.fullTextureRefresh();
+	grid.fullPerimeterRefresh();
 
 	//Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
@@ -209,7 +211,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 						int newSuper = grid.cleaveCell(c);
+
 						grid.fullTextureRefresh();
+						grid.fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
@@ -306,7 +310,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 				diffStartMCS = m;
 				differentationA = true;
+
 				grid.fullTextureRefresh();
+				grid.fullPerimeterRefresh();
 
 			}
 
@@ -363,7 +369,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						endLoop:
 											
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
+
 						grid.fullTextureRefresh();
+						grid.fullPerimeterRefresh();
 
 					}
 
@@ -373,7 +381,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 						int newSuper = grid.divideCellShortAxis(c);
+
 						grid.fullTextureRefresh();
+						grid.fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalFloat(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
@@ -400,6 +410,9 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		//Increase MCS count for each cell
 		SuperCell::increaseMCS();
+
+		//Recalculate Perimeters
+		grid.fullPerimeterRefresh();
 
 	}
 

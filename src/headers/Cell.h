@@ -11,7 +11,6 @@ public:
 
 	Cell();
 	Cell(int superCell);
-	Cell(CELL_TYPE t, int targetVolume, int targetSurface);
 
 	Cell(const Cell& c1) {
 		this->superCell = c1.superCell;
@@ -43,8 +42,6 @@ public:
 	void setMCS(int i);
 	int getNextDiv();
 	void setNextDiv(int i);
-
-	char toChar() const;
 
 private:
 

@@ -23,15 +23,16 @@ public:
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);
 
-	bool checkSurface(int row, int col);
-	bool checkSurface(int row, int col, int sC);
-
 	int divideCell(int c);
 	int divideCellRandomAxis(int c);
 	int divideCellShortAxis(int c);
 	int cleaveCell(int c);
 
 	int moveCell(int x, int y);
+
+	int calcSubCellPerimeter(int x, int y);
+
+	void fullPerimeterRefresh();
 
 	float getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	float getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
