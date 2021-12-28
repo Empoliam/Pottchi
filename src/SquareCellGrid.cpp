@@ -11,13 +11,13 @@
 
 using namespace std;
 
-const double BOLTZ_TEMP = 10.0f;
+const double BOLTZ_TEMP = 10.0;
 
 //Volume Constraint Strength
-const double LAMBDA = 5.0f;
+const double LAMBDA = 5.0;
 
 //Surface constraint strength
-const double SIGMA = 0.0f;
+const double SIGMA = 0.0;
 
 const auto J = CellTypes::J;
 
@@ -352,7 +352,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
-		double deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY);
+		double deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY) + getSurfaceDelta(x, y, targetX, targetY);
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
@@ -372,15 +372,20 @@ int SquareCellGrid::moveCell(int x, int y) {
 int SquareCellGrid::calcSubCellPerimeter(int x, int y) {
 	
 	int activeSuper = internalGrid[x][y].getSuperCell();
+	return calcSubCellPerimeter(x, y, activeSuper);
+
+}
+
+int SquareCellGrid::calcSubCellPerimeter(int x, int y, int activeSuper) {
+
 	int perimeterCount = 0;
 
 	if (internalGrid[x][y - 1].getSuperCell() != activeSuper) perimeterCount++;
 	if (internalGrid[x][y + 1].getSuperCell() != activeSuper) perimeterCount++;
-	if (internalGrid[x-1][y].getSuperCell() != activeSuper) perimeterCount++;
-	if (internalGrid[x+1][y].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x - 1][y].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x + 1][y].getSuperCell() != activeSuper) perimeterCount++;
 
 	return perimeterCount;
-
 }
 
 void SquareCellGrid::fullPerimeterRefresh() {
@@ -412,6 +417,14 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 	//Volume Change
 	SuperCell::changeVolume(originalSuper, -1);
 	SuperCell::changeVolume(superCell, 1);
+
+	//Surface Change
+
+	int deltaOld = 2*calcSubCellPerimeter(x, y, originalSuper) - 4;
+	int deltaNew = 4 - 2*calcSubCellPerimeter(x, y, superCell);
+
+	SuperCell::changeSurface(originalSuper, deltaOld);
+	SuperCell::changeSurface(superCell, deltaNew);
 
 	internalGrid[x][y].setSuperCell(superCell);
 
@@ -468,6 +481,35 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	deltaH *= LAMBDA;
 
 	return deltaH;
+}
+
+double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
+
+	int destSuper = internalGrid[destX][destY].getSuperCell();
+	int sourceSuper = internalGrid[sourceX][sourceY].getSuperCell();
+
+	int sourceSurf = SuperCell::getSurface(sourceSuper);
+	int destSurf = SuperCell::getSurface(destSuper);
+
+	int sourceTarget = SuperCell::getTargetSurface(sourceSuper);
+	int destTarget = SuperCell::getTargetSurface(destSuper);
+
+	int deltaSource = 2 * calcSubCellPerimeter(destX, destY, sourceSuper) - 4;
+	int deltaTarget = 4 - 2 * calcSubCellPerimeter(destX, destY, destSuper);
+
+	double deltaH = 0.0f;
+
+	//Prevent medium volume from affecting energy
+	bool sourceIgnore = (sourceSuper == (int)CELL_TYPE::EMPTYSPACE) || (sourceSuper == (int)CELL_TYPE::FLUID);
+	bool destIgnore = destSuper == (int)CELL_TYPE::EMPTYSPACE || (destSuper == (int)CELL_TYPE::FLUID);
+
+	deltaH = (!sourceIgnore) * ((double)pow(sourceSurf + deltaSource - sourceTarget, 2) - (double)pow(sourceSurf - sourceTarget, 2))
+		+ (!destIgnore) * ((double)pow(destSurf - deltaTarget - destTarget, 2) - (double)pow(destSurf - destTarget, 2));
+
+	deltaH *= SIGMA;
+
+	return deltaH;
+
 }
 
 void SquareCellGrid::fullTextureRefresh() {
