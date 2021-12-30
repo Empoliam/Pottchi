@@ -16,10 +16,12 @@ void Cell::setSuperCell(int i) {
 	this->superCell = i;
 }
 
+//TODO Cell type enum removal
 CELL_TYPE Cell::getType() const {
 	return SuperCell::getCellType(superCell);
 }
 
+//TODO Cell type enum removal
 void Cell::setType(CELL_TYPE t) {
 	SuperCell::setCellType(superCell, t);
 }

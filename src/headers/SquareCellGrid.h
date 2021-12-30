@@ -18,9 +18,11 @@ public:
 	void setCell(int row, int col, int superCell);
 
 	std::vector<Cell*> getNeighbours(int row, int col);
+	//TODO Cell type enum removal
 	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
 	
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
+	//TODO Cell type enum removal
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, CELL_TYPE t);
 
 	int divideCell(int c);

@@ -9,6 +9,7 @@ using namespace std;
 static vector<SuperCell> superCells = vector<SuperCell>();
 static int idCounter = 0;
 
+//TODO Cell type enum removal
 SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface) {
 	
 	this->ID = idCounter;
@@ -21,6 +22,7 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targe
 
 }
 
+//TODO Cell type enum removal
 int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface) {
 
 
@@ -83,10 +85,12 @@ void SuperCell::setTargetVolume(int i, int target) {
 
 }
 
+//TODO Cell type enum removal
 CELL_TYPE SuperCell::getCellType(int c) {
 	return superCells[c].type;
 }
 
+//TODO Cell type enum removal
 void SuperCell::setCellType(int c, CELL_TYPE t) {
 	superCells[c].type = t;
 }
@@ -112,6 +116,7 @@ std::vector<int> SuperCell::getColour(int i) {
 	return superCells[i].colour;
 }
 
+//TODO Cell type enum removal
 std::vector<int> SuperCell::generateNewColour(CELL_TYPE c) {
 
 	std::vector<int> newCol = std::vector<int>(4, 0);

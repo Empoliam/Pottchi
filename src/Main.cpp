@@ -29,30 +29,30 @@ unsigned int SIM_DELAY;
 unsigned int RENDER_FPS;
 
 //Number of MCS per real hour
-const double MCS_HOUR_EST = 500.0;
+int MCS_HOUR_EST = 500.0;
 
-const int TARGET_INIT_CELLS = 3200;
+int TARGET_INIT_CELLS = 3200;
 
 //Target time morula cell division spacing
-const double MCS_M_DIV_TARGET = 12 * MCS_HOUR_EST;
-const double SD_M_DIV_TARGET = 0.5 * MCS_HOUR_EST;
+double MCS_M_DIV_TARGET = 12 * MCS_HOUR_EST;
+double SD_M_DIV_TARGET = 0.5 * MCS_HOUR_EST;
 
 //Target time of compaction
-const double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
-const double SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
+double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
+double SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
 
 //Target time of intiial differentiation
-const double MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
-const double SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
+double MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
+double SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 
 //Fluid cell growth parameters
-const int TARGET_MAX_FLUID = 6400;
-const double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
+int TARGET_MAX_FLUID = 6400;
+double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
 
 //Trophectoderm division
-const double MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
-const double MCS_T_DIV_SCALE_TIME = 250;
-const double SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
+double MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
+double MCS_T_DIV_SCALE_TIME = 250;
+double SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
 
 int inline funcTrophectoderm(int m) {
 	return MCS_T_DIV_TARGET_INIT + pow(m / MCS_T_DIV_SCALE_TIME, 2);
@@ -171,7 +171,6 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
 	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
-
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
@@ -323,6 +322,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 		if (differentationA) {
 
+			//TODO Cell type enum removal
 			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
 				if (SuperCell::getCellType(c) == CELL_TYPE::TROPHECTODERM) {
@@ -428,7 +428,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 unsigned int readConfig(string cfg) {
 
-	unsigned int flags = 0b111111;
+	unsigned int numParams = 7;
+	unsigned int flags = (int)pow(2,numParams)-1;
 
 	std::ifstream ifs(cfg);
 	string line;
@@ -475,6 +476,11 @@ unsigned int readConfig(string cfg) {
 
 				RENDER_FPS = stoi(value);
 				flags &= ~(1U << 5);
+
+			} else if (P == "MCS_HOUR_EST") {
+
+				MCS_HOUR_EST = stoi(value);
+				flags &= ~(1U << 6);
 
 			}
 

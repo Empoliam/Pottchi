@@ -23,6 +23,7 @@ const double SIGMA = 0;
 
 const auto J = CellTypes::J;
 
+//TODO Reference to boundary cell type
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
 
 	interiorWidth = w;
@@ -67,6 +68,7 @@ vector<Cell*> SquareCellGrid::getNeighbours(int row, int col)
 
 }
 
+//TODO Reference to cell type
 std::vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
 	
 	vector<Cell*> neighbours = getNeighbours(row, col);
@@ -99,6 +101,7 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 	return neighbours;
 }
 
+//TODO Reference to cell type
 std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, CELL_TYPE t) {
 	
 	vector<Vector2D<int>> neighbours;
@@ -339,6 +342,7 @@ int SquareCellGrid::cleaveCell(int c) {
 	return superCellB;
 }
 
+//TODO Reference to boundary cell type
 int SquareCellGrid::moveCell(int x, int y) {
 
 	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
@@ -435,6 +439,7 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 
 }
 
+//TODO Uses cell type as int
 double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	Cell& source = internalGrid[sourceX][sourceY];
@@ -459,6 +464,7 @@ double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int
 	return (postH - initH);
 }
 
+//TODO Checks empty space type
 double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int destSuper = internalGrid[destX][destY].getSuperCell();
@@ -486,6 +492,7 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	return deltaH;
 }
 
+//TODO Checks empty space type
 double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int destSuper = internalGrid[destX][destY].getSuperCell();

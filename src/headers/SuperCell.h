@@ -2,6 +2,8 @@
 
 #include "CellTypes.h"
 #include <vector>
+#include <string>
+#include <map>
 #include "Cell.h"
 
 class SuperCell {
@@ -37,6 +39,7 @@ public:
 	static int getSurface(int c);
 	static void changeSurface(int c, int delta);
 
+	//TODO Cell type enum removal
 	static CELL_TYPE getCellType(int c);
 	static void setCellType(int c, CELL_TYPE t);
 
@@ -45,8 +48,10 @@ public:
 	static void setColour(int i, int r, int g, int b, int a);
 	static void setColour(int i, std::vector<int> col);
 	static std::vector<int> getColour(int i);
+	//TODO Cell type enum removal
 	static std::vector<int> generateNewColour(CELL_TYPE c);
 	
+	std::map<std::string, std::vector<double>> tags = std::map<std::string, std::vector<double>>();
 
 private:
 
@@ -62,6 +67,7 @@ private:
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
 
+	//TODO Cell type enum removal
 	CELL_TYPE type;
 
 	SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface);

@@ -19,6 +19,7 @@ public:
 	int getSuperCell() const;
 	void setSuperCell(int i);
 
+	//TODO Cell type enum removal
 	CELL_TYPE getType() const;
 	void setType(CELL_TYPE t);
 
