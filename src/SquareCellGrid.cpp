@@ -13,11 +13,13 @@ using namespace std;
 
 const double BOLTZ_TEMP = 10.0;
 
+const double OMEGA = 1.0;
+
 //Volume Constraint Strength
 const double LAMBDA = 5.0;
 
 //Surface constraint strength
-const double SIGMA = 0.0;
+const double SIGMA = 0;
 
 const auto J = CellTypes::J;
 
@@ -352,7 +354,10 @@ int SquareCellGrid::moveCell(int x, int y) {
 	if (swap.getType() != CELL_TYPE::BOUNDARY &&
 		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
 
-		double deltaH = getAdhesionDelta(x, y, targetX, targetY) + getVolumeDelta(x, y, targetX, targetY) + getSurfaceDelta(x, y, targetX, targetY);
+		double deltaH = 
+			getAdhesionDelta(x, y, targetX, targetY) * OMEGA 
+			+ getVolumeDelta(x, y, targetX, targetY) * LAMBDA + 
+			getSurfaceDelta(x, y, targetX, targetY) * SIGMA;
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
@@ -478,8 +483,6 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	deltaH = (!sourceIgnore)*((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2))
 			+ (!destIgnore)*((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
 
-	deltaH *= LAMBDA;
-
 	return deltaH;
 }
 
@@ -505,8 +508,6 @@ double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int 
 
 	deltaH = (!sourceIgnore) * ((double)pow(sourceSurf + deltaSource - sourceTarget, 2) - (double)pow(sourceSurf - sourceTarget, 2))
 		+ (!destIgnore) * ((double)pow(destSurf - deltaTarget - destTarget, 2) - (double)pow(destSurf - destTarget, 2));
-
-	deltaH *= SIGMA;
 
 	return deltaH;
 

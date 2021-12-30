@@ -30,7 +30,7 @@ unsigned int RENDER_FPS;
 //Number of MCS per real hour
 const double MCS_HOUR_EST = 500.0;
 
-const int TARGET_INIT_CELLS = 1600;
+const int TARGET_INIT_CELLS = 3200;
 
 //Target time morula cell division spacing
 const double MCS_M_DIV_TARGET = 12*MCS_HOUR_EST;
@@ -411,10 +411,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		//Increase MCS count for each cell
 		SuperCell::increaseMCS();
 
-		int oldP = SuperCell::getSurface(3);
 		//Recalculate Perimeters
 		grid.fullPerimeterRefresh();
-		cout << SuperCell::getSurface(3) - oldP << endl;
 
 	}
 
