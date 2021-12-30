@@ -2,14 +2,14 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <fstream>
 #include <atomic>
 #include <thread>
 #include <math.h>
+#include <bitset>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-
-#include <boost/program_options.hpp>
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -19,6 +19,7 @@
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/MathConstants.h"
+#include "./headers/split.h"
 
 unsigned int PIXEL_SCALE;
 unsigned int MAX_MCS;
@@ -33,8 +34,8 @@ const double MCS_HOUR_EST = 500.0;
 const int TARGET_INIT_CELLS = 3200;
 
 //Target time morula cell division spacing
-const double MCS_M_DIV_TARGET = 12*MCS_HOUR_EST;
-const double SD_M_DIV_TARGET = 0.5*MCS_HOUR_EST;
+const double MCS_M_DIV_TARGET = 12 * MCS_HOUR_EST;
+const double SD_M_DIV_TARGET = 0.5 * MCS_HOUR_EST;
 
 //Target time of compaction
 const double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
@@ -61,16 +62,18 @@ int inline funcTrophectoderm(int m) {
 const double MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
 const double SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
-namespace po = boost::program_options;
 using namespace std;
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done);
-int simInit(int argc, char* argv[]);
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid);
+unsigned int readConfig(string cfg);
 
 int main(int argc, char* argv[]) {
 
-	if (simInit(argc, argv) > 0) {
+	int configStatus = readConfig("default.cfg");
+
+	if (configStatus) {
+		cout << "Missing configuration option: " << configStatus << endl;
 		return 1;
 	}
 
@@ -92,13 +95,13 @@ int main(int argc, char* argv[]) {
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
-	
+
 	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid.boundaryWidth, grid.boundaryHeight);
 	printGrid(renderer, texture, grid);
 
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
-	
+
 	bool quit = false;
 	bool waitForEnd = false;
 
@@ -112,7 +115,7 @@ int main(int argc, char* argv[]) {
 			tickA = SDL_GetTicks();
 			tickDelta = tickA - tickB;
 
-			if (done) {				
+			if (done) {
 				cout << "done";
 				printGrid(renderer, texture, grid);
 				simLoopThread.join();
@@ -148,7 +151,7 @@ int main(int argc, char* argv[]) {
 }
 
 int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
-	
+
 	//Target times for key events
 	bool compacted = false;
 	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalDouble(MCS_COMPACT_TARGET, SD_COMPACT_TARGET);
@@ -163,21 +166,21 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	int midY = SIM_HEIGHT / 2;
 
 	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int targetInitCellLength = (int) BORDER_CONST * sqrt(TARGET_INIT_CELLS);
+	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
 
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
-	SuperCell::setNextDiv(newSuperCell, (int) RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET,SD_M_DIV_TARGET));
-	
+	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+
 
 	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
 		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
-		
+
 			grid.setCell(x, y, newSuperCell);
 
 		}
 	}
-	
+
 	grid.fullTextureRefresh();
 	grid.fullPerimeterRefresh();
 
@@ -229,7 +232,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 				for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
 					if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
-						
+
 						SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
 
 					}
@@ -239,25 +242,25 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 				compacted = true;
 			}
 
-		}	
+		}
 
 		if (compacted && !differentationA) {
-				
+
 			if (m >= differentiationTime) {
 
 				cout << "Differentiation at: " << m << endl;
-				
+
 				for (int y = 1; y <= grid.interiorHeight; y++) {
 					for (int x = 1; x <= grid.interiorWidth; x++) {
 
 						Cell& c = grid.getCell(x, y);
 
 						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
-							
-							auto N = grid.getNeighbours(x,y,CELL_TYPE::EMPTYSPACE);
-							
+
+							auto N = grid.getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+
 							if (!N.empty()) {
-																
+
 								c.setType(CELL_TYPE::TROPHECTODERM);
 								c.generateNewColour();
 								c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
@@ -282,7 +285,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 							c.generateNewColour();
 							c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 							c.setMCS(0);
-							
+
 						}
 
 					}
@@ -299,11 +302,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 					if (c.getType() == CELL_TYPE::ICM) {
 
-						c.setSuperCell((int) CELL_TYPE::FLUID);
+						c.setSuperCell((int)CELL_TYPE::FLUID);
 						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
-												
+
 						fluidCreation = true;
-						
+
 					}
 
 				}
@@ -345,10 +348,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 										cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
 										int newSuper = grid.divideCellRandomAxis(c);
-										
+
 										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
-										
+
 										divideSuccess = true;
 										goto endLoop;
 
@@ -366,16 +369,17 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 							}
 						}
 
-						endLoop:
-											
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m-diffStartMCS), SD_T_DIV_TARGET));
+					endLoop:
+
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
 						grid.fullTextureRefresh();
 						grid.fullPerimeterRefresh();
 
 					}
 
-				} else if(SuperCell::getCellType(c) == CELL_TYPE::ICM) {
+				}
+				else if (SuperCell::getCellType(c) == CELL_TYPE::ICM) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
@@ -396,11 +400,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 			}
 
 			//Fluid expansion
-			int newFluidVolume = max(50,(int) (TARGET_MAX_FLUID*(1-exp(-((m-diffStartMCS)/(TARGET_SCALE_FLUID))))));
+			int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
 			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
-			
+
 		}
-		
+
 		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
@@ -417,72 +421,73 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 	}
 
 	done = true;
-	
+
 	return 0;
 
 }
 
-int simInit(int argc, char* argv[]) {
+unsigned int readConfig(string cfg) {
 
-	try {
+	unsigned int flags = 0b111111;
 
-		po::options_description description("Simulation options:");
-		description.add_options()
-			("help", "Display this help message")
-			("maxMCS,i", po::value<unsigned int>()->default_value((int) (6*24*MCS_HOUR_EST)), "Number of MCS")
-			("pixel,p", po::value<unsigned int>()->default_value(4), "Pixels per cell")
-			("height,h", po::value<unsigned int>()->default_value(150), "Simulation space height")
-			("width,w", po::value<unsigned int>()->default_value(150), "Simulation space width")
-			("delay,d", po::value<unsigned int>()->default_value(0), "Simulation artificial delay, arbitrary, play around for good values, zero for as fast as possible")
-			("fps,f", po::value<unsigned int>()->default_value(30), "Simulation target fps, default 30");
+	std::ifstream ifs(cfg);
+	string line;
 
-		po::variables_map vm;
-		po::store(po::command_line_parser(argc, argv).options(description).allow_unregistered().run(), vm);
-		po::notify(vm);
+	while (std::getline(ifs, line)) {
 
-		if (vm.count("help")) {
-			std::cout << description;
-			return 1;
+		auto V = split(line,',');
+
+		if (V[0] == "#") {
+
+			continue;
+
+		} else if (V[0] == "SIM_PARAM") {
+
+			string P = V[1];
+			string value = V[2];
+
+			if (P == "MAX_MCS") {
+
+				MAX_MCS = stoi(value);
+				flags &= ~(1U << 0);
+
+			} else if (P == "PIXEL_SCALE") {
+
+				PIXEL_SCALE = stoi(value);
+				flags &= ~(1U << 1);
+
+			} else if (P == "HEIGHT") {
+
+				SIM_HEIGHT = stoi(value);
+				flags &= ~(1U << 2);
+
+			} else if (P == "WIDTH") {
+
+				SIM_WIDTH = stoi(value);
+				flags &= ~(1U << 3);
+
+			} else if (P == "DELAY") {
+				
+				SIM_DELAY = stoi(value);
+				flags &= ~(1U << 4);
+			
+			} else if (P == "FPS") {
+
+				RENDER_FPS = stoi(value);
+				flags &= ~(1U << 5);
+
+			}
+
 		}
-
-		if (vm.count("maxMCS")) {
-			MAX_MCS = vm["maxMCS"].as<unsigned int>();
-		}
-
-		if (vm.count("pixel")) {
-			PIXEL_SCALE = vm["pixel"].as<unsigned int>();
-		}
-
-		if (vm.count("height")) {
-			SIM_HEIGHT = vm["height"].as<unsigned int>();
-		}
-
-		if (vm.count("width")) {
-			SIM_WIDTH = vm["width"].as<unsigned int>();
-		}
-
-		if (vm.count("delay")) {
-			SIM_DELAY = vm["delay"].as<unsigned int>();
-		}
-
-		if (vm.count("fps")) {
-			RENDER_FPS = vm["fps"].as<unsigned int>();
-		}
-
-		return 0;
 
 	}
-	catch (const std::exception& e) {
-		cout << "Unexpected argument" << endl;
-		cout << "use --help for help" << endl;
-		cout << e.what();
-		return 1;
-	}
+
+	return flags;
 
 }
 
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid) {
-	
+
 	std::vector<unsigned char> pixels = grid.getPixels();
 
 	SDL_UpdateTexture(texture, NULL, pixels.data(), grid.boundaryWidth * 4);
