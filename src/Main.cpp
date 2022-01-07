@@ -23,10 +23,13 @@
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 86400;
-unsigned int SIM_WIDTH;
-unsigned int SIM_HEIGHT;
 unsigned int SIM_DELAY = 0;
 unsigned int RENDER_FPS = 60;
+
+double BOLTZ_TEMP = 10.0;
+double OMEGA = 1.0;
+double LAMBDA = 5.0;
+double SIGMA = 0;
 
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
@@ -428,41 +431,15 @@ unsigned int readConfig(string cfg) {
 			string P = V[1];
 			string value = V[2];
 
-			if (P == "MAX_MCS") {
-
-				MAX_MCS = stoi(value);
-
-			}
-			else if (P == "PIXEL_SCALE") {
-
-				PIXEL_SCALE = stoi(value);
-
-			}
-			else if (P == "HEIGHT") {
-
-				SIM_HEIGHT = stoi(value);
-
-			}
-			else if (P == "WIDTH") {
-
-				SIM_WIDTH = stoi(value);
-
-			}
-			else if (P == "DELAY") {
-
-				SIM_DELAY = stoi(value);
-
-			}
-			else if (P == "FPS") {
-
-				RENDER_FPS = stoi(value);
-
-			}
-			else if (P == "MCS_HOUR_EST") {
-
-				MCS_HOUR_EST = stoi(value);
-
-			}
+			if (P == "MAX_MCS") MAX_MCS = stoi(value);
+			else if (P == "PIXEL_SCALE")PIXEL_SCALE = stoi(value);
+			else if (P == "DELAY") SIM_DELAY = stoi(value);
+			else if (P == "FPS") RENDER_FPS = stoi(value);
+			else if (P == "MCS_HOUR_EST")MCS_HOUR_EST = stoi(value);
+			else if (P == "OMEGA") OMEGA = stod(value);
+			else if (P == "LAMBDA") LAMBDA = stoi(value);
+			else if (P == "SIGMA") SIGMA = stoi(value);
+			else if (P == "BOLTZ_TEMP") BOLTZ_TEMP = stoi(value);
 
 		}
 
@@ -483,9 +460,9 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 	string pgmString;
 	getline(ifs, pgmString);
 	getline(ifs, pgmString);
-	SIM_WIDTH = stoi(pgmString);
+	int SIM_WIDTH = stoi(pgmString);
 	getline(ifs, pgmString);
-	SIM_HEIGHT = stoi(pgmString);
+	int SIM_HEIGHT = stoi(pgmString);
 	getline(ifs, pgmString);
 
 	shared_ptr<SquareCellGrid> grid (new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT));
@@ -502,6 +479,11 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 		}
 	}
+
+	grid->BOLTZ_TEMP = BOLTZ_TEMP;
+	grid->OMEGA = OMEGA;
+	grid->SIGMA = SIGMA;
+	grid->LAMBDA = LAMBDA;
 
 	return grid;
 

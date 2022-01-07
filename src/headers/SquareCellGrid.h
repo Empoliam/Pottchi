@@ -10,6 +10,13 @@ public:
 	int boundaryHeight;
 	int interiorWidth;
 	int interiorHeight;
+	double BOLTZ_TEMP;
+	//Adhesion Constraint Strength;
+	double OMEGA;
+	//Volume Constraint Strength
+	double LAMBDA;
+	//Surface constraint strength
+	double SIGMA;
 
 	SquareCellGrid(int w, int h);
 

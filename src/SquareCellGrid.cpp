@@ -11,16 +11,6 @@
 
 using namespace std;
 
-const double BOLTZ_TEMP = 10.0;
-
-const double OMEGA = 1.0;
-
-//Volume Constraint Strength
-const double LAMBDA = 5.0;
-
-//Surface constraint strength
-const double SIGMA = 0;
-
 const auto J = CellTypes::J;
 
 //TODO Reference to boundary cell type
