@@ -64,9 +64,10 @@ const double SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 using namespace std;
 
-int simLoop(SquareCellGrid& grid, atomic<bool>& done);
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid);
+int simLoop(SquareCellGrid* grid, atomic<bool>& done);
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid* grid);
 unsigned int readConfig(string cfg);
+SquareCellGrid* initializeGrid(string imgName);
 
 int main(int argc, char* argv[]) {
 
@@ -77,16 +78,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	SDL_SetMainReady();
-	SDL_Event event;
-	SDL_Renderer* renderer;
-	SDL_Window* window;
-
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer((SIM_WIDTH + 2) * PIXEL_SCALE, (SIM_HEIGHT + 2) * PIXEL_SCALE, 0, &window, &renderer);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-	SDL_RenderClear(renderer);
-
 	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
 	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0, 0);
@@ -94,13 +85,24 @@ int main(int argc, char* argv[]) {
 	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 50);
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
-	SquareCellGrid grid(SIM_WIDTH, SIM_HEIGHT);
+	SquareCellGrid* grid = initializeGrid("default.pgm");
 
-	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid.boundaryWidth, grid.boundaryHeight);
+	SDL_SetMainReady();
+	SDL_Event event;
+	SDL_Renderer* renderer;
+	SDL_Window* window;
+
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_CreateWindowAndRenderer((grid->boundaryWidth) * PIXEL_SCALE, (grid->boundaryHeight + 2) * PIXEL_SCALE, 0, &window, &renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+	SDL_RenderClear(renderer);
+
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid->boundaryWidth, grid->boundaryHeight);
+
 	printGrid(renderer, texture, grid);
 
 	std::atomic<bool> done(false);
-	std::thread simLoopThread(simLoop, std::ref(grid), std::ref(done));
+	std::thread simLoopThread(simLoop, grid, std::ref(done));
 
 	bool quit = false;
 	bool waitForEnd = false;
@@ -142,6 +144,8 @@ int main(int argc, char* argv[]) {
 
 	}
 
+	delete grid;
+
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -150,7 +154,7 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
+int simLoop(SquareCellGrid* grid, atomic<bool>& done) {
 
 	//Target times for key events
 	bool compacted = false;
@@ -161,43 +165,11 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	unsigned int diffStartMCS;
 
-	//Initial cell setup
-	int midX = SIM_WIDTH / 2;
-	int midY = SIM_HEIGHT / 2;
-
-	int targetInitCellsSqrt = (int)sqrt(TARGET_INIT_CELLS);
-	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
-
-	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
-
-	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
-
-	std::ifstream ifs("default.pgm");
-	string pgmString;
-	for (int i = 0; i < 4; i++) {
-		getline(ifs, pgmString);
-		cout << pgmString << endl;
-	}
-
-
-	for (int x = 1; x <= grid.interiorWidth; x++) {
-		for (int y = 1; y <= grid.interiorHeight; y++) {
-
-			uint8_t b = 0;
-			ifs >> b;
-
-			if(b == 0xFF) { 
-				grid.setCell(x, y, newSuperCell); 
-			}	
-
-		}
-	}
-
-	grid.fullTextureRefresh();
-	grid.fullPerimeterRefresh();
+	grid->fullTextureRefresh();
+	grid->fullPerimeterRefresh();
 
 	//Number of samples to take before increasing MCS count
-	unsigned int iMCS = grid.interiorWidth * grid.interiorHeight;
+	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
 
 	//Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
@@ -205,10 +177,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		//Monte Carlo Step
 		for (unsigned int i = 0; i < iMCS; i++) {
 
-			int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
-			int y = RandomNumberGenerators::rUnifInt(1, grid.interiorHeight);
+			int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
+			int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
-			bool success = grid.moveCell(x, y);
+			bool success = grid->moveCell(x, y);
 
 			if (done) {
 				break;
@@ -225,10 +197,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid.cleaveCell(c);
+						int newSuper = grid->cleaveCell(c);
 
-						grid.fullTextureRefresh();
-						grid.fullPerimeterRefresh();
+						grid->fullTextureRefresh();
+						grid->fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
@@ -262,14 +234,14 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 				cout << "Differentiation at: " << m << endl;
 
-				for (int y = 1; y <= grid.interiorHeight; y++) {
-					for (int x = 1; x <= grid.interiorWidth; x++) {
+				for (int y = 1; y <= grid->interiorHeight; y++) {
+					for (int x = 1; x <= grid->interiorWidth; x++) {
 
-						Cell& c = grid.getCell(x, y);
+						Cell& c = grid->getCell(x, y);
 
 						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
 
-							auto N = grid.getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+							auto N = grid->getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
 
 							if (!N.empty()) {
 
@@ -286,10 +258,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 				}
 
-				for (int y = 1; y <= grid.interiorHeight; y++) {
-					for (int x = 1; x <= grid.interiorWidth; x++) {
+				for (int y = 1; y <= grid->interiorHeight; y++) {
+					for (int x = 1; x <= grid->interiorWidth; x++) {
 
-						Cell& c = grid.getCell(x, y);
+						Cell& c = grid->getCell(x, y);
 
 						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
 
@@ -307,10 +279,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 				bool fluidCreation = false;
 				while (!fluidCreation) {
 
-					int x = RandomNumberGenerators::rUnifInt(1, grid.interiorWidth);
-					int y = RandomNumberGenerators::rUnifInt(1, grid.interiorHeight);
+					int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
+					int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
-					Cell& c = grid.getCell(x, y);
+					Cell& c = grid->getCell(x, y);
 
 					if (c.getType() == CELL_TYPE::ICM) {
 
@@ -326,8 +298,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 				diffStartMCS = m;
 				differentationA = true;
 
-				grid.fullTextureRefresh();
-				grid.fullPerimeterRefresh();
+				grid->fullTextureRefresh();
+				grid->fullPerimeterRefresh();
 
 			}
 
@@ -345,22 +317,22 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 						bool divideSuccess = false;
 						vector<reference_wrapper<Cell>> cList;
 
-						for (int x = 0; x <= grid.interiorWidth; x++) {
+						for (int x = 0; x <= grid->interiorWidth; x++) {
 
-							for (int y = 0; y <= grid.interiorHeight; y++) {
+							for (int y = 0; y <= grid->interiorHeight; y++) {
 
-								Cell& activeCell = grid.getCell(x, y);
+								Cell& activeCell = grid->getCell(x, y);
 
 								if (activeCell.getSuperCell() == c) {
 
-									auto N = grid.getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+									auto N = grid->getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
 
 									cList.push_back(activeCell);
 
 									if (!N.empty()) {
 
 										cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-										int newSuper = grid.divideCellRandomAxis(c);
+										int newSuper = grid->divideCellRandomAxis(c);
 
 										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
@@ -386,8 +358,8 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
 
-						grid.fullTextureRefresh();
-						grid.fullPerimeterRefresh();
+						grid->fullTextureRefresh();
+						grid->fullPerimeterRefresh();
 
 					}
 
@@ -397,10 +369,10 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
 						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid.divideCellShortAxis(c);
+						int newSuper = grid->divideCellShortAxis(c);
 
-						grid.fullTextureRefresh();
-						grid.fullPerimeterRefresh();
+						grid->fullTextureRefresh();
+						grid->fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
@@ -429,7 +401,7 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 		SuperCell::increaseMCS();
 
 		//Recalculate Perimeters
-		grid.fullPerimeterRefresh();
+		grid->fullPerimeterRefresh();
 
 	}
 
@@ -502,11 +474,46 @@ unsigned int readConfig(string cfg) {
 
 }
 
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid& grid) {
+SquareCellGrid* initializeGrid(string imgName) {
 
-	std::vector<unsigned char> pixels = grid.getPixels();
+	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
+	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
-	SDL_UpdateTexture(texture, NULL, pixels.data(), grid.boundaryWidth * 4);
+	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+
+	std::ifstream ifs(imgName);
+	string pgmString;
+	getline(ifs, pgmString);
+	getline(ifs, pgmString);
+	SIM_WIDTH = stoi(pgmString);
+	getline(ifs, pgmString);
+	SIM_HEIGHT = stoi(pgmString);
+	getline(ifs, pgmString);
+
+	SquareCellGrid* grid = new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT);
+
+	for (int x = 1; x <= grid->interiorWidth; x++) {
+		for (int y = 1; y <= grid->interiorHeight; y++) {
+
+			uint8_t b = 0;
+			ifs >> b;
+
+			if (b == 0xFF) {
+				grid->setCell(x, y, newSuperCell);
+			}
+
+		}
+	}
+
+	return grid;
+
+}
+
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid* grid) {
+
+	std::vector<unsigned char> pixels = grid->getPixels();
+
+	SDL_UpdateTexture(texture, NULL, pixels.data(), grid->boundaryWidth * 4);
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 
