@@ -172,10 +172,23 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 
-	for (int x = midX - targetInitCellsSqrt / 2; x < midX + targetInitCellsSqrt / 2; x++) {
-		for (int y = midY - targetInitCellsSqrt / 2; y < midY + targetInitCellsSqrt / 2; y++) {
+	std::ifstream ifs("default.pgm");
+	string pgmString;
+	for (int i = 0; i < 4; i++) {
+		getline(ifs, pgmString);
+		cout << pgmString << endl;
+	}
 
-			grid.setCell(x, y, newSuperCell);
+
+	for (int x = 1; x <= grid.interiorWidth; x++) {
+		for (int y = 1; y <= grid.interiorHeight; y++) {
+
+			uint8_t b = 0;
+			ifs >> b;
+
+			if(b == 0xFF) { 
+				grid.setCell(x, y, newSuperCell); 
+			}	
 
 		}
 	}
@@ -428,21 +441,19 @@ int simLoop(SquareCellGrid& grid, atomic<bool>& done) {
 
 unsigned int readConfig(string cfg) {
 
-	unsigned int numParams = 7;
-	unsigned int flags = (int)pow(2,numParams)-1;
-
 	std::ifstream ifs(cfg);
 	string line;
 
 	while (std::getline(ifs, line)) {
 
-		auto V = split(line,',');
+		auto V = split(line, ',');
 
 		if (V[0] == "#") {
 
 			continue;
 
-		} else if (V[0] == "SIM_PARAM") {
+		}
+		else if (V[0] == "SIM_PARAM") {
 
 			string P = V[1];
 			string value = V[2];
@@ -450,37 +461,36 @@ unsigned int readConfig(string cfg) {
 			if (P == "MAX_MCS") {
 
 				MAX_MCS = stoi(value);
-				flags &= ~(1U << 0);
 
-			} else if (P == "PIXEL_SCALE") {
+			}
+			else if (P == "PIXEL_SCALE") {
 
 				PIXEL_SCALE = stoi(value);
-				flags &= ~(1U << 1);
 
-			} else if (P == "HEIGHT") {
+			}
+			else if (P == "HEIGHT") {
 
 				SIM_HEIGHT = stoi(value);
-				flags &= ~(1U << 2);
 
-			} else if (P == "WIDTH") {
+			}
+			else if (P == "WIDTH") {
 
 				SIM_WIDTH = stoi(value);
-				flags &= ~(1U << 3);
 
-			} else if (P == "DELAY") {
-				
+			}
+			else if (P == "DELAY") {
+
 				SIM_DELAY = stoi(value);
-				flags &= ~(1U << 4);
-			
-			} else if (P == "FPS") {
+
+			}
+			else if (P == "FPS") {
 
 				RENDER_FPS = stoi(value);
-				flags &= ~(1U << 5);
 
-			} else if (P == "MCS_HOUR_EST") {
+			}
+			else if (P == "MCS_HOUR_EST") {
 
 				MCS_HOUR_EST = stoi(value);
-				flags &= ~(1U << 6);
 
 			}
 
@@ -488,7 +498,7 @@ unsigned int readConfig(string cfg) {
 
 	}
 
-	return flags;
+	return 0;
 
 }
 

@@ -15,8 +15,9 @@ add_executable (HumanBlastocyst ${SRC} ${HDR})
 # TODO: Add tests and install targets if needed.
 
 find_package(SDL2 CONFIG REQUIRED)
-target_link_libraries(HumanBlastocyst PRIVATE SDL2::SDL2 SDL2::SDL2main)
 
+
+target_link_libraries(HumanBlastocyst PRIVATE SDL2::SDL2 SDL2::SDL2main)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 #Copy default settings
@@ -30,4 +31,13 @@ add_custom_command(COMMAND ${CMAKE_COMMAND} -E copy
                    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/default.cfg
                    COMMENT "Copied default config"
 )
-add_dependencies(HumanBlastocyst copy-cfg)
+
+add_custom_target(copy-img ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/default.pgm")
+add_custom_command(COMMAND ${CMAKE_COMMAND} -E copy 
+                   ${CMAKE_CURRENT_SOURCE_DIR}/default.pgm
+                   ${CMAKE_CURRENT_BINARY_DIR}/default.pgm
+                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/default.pgm
+                   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/default.pgm
+                   COMMENT "Copied default layout"
+)
+add_dependencies(HumanBlastocyst copy-cfg copy-img)
