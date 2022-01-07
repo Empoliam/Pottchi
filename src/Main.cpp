@@ -21,12 +21,12 @@
 #include "./headers/MathConstants.h"
 #include "./headers/split.h"
 
-unsigned int PIXEL_SCALE;
-unsigned int MAX_MCS;
+unsigned int PIXEL_SCALE = 4;
+unsigned int MAX_MCS = 86400;
 unsigned int SIM_WIDTH;
 unsigned int SIM_HEIGHT;
-unsigned int SIM_DELAY;
-unsigned int RENDER_FPS;
+unsigned int SIM_DELAY = 0;
+unsigned int RENDER_FPS = 60;
 
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
@@ -64,10 +64,10 @@ const double SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 using namespace std;
 
-int simLoop(SquareCellGrid* grid, atomic<bool>& done);
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid* grid);
+int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done);
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCellGrid> grid);
 unsigned int readConfig(string cfg);
-SquareCellGrid* initializeGrid(string imgName);
+shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
 int main(int argc, char* argv[]) {
 
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 50);
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
-	SquareCellGrid* grid = initializeGrid("default.pgm");
+	shared_ptr<SquareCellGrid> grid = initializeGrid("default.pgm");
 
 	SDL_SetMainReady();
 	SDL_Event event;
@@ -144,8 +144,6 @@ int main(int argc, char* argv[]) {
 
 	}
 
-	delete grid;
-
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -154,7 +152,7 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-int simLoop(SquareCellGrid* grid, atomic<bool>& done) {
+int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 	//Target times for key events
 	bool compacted = false;
@@ -474,7 +472,7 @@ unsigned int readConfig(string cfg) {
 
 }
 
-SquareCellGrid* initializeGrid(string imgName) {
+shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
 	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
@@ -490,7 +488,7 @@ SquareCellGrid* initializeGrid(string imgName) {
 	SIM_HEIGHT = stoi(pgmString);
 	getline(ifs, pgmString);
 
-	SquareCellGrid* grid = new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT);
+	shared_ptr<SquareCellGrid> grid (new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT));
 
 	for (int x = 1; x <= grid->interiorWidth; x++) {
 		for (int y = 1; y <= grid->interiorHeight; y++) {
@@ -509,7 +507,7 @@ SquareCellGrid* initializeGrid(string imgName) {
 
 }
 
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, SquareCellGrid* grid) {
+int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCellGrid> grid) {
 
 	std::vector<unsigned char> pixels = grid->getPixels();
 
