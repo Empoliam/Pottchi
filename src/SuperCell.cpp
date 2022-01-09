@@ -18,7 +18,7 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targe
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
 
-	this->colour = generateNewColour(type);
+	this->colour = generateNewColour((int)type);
 
 }
 
@@ -117,11 +117,11 @@ std::vector<int> SuperCell::getColour(int i) {
 }
 
 //TODO Cell type enum removal
-std::vector<int> SuperCell::generateNewColour(CELL_TYPE c) {
+std::vector<int> SuperCell::generateNewColour(int c) {
 
 	std::vector<int> newCol = std::vector<int>(4, 0);
 
-	if (c == CELL_TYPE::GENERIC) {
+	if (c == 3 || c == 4) {
 
 		int r = RandomNumberGenerators::rUnifInt(150, 255);
 		int gb = RandomNumberGenerators::rUnifInt(0, 75);
@@ -131,7 +131,7 @@ std::vector<int> SuperCell::generateNewColour(CELL_TYPE c) {
 		newCol[2] = gb;
 		newCol[3] = 255;
 	}
-	else if (c == CELL_TYPE::TROPHECTODERM) {
+	else if (c == 5) {
 
 		int b = RandomNumberGenerators::rUnifInt(150, 255);
 		int rg = RandomNumberGenerators::rUnifInt(0, 75);
@@ -141,7 +141,7 @@ std::vector<int> SuperCell::generateNewColour(CELL_TYPE c) {
 		newCol[2] = b;
 		newCol[3] = 255;
 	}
-	else if (c == CELL_TYPE::ICM) {
+	else if (c == 6) {
 
 		int g = RandomNumberGenerators::rUnifInt(150, 255);
 		int rb = RandomNumberGenerators::rUnifInt(0, 75);

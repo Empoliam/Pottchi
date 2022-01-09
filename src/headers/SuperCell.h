@@ -48,15 +48,15 @@ public:
 	static void setColour(int i, std::vector<int> col);
 	static std::vector<int> getColour(int i);
 	//TODO Cell type enum removal
-	static std::vector<int> generateNewColour(CELL_TYPE c);
+	static std::vector<int> generateNewColour(int c);
 	
-	std::map<std::string, std::vector<double>> tags = std::map<std::string, std::vector<double>>();
-
 private:
 
 	int ID;
 	int generation;
-	
+
+	int cellType = 0;
+
 	int targetVolume;
 	int volume = 0;
 	
@@ -65,6 +65,7 @@ private:
 
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
+		
 
 	//TODO Cell type enum removal
 	CELL_TYPE type;

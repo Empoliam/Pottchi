@@ -20,6 +20,7 @@
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/MathConstants.h"
 #include "./headers/split.h"
+#include "./headers/CellType.h"
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 86400;
@@ -247,7 +248,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 							if (!N.empty()) {
 
 								SuperCell::setCellType(c, CELL_TYPE::TROPHECTODERM);
-								SuperCell::setColour(c, SuperCell::generateNewColour(SuperCell::getCellType(c)));
+								SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
 								SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
 								SuperCell::setMCS(c, 0);
 
@@ -267,7 +268,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 						if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC_COMPACT) {
 
 							SuperCell::setCellType(c, CELL_TYPE::ICM);
-							SuperCell::setColour(c, SuperCell::generateNewColour(SuperCell::getCellType(c)));
+							SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
 							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 							SuperCell::setMCS(c, 0);
 
@@ -430,6 +431,35 @@ unsigned int readConfig(string cfg) {
 			else if (P == "LAMBDA") LAMBDA = stoi(value);
 			else if (P == "SIGMA") SIGMA = stoi(value);
 			else if (P == "BOLTZ_TEMP") BOLTZ_TEMP = stoi(value);
+
+		}
+		else if (V[0] == "CELL_TYPE") {
+
+			CellType T(stoi(V[1]));
+			while (line != "END_TYPE") {
+
+				std::getline(ifs, line);
+				V = split(line, ',');
+				string P = V[0];
+				
+				if (P == "J") {
+					vector<string> J = split(V[1], ':');
+					for (string S : J) {
+						T.J.push_back(stod(S));
+					}
+				}
+				else if (P == "DO_DIVIDE") T.doesDivide = (V[1] == "1");
+				else if (P == "IS_STATIC") T.isStatic = (V[1] == "1");
+				else if (P == "IGNORE_VOLUME") T.ignoreVolume = (V[1] == "1");
+				else if (P == "IGNORE_SURFACE") T.ignoreSurface = (V[1] == "1");
+				else if (P == "DIV_MEAN") T.divideMean = stod(V[1]);
+				else if (P == "DIV_SD") T.divideSD = stod(V[1]);
+				else if (P == "DIV_TYPE") T.divideType = stoi(V[1]);
+
+
+			}
+
+			CellType::addType(T);
 
 		}
 
