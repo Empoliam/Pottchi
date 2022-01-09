@@ -47,6 +47,8 @@ public:
 	static int getCellType(int c);
 	static void setCellType(int c, int t);
 
+	static std::vector<double>& getJ(int c);
+
 	static int getCounter();
 
 	static void setColour(int i, int r, int g, int b, int a);

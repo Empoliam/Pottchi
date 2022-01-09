@@ -399,11 +399,11 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 //TODO Swap adhesion delta to new format
 double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
-	int source = internalGrid[sourceX][sourceY];
-	int dest = internalGrid[destX][destY];
+	int sourceSuper = internalGrid[sourceX][sourceY];
+	int destSuper = internalGrid[destX][destY];
 
-	int sourceType = SuperCell::getCellType(source);
-	int destType = SuperCell::getCellType(dest);
+	std::vector<double>& sourceJ = SuperCell::getJ(sourceSuper);
+	std::vector<double>& destJ = SuperCell::getJ(destSuper);
 
 	double initH = 0.0f;
 	double postH = 0.0f;
@@ -415,8 +415,8 @@ double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int
 		int nSuper = internalGrid[neighbours[i][0]][neighbours[i][1]];
 		int nType = SuperCell::getCellType(nSuper);
 
-		initH += CellType::getType(destType).J[nType] * (nSuper != dest);
-		postH += CellType::getType(sourceType).J[nType] * (nSuper != source);
+		initH += destJ[nType] * (nSuper != destSuper);
+		postH += sourceJ[nType] * (nSuper != sourceSuper);
 
 	}
 

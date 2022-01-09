@@ -45,19 +45,19 @@ int SuperCell::getID(int i) {
 }
 
 bool SuperCell::isStatic(int c){
-	return CellType::getType(c).isStatic;
+	return CellType::getType(superCells[c].cellType).isStatic;
 }
 
 bool SuperCell::doDivide(int c) {
-	return CellType::getType(c).doesDivide;
+	return CellType::getType(superCells[c].cellType).doesDivide;
 }
 
 bool SuperCell::ignoreVolume(int c) {
-	return CellType::getType(c).ignoreVolume;
+	return CellType::getType(superCells[c].cellType).ignoreVolume;
 }
 
 bool SuperCell::ignoreSurface(int c) {
-	return CellType::getType(c).ignoreSurface;
+	return CellType::getType(superCells[c].cellType).ignoreSurface;
 }
 
 int SuperCell::getGeneration(int i) {
@@ -110,6 +110,10 @@ int SuperCell::getCellType(int c) {
 
 void SuperCell::setCellType(int c, int t) {
 	superCells[c].cellType = t;
+}
+
+std::vector<double>& SuperCell::getJ(int c) {
+	return CellType::getType(superCells[c].cellType).J;
 }
 
 int SuperCell::getCounter() {
