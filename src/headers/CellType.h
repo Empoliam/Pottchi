@@ -9,9 +9,10 @@ public:
 	CellType(int id) {
 		this->id = id;
 	};
+		
+	int id = -1;
 
 	std::vector<double> J;
-	int id = -1;
 
 	bool doesDivide = false;
 	bool isStatic = false;

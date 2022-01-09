@@ -10,7 +10,6 @@ using namespace std;
 static vector<SuperCell> superCells = vector<SuperCell>();
 static int idCounter = 0;
 
-//TODO Cell type enum removal
 SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurface) {
 
 	this->ID = idCounter;
@@ -19,11 +18,10 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
 
-	this->colour = generateNewColour((int)type);
+	this->colour = generateNewColour(type);
 
 }
 
-//TODO Cell type enum removal
 int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
 
 
@@ -44,6 +42,22 @@ int SuperCell::makeNewSuperCell(int sC) {
 
 int SuperCell::getID(int i) {
 	return superCells[i].ID;
+}
+
+bool SuperCell::isStatic(int c){
+	return CellType::getType(c).isStatic;
+}
+
+bool SuperCell::doDivide(int c) {
+	return CellType::getType(c).doesDivide;
+}
+
+bool SuperCell::ignoreVolume(int c) {
+	return CellType::getType(c).ignoreVolume;
+}
+
+bool SuperCell::ignoreSurface(int c) {
+	return CellType::getType(c).ignoreSurface;
 }
 
 int SuperCell::getGeneration(int i) {
@@ -90,12 +104,10 @@ void SuperCell::setTargetVolume(int i, int target) {
 
 }
 
-//TODO Cell type enum removal
 int SuperCell::getCellType(int c) {
 	return superCells[c].cellType;
 }
 
-//TODO Cell type enum removal
 void SuperCell::setCellType(int c, int t) {
 	superCells[c].cellType = t;
 }
@@ -121,7 +133,7 @@ std::vector<int> SuperCell::getColour(int i) {
 	return superCells[i].colour;
 }
 
-//TODO Cell type enum removal
+//TODO Update to new colour generation method
 std::vector<int> SuperCell::generateNewColour(int c) {
 
 	std::vector<int> newCol = std::vector<int>(4, 0);

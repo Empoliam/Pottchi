@@ -15,9 +15,9 @@ using namespace std;
 
 const auto J = CellTypes::J;
 
-//TODO Reference to boundary cell type
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w+2) * (h+2) * 4, 0) {
 
+	//Temporary initialization
 	BOLTZ_TEMP = 0.0;
 	SIGMA = 0.0;
 	OMEGA = 0.0;
@@ -29,13 +29,13 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<i
 	boundaryHeight = h + 2;
 
 	for (int x = 0; x < boundaryWidth; x++) {
-		internalGrid[x][0] = (int)CELL_TYPE::BOUNDARY;
-		internalGrid[x][boundaryHeight - 1] = (int)CELL_TYPE::BOUNDARY;
+		internalGrid[x][0] = 0;
+		internalGrid[x][boundaryHeight - 1] = 0;
 	};
 
 	for (int y = 0; y < boundaryHeight; y++) {
-		internalGrid[0][y] = (int)CELL_TYPE::BOUNDARY;
-		internalGrid[boundaryWidth - 1][y] = (int)CELL_TYPE::BOUNDARY;
+		internalGrid[0][y] = 0;
+		internalGrid[boundaryWidth - 1][y] = 0;
 	};
 	
 	SuperCell::setVolume(1, interiorWidth * interiorHeight);
@@ -60,7 +60,6 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 	return neighbours;
 }
 
-//TODO Reference to cell type
 std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, int type) {
 	
 	vector<Vector2D<int>> neighbours;
@@ -301,7 +300,6 @@ int SquareCellGrid::cleaveCell(int c) {
 	return superCellB;
 }
 
-//TODO Reference to boundary cell type
 int SquareCellGrid::moveCell(int x, int y) {
 
 	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
@@ -312,9 +310,9 @@ int SquareCellGrid::moveCell(int x, int y) {
 	int targetY = neighbours[r][1];
 
 	int origin = internalGrid[x][y];
-	int swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
+	int swap = internalGrid[targetX][targetY];
 
-	if (SuperCell::getCellType(swap) != (int)CELL_TYPE::BOUNDARY &&
+	if (!SuperCell::isStatic(swap) &&
 		swap != internalGrid[x][y]) {
 
 		double deltaH = 
@@ -398,14 +396,14 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 
 }
 
-//TODO Uses cell type as int
+//TODO Swap adhesion delta to new format
 double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int source = internalGrid[sourceX][sourceY];
 	int dest = internalGrid[destX][destY];
 
-	int sourceType = (int) SuperCell::getCellType(source);
-	int destType = (int) SuperCell::getCellType(dest);
+	int sourceType = SuperCell::getCellType(source);
+	int destType = SuperCell::getCellType(dest);
 
 	double initH = 0.0f;
 	double postH = 0.0f;
@@ -417,16 +415,14 @@ double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int
 		int nSuper = internalGrid[neighbours[i][0]][neighbours[i][1]];
 		int nType = (int)SuperCell::getCellType(nSuper);
 
-
-		initH += J[destType][nType] * (nSuper != dest);
-		postH += J[sourceType][nType] * (nSuper != source);
+		initH += CellType::getType(destType).J[nType] * (nSuper != dest);
+		postH += CellType::getType(sourceType).J[nType] * (nSuper != source);
 
 	}
 
 	return (postH - initH);
 }
 
-//TODO Checks empty space type
 double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int destSuper = internalGrid[destX][destY];
@@ -445,8 +441,8 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	double deltaH = 0.0f;
 
 	//Prevent medium volume from affecting energy
-	bool sourceIgnore = sourceSuper == (int)CELL_TYPE::EMPTYSPACE;
-	bool destIgnore = destSuper == (int)CELL_TYPE::EMPTYSPACE;
+	bool sourceIgnore = SuperCell::ignoreVolume(sourceSuper);
+	bool destIgnore = SuperCell::ignoreVolume(destSuper);
 
 	deltaH = (!sourceIgnore)*((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2))
 			+ (!destIgnore)*((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
@@ -454,7 +450,6 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	return deltaH;
 }
 
-//TODO Checks empty space type
 double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int destSuper = internalGrid[destX][destY];
@@ -471,9 +466,9 @@ double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int 
 
 	double deltaH = 0.0f;
 
-	//Prevent medium volume from affecting energy
-	bool sourceIgnore = (sourceSuper == (int)CELL_TYPE::EMPTYSPACE) || (sourceSuper == (int)CELL_TYPE::FLUID);
-	bool destIgnore = destSuper == (int)CELL_TYPE::EMPTYSPACE || (destSuper == (int)CELL_TYPE::FLUID);
+	//Prevent medium surface from affecting energy
+	bool sourceIgnore = SuperCell::ignoreSurface(sourceSuper);
+	bool destIgnore = SuperCell::ignoreSurface(destSuper);
 
 	deltaH = (!sourceIgnore) * ((double)pow(sourceSurf + deltaSource - sourceTarget, 2) - (double)pow(sourceSurf - sourceTarget, 2))
 		+ (!destIgnore) * ((double)pow(destSurf - deltaTarget - destTarget, 2) - (double)pow(destSurf - destTarget, 2));

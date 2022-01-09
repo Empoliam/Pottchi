@@ -28,7 +28,6 @@ public:
 	void setCell(int row, int col, int superCell);
 	
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
-	//TODO Cell type enum removal
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, int type);
 
 	int divideCell(int c);
