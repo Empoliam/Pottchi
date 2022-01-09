@@ -8,13 +8,20 @@
 
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/MathConstants.h"
+#include "./headers/CellTypes.h"
+#include "./headers/SuperCell.h"
 
 using namespace std;
 
 const auto J = CellTypes::J;
 
 //TODO Reference to boundary cell type
-SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<Cell>(h + 2)), pixels((w+2) * (h+2) * 4, 0) {
+SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w+2) * (h+2) * 4, 0) {
+
+	BOLTZ_TEMP = 0.0;
+	SIGMA = 0.0;
+	OMEGA = 0.0;
+	LAMBDA = 0.0;
 
 	interiorWidth = w;
 	interiorHeight = h;
@@ -22,55 +29,17 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<C
 	boundaryHeight = h + 2;
 
 	for (int x = 0; x < boundaryWidth; x++) {
-		internalGrid[x][0] = Cell((int)CELL_TYPE::BOUNDARY);
-		internalGrid[x][boundaryHeight - 1] = Cell((int)CELL_TYPE::BOUNDARY);
+		internalGrid[x][0] = (int)CELL_TYPE::BOUNDARY;
+		internalGrid[x][boundaryHeight - 1] = (int)CELL_TYPE::BOUNDARY;
 	};
 
 	for (int y = 0; y < boundaryHeight; y++) {
-		internalGrid[0][y] = Cell((int)CELL_TYPE::BOUNDARY);
-		internalGrid[boundaryWidth - 1][y] = Cell((int)CELL_TYPE::BOUNDARY);
+		internalGrid[0][y] = (int)CELL_TYPE::BOUNDARY;
+		internalGrid[boundaryWidth - 1][y] = (int)CELL_TYPE::BOUNDARY;
 	};
 	
 	SuperCell::setVolume(1, interiorWidth * interiorHeight);
 	SuperCell::setVolume(0, (boundaryWidth*boundaryHeight) - (interiorWidth * interiorHeight));
-
-}
-
-vector<Cell*> SquareCellGrid::getNeighbours(int row, int col)
-{
-
-	vector<Cell*> neighbours;
-
-	neighbours.reserve(8);
-
-	for (int x = -1; x <= 1; x++) {
-
-		for (int y = -1; y <= 1; y++) {
-
-			if (x == 0 && y == 0) continue;
-			neighbours.push_back(&(internalGrid[row + x][col + y]));
-
-		}
-
-	}
-
-	return neighbours;
-
-}
-
-//TODO Reference to cell type
-std::vector<Cell*> SquareCellGrid::getNeighbours(int row, int col, CELL_TYPE t) {
-	
-	vector<Cell*> neighbours = getNeighbours(row, col);
-
-	neighbours.erase(std::remove_if(
-		neighbours.begin(),
-		neighbours.end(),
-		[t](const Cell* c) { return c->getType() != t; })
-		, neighbours.end()
-	);
-
-	return neighbours;
 
 }
 
@@ -102,7 +71,7 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col,
 		for (int y = -1; y <= 1; y++) {
 
 			if (x == 0 && y == 0) continue;
-			if (internalGrid[row - 1][col - 1].getType() == t) neighbours.push_back(Vector2D<int>(row + x, col + y));
+			if (SuperCell::getCellType(internalGrid[row + x][col + y]) == t) neighbours.push_back(Vector2D<int>(row + x, col + y));
 			
 		}
 	}
@@ -123,7 +92,7 @@ int SquareCellGrid::divideCell(int c) {
 	for (int X = 1; X <= interiorWidth; X++) {
 		for (int Y = 1; Y <= interiorHeight; Y++) {
 
-			if (internalGrid[X][Y].getSuperCell() == c) {
+			if (internalGrid[X][Y] == c) {
 
 				cellList.push_back(Vector2D<int>(X, Y));
 
@@ -187,7 +156,7 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	for (int X = 1; X <= interiorWidth; X++) {
 		for (int Y = 1; Y <= interiorHeight; Y++) {
 
-			if (internalGrid[X][Y].getSuperCell() == c) {
+			if (internalGrid[X][Y] == c) {
 
 				cellList.push_back(Vector2D<int>(X, Y));
 
@@ -241,7 +210,7 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 	for (int X = 1; X <= interiorWidth; X++) {
 		for (int Y = 1; Y <= interiorHeight; Y++) {
 
-			if (internalGrid[X][Y].getSuperCell() == c) {
+			if (internalGrid[X][Y] == c) {
 
 				cellList.push_back(Vector2D<int>(X, Y));
 
@@ -342,11 +311,11 @@ int SquareCellGrid::moveCell(int x, int y) {
 	int targetX = neighbours[r][0];
 	int targetY = neighbours[r][1];
 
-	Cell& origin = internalGrid[x][y];
-	Cell& swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
+	int origin = internalGrid[x][y];
+	int swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
-	if (swap.getType() != CELL_TYPE::BOUNDARY &&
-		swap.getSuperCell() != internalGrid[x][y].getSuperCell()) {
+	if (SuperCell::getCellType(swap) != CELL_TYPE::BOUNDARY &&
+		swap != internalGrid[x][y]) {
 
 		double deltaH = 
 			getAdhesionDelta(x, y, targetX, targetY) * OMEGA 
@@ -354,7 +323,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 			getSurfaceDelta(x, y, targetX, targetY) * SIGMA;
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
-			setCell(targetX, targetY, internalGrid[x][y].getSuperCell());
+			setCell(targetX, targetY, internalGrid[x][y]);
 			
 			localTextureRefresh(x, y);
 			localTextureRefresh(targetX, targetY);
@@ -370,7 +339,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 
 int SquareCellGrid::calcSubCellPerimeter(int x, int y) {
 	
-	int activeSuper = internalGrid[x][y].getSuperCell();
+	int activeSuper = internalGrid[x][y];
 	return calcSubCellPerimeter(x, y, activeSuper);
 
 }
@@ -379,10 +348,10 @@ int SquareCellGrid::calcSubCellPerimeter(int x, int y, int activeSuper) {
 
 	int perimeterCount = 0;
 
-	if (internalGrid[x][y - 1].getSuperCell() != activeSuper) perimeterCount++;
-	if (internalGrid[x][y + 1].getSuperCell() != activeSuper) perimeterCount++;
-	if (internalGrid[x - 1][y].getSuperCell() != activeSuper) perimeterCount++;
-	if (internalGrid[x + 1][y].getSuperCell() != activeSuper) perimeterCount++;
+	if (internalGrid[x][y - 1] != activeSuper) perimeterCount++;
+	if (internalGrid[x][y + 1] != activeSuper) perimeterCount++;
+	if (internalGrid[x - 1][y] != activeSuper) perimeterCount++;
+	if (internalGrid[x + 1][y] != activeSuper) perimeterCount++;
 
 	return perimeterCount;
 }
@@ -396,7 +365,7 @@ void SquareCellGrid::fullPerimeterRefresh() {
 	for (int x = 1; x <= interiorWidth; x++) {
 		for (int y = 1; y < interiorHeight; y++) {
 
-			int activeSuper = internalGrid[x][y].getSuperCell();
+			int activeSuper = internalGrid[x][y];
 
 			SuperCell::changeSurface(activeSuper, calcSubCellPerimeter(x, y));
 
@@ -405,13 +374,13 @@ void SquareCellGrid::fullPerimeterRefresh() {
 
 }
 
-Cell& SquareCellGrid::getCell(int row, int col) {
+int SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
 }
 
 void SquareCellGrid::setCell(int x, int y, int superCell) {
 
-	int originalSuper = internalGrid[x][y].getSuperCell();
+	int originalSuper = internalGrid[x][y];
 
 	//Volume Change
 	SuperCell::changeVolume(originalSuper, -1);
@@ -425,29 +394,32 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 	SuperCell::changeSurface(originalSuper, deltaOld);
 	SuperCell::changeSurface(superCell, deltaNew);
 
-	internalGrid[x][y].setSuperCell(superCell);
+	internalGrid[x][y] = superCell;
 
 }
 
 //TODO Uses cell type as int
 double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
-	Cell& source = internalGrid[sourceX][sourceY];
-	Cell& dest = internalGrid[destX][destY];
+	int source = internalGrid[sourceX][sourceY];
+	int dest = internalGrid[destX][destY];
 
-	int sourceSuper = source.getSuperCell();
-	int destSuper = dest.getSuperCell();
+	int sourceType = (int) SuperCell::getCellType(source);
+	int destType = (int) SuperCell::getCellType(dest);
 
 	double initH = 0.0f;
 	double postH = 0.0f;
 
-	vector<Cell*> neighbours = getNeighbours(destX, destY);
+	auto neighbours = getNeighboursCoords(destX, destY);
+
 	for (int i = 0; i < 8; i++) {
 
-		int nSuper = neighbours[i]->getSuperCell();
+		int nSuper = internalGrid[neighbours[i][0]][neighbours[i][1]];
+		int nType = (int)SuperCell::getCellType(nSuper);
 
-		initH += J[(int)dest.getType()][(int)neighbours[i]->getType()] * (nSuper != destSuper);
-		postH += J[(int)source.getType()][(int)neighbours[i]->getType()] * (nSuper != sourceSuper);
+
+		initH += J[destType][nType] * (nSuper != dest);
+		postH += J[sourceType][nType] * (nSuper != source);
 
 	}
 
@@ -457,12 +429,12 @@ double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int
 //TODO Checks empty space type
 double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int destY) {
 
-	int destSuper = internalGrid[destX][destY].getSuperCell();
+	int destSuper = internalGrid[destX][destY];
 
 	//Prevent destruction of cells
 	if (SuperCell::getVolume(destSuper) - 1 == 0) return 1000000.0f;
 
-	int sourceSuper = internalGrid[sourceX][sourceY].getSuperCell();
+	int sourceSuper = internalGrid[sourceX][sourceY];
 
 	int sourceVol = SuperCell::getVolume(sourceSuper);
 	int destVol = SuperCell::getVolume(destSuper);
@@ -485,8 +457,8 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 //TODO Checks empty space type
 double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
 
-	int destSuper = internalGrid[destX][destY].getSuperCell();
-	int sourceSuper = internalGrid[sourceX][sourceY].getSuperCell();
+	int destSuper = internalGrid[destX][destY];
+	int sourceSuper = internalGrid[sourceX][sourceY];
 
 	int sourceSurf = SuperCell::getSurface(sourceSuper);
 	int destSurf = SuperCell::getSurface(destSuper);
@@ -517,7 +489,7 @@ void SquareCellGrid::fullTextureRefresh() {
 		for (int y = 0; y < boundaryHeight; y++) {
 
 			const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
-			vector<int> colourIn = internalGrid[x][y].getColour();
+			vector<int> colourIn = SuperCell::getColour(internalGrid[x][y]);
 
 			if (colourIn.size() == 0) {
 				colourIn = { 0,0,0,0 };
@@ -537,7 +509,7 @@ void SquareCellGrid::fullTextureRefresh() {
 void SquareCellGrid::localTextureRefresh(int x, int y) {
 
 	const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
-	vector<int> colourIn = internalGrid[x][y].getColour();
+	vector<int> colourIn = SuperCell::getColour(internalGrid[x][y]);
 
 	if (colourIn.size() == 0) {
 		colourIn = { 0,0,0,0 };

@@ -1,7 +1,11 @@
 #pragma once
 
-#include "Cell.h"
+#include "Vector2D.h"
 #include "SDL2/SDL.h"
+
+#include <vector>
+
+#include "CellTypes.h"
 
 class SquareCellGrid {
 
@@ -10,23 +14,18 @@ public:
 	int boundaryHeight;
 	int interiorWidth;
 	int interiorHeight;
+
+	//Always overriden, do not change
 	double BOLTZ_TEMP;
-	//Adhesion Constraint Strength;
 	double OMEGA;
-	//Volume Constraint Strength
 	double LAMBDA;
-	//Surface constraint strength
 	double SIGMA;
 
 	SquareCellGrid(int w, int h);
 
-	Cell& getCell(int row, int col);
+	int getCell(int row, int col);
 
 	void setCell(int row, int col, int superCell);
-
-	std::vector<Cell*> getNeighbours(int row, int col);
-	//TODO Cell type enum removal
-	std::vector<Cell*> getNeighbours(int row, int col, CELL_TYPE t);
 	
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
 	//TODO Cell type enum removal
@@ -54,7 +53,8 @@ public:
 	std::vector<unsigned char> getPixels();
 
 protected:
-	std::vector<std::vector<Cell>> internalGrid;
+
+	std::vector<std::vector<int>> internalGrid;
 	std::vector<unsigned char> pixels;
 
 	double calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO);

@@ -14,7 +14,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "./headers/Cell.h"
+#include "./headers/SuperCell.h"
 #include "./headers/SquareCellGrid.h"
 #include "./headers/Vector2D.h"
 #include "./headers/RandomNumberGenerators.h"
@@ -238,18 +238,18 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 				for (int y = 1; y <= grid->interiorHeight; y++) {
 					for (int x = 1; x <= grid->interiorWidth; x++) {
 
-						Cell& c = grid->getCell(x, y);
+						int c = grid->getCell(x, y);
 
-						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
+						if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC_COMPACT) {
 
-							auto N = grid->getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
+							auto N = grid->getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
 
 							if (!N.empty()) {
 
-								c.setType(CELL_TYPE::TROPHECTODERM);
-								c.generateNewColour();
-								c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
-								c.setMCS(0);
+								SuperCell::setCellType(c, CELL_TYPE::TROPHECTODERM);
+								SuperCell::setColour(c, SuperCell::generateNewColour(SuperCell::getCellType(c)));
+								SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
+								SuperCell::setMCS(c, 0);
 
 							}
 
@@ -262,14 +262,14 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 				for (int y = 1; y <= grid->interiorHeight; y++) {
 					for (int x = 1; x <= grid->interiorWidth; x++) {
 
-						Cell& c = grid->getCell(x, y);
+						int c = grid->getCell(x, y);
 
-						if (c.getType() == CELL_TYPE::GENERIC_COMPACT) {
+						if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC_COMPACT) {
 
-							c.setType(CELL_TYPE::ICM);
-							c.generateNewColour();
-							c.setNextDiv((int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
-							c.setMCS(0);
+							SuperCell::setCellType(c, CELL_TYPE::ICM);
+							SuperCell::setColour(c, SuperCell::generateNewColour(SuperCell::getCellType(c)));
+							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+							SuperCell::setMCS(c, 0);
 
 						}
 
@@ -283,11 +283,11 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
 					int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
-					Cell& c = grid->getCell(x, y);
+					int c = grid->getCell(x, y);
 
-					if (c.getType() == CELL_TYPE::ICM) {
+					if (SuperCell::getCellType(c) == CELL_TYPE::ICM) {
 
-						c.setSuperCell((int)CELL_TYPE::FLUID);
+						grid->setCell(x, y, (int)CELL_TYPE::FLUID);
 						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
 
 						fluidCreation = true;
@@ -316,19 +316,16 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
 						bool divideSuccess = false;
-						vector<reference_wrapper<Cell>> cList;
 
 						for (int x = 0; x <= grid->interiorWidth; x++) {
 
 							for (int y = 0; y <= grid->interiorHeight; y++) {
 
-								Cell& activeCell = grid->getCell(x, y);
+								int activeCell = grid->getCell(x, y);
 
-								if (activeCell.getSuperCell() == c) {
+								if (activeCell == c) {
 
-									auto N = grid->getNeighbours(x, y, CELL_TYPE::EMPTYSPACE);
-
-									cList.push_back(activeCell);
+									auto N = grid->getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
 
 									if (!N.empty()) {
 
@@ -336,7 +333,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 										int newSuper = grid->divideCellRandomAxis(c);
 
 										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
-
 
 										divideSuccess = true;
 										goto endLoop;
@@ -347,13 +343,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 							}
 
-						}
-
-						if (!divideSuccess) {
-							for (int L = 0; L < cList.size(); L++) {
-								cList[L].get().setSuperCell((int)CELL_TYPE::FLUID);
-							}
-						}
+						}					
 
 					endLoop:
 

@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "Cell.h"
 
 class SuperCell {
 
