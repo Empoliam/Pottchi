@@ -1,6 +1,7 @@
 #include "headers/SuperCell.h"
 
 #include<vector>
+#include<algorithm>
 
 #include "headers/RandomNumberGenerators.h"
 
@@ -10,10 +11,10 @@ static vector<SuperCell> superCells = vector<SuperCell>();
 static int idCounter = 0;
 
 //TODO Cell type enum removal
-SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface) {
-	
+SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurface) {
+
 	this->ID = idCounter;
-	this->type = type;
+	this->cellType = type;
 	this->generation = generation;
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
@@ -23,17 +24,21 @@ SuperCell::SuperCell(CELL_TYPE type, int generation, int targetVolume, int targe
 }
 
 //TODO Cell type enum removal
-int SuperCell::makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface) {
+int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
 
 
 	SuperCell sc = SuperCell(type, gen, targetV, targetSurface);
 	superCells.push_back(sc);
 
+	std::sort(superCells.begin(), superCells.end(), [](const SuperCell& lhs, const SuperCell& rhs) {
+		return lhs.ID < rhs.ID;
+	});
+
 	return idCounter++;
 
 }
 
-int SuperCell::makeNewSuperCell(int sC){
+int SuperCell::makeNewSuperCell(int sC) {
 	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC), SuperCell::getTargetSurface(sC));
 }
 
@@ -86,13 +91,13 @@ void SuperCell::setTargetVolume(int i, int target) {
 }
 
 //TODO Cell type enum removal
-CELL_TYPE SuperCell::getCellType(int c) {
-	return superCells[c].type;
+int SuperCell::getCellType(int c) {
+	return superCells[c].cellType;
 }
 
 //TODO Cell type enum removal
-void SuperCell::setCellType(int c, CELL_TYPE t) {
-	superCells[c].type = t;
+void SuperCell::setCellType(int c, int t) {
+	superCells[c].cellType = t;
 }
 
 int SuperCell::getCounter() {
@@ -185,7 +190,7 @@ int SuperCell::getTargetSurface(int c) {
 }
 
 void SuperCell::setSurface(int c, int l) {
-	
+
 	superCells[c].surface = l;
 
 }

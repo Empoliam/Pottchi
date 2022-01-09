@@ -9,10 +9,15 @@ class SuperCell {
 
 public:
 	
-	static int makeNewSuperCell(CELL_TYPE type, int gen, int targetV, int targetSurface);
+	static int makeNewSuperCell(int type, int gen, int targetV, int targetSurface);
 	static int makeNewSuperCell(int sC);
 
 	static int getID(int i);
+
+	static bool isStatic(int c);
+	static bool doDivide(int c);
+	static bool ignoreVolume(int c);
+	static bool ignoreSurface(int c);
 
 	static int getGeneration(int i);
 	static void increaseGeneration(int i);
@@ -39,8 +44,8 @@ public:
 	static void changeSurface(int c, int delta);
 
 	//TODO Cell type enum removal
-	static CELL_TYPE getCellType(int c);
-	static void setCellType(int c, CELL_TYPE t);
+	static int getCellType(int c);
+	static void setCellType(int c, int t);
 
 	static int getCounter();
 
@@ -66,11 +71,7 @@ private:
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
 		
-
-	//TODO Cell type enum removal
-	CELL_TYPE type;
-
-	SuperCell(CELL_TYPE type, int generation, int targetVolume, int targetSurface);
+	SuperCell(int type, int generation, int targetVolume, int targetSurface);
 
 	std::vector<int> colour = std::vector<int>(4,0);
 

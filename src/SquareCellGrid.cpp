@@ -61,7 +61,7 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 }
 
 //TODO Reference to cell type
-std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, CELL_TYPE t) {
+std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, int type) {
 	
 	vector<Vector2D<int>> neighbours;
 
@@ -71,7 +71,7 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col,
 		for (int y = -1; y <= 1; y++) {
 
 			if (x == 0 && y == 0) continue;
-			if (SuperCell::getCellType(internalGrid[row + x][col + y]) == t) neighbours.push_back(Vector2D<int>(row + x, col + y));
+			if (SuperCell::getCellType(internalGrid[row + x][col + y]) == type) neighbours.push_back(Vector2D<int>(row + x, col + y));
 			
 		}
 	}
@@ -314,7 +314,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	int origin = internalGrid[x][y];
 	int swap = internalGrid[neighbours[r][0]][neighbours[r][1]];
 
-	if (SuperCell::getCellType(swap) != CELL_TYPE::BOUNDARY &&
+	if (SuperCell::getCellType(swap) != (int)CELL_TYPE::BOUNDARY &&
 		swap != internalGrid[x][y]) {
 
 		double deltaH = 

@@ -82,11 +82,11 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	SuperCell::makeNewSuperCell(CELL_TYPE::BOUNDARY, 0, 0, 0);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::BOUNDARY, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
-	SuperCell::makeNewSuperCell(CELL_TYPE::EMPTYSPACE, 0, 0, 0);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0);
 	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
-	SuperCell::makeNewSuperCell(CELL_TYPE::FLUID, 0, 0, 50);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::FLUID, 0, 0, 50);
 	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	shared_ptr<SquareCellGrid> grid = initializeGrid("default.pgm");
@@ -194,7 +194,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 		if (!compacted) {
 			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-				if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
+				if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
@@ -217,9 +217,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 			if (m >= compactionTime) {
 				for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-					if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC) {
+					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC) {
 
-						SuperCell::setCellType(c, CELL_TYPE::GENERIC_COMPACT);
+						SuperCell::setCellType(c, (int)CELL_TYPE::GENERIC_COMPACT);
 
 					}
 
@@ -241,13 +241,13 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 						int c = grid->getCell(x, y);
 
-						if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC_COMPACT) {
+						if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
 
-							auto N = grid->getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
+							auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
 
 							if (!N.empty()) {
 
-								SuperCell::setCellType(c, CELL_TYPE::TROPHECTODERM);
+								SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
 								SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
 								SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
 								SuperCell::setMCS(c, 0);
@@ -265,9 +265,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 						int c = grid->getCell(x, y);
 
-						if (SuperCell::getCellType(c) == CELL_TYPE::GENERIC_COMPACT) {
+						if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
 
-							SuperCell::setCellType(c, CELL_TYPE::ICM);
+							SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
 							SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
 							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 							SuperCell::setMCS(c, 0);
@@ -286,7 +286,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 					int c = grid->getCell(x, y);
 
-					if (SuperCell::getCellType(c) == CELL_TYPE::ICM) {
+					if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
 
 						grid->setCell(x, y, (int)CELL_TYPE::FLUID);
 						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
@@ -312,7 +312,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 			//TODO Cell type enum removal
 			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-				if (SuperCell::getCellType(c) == CELL_TYPE::TROPHECTODERM) {
+				if (SuperCell::getCellType(c) == (int)CELL_TYPE::TROPHECTODERM) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
@@ -326,7 +326,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 								if (activeCell == c) {
 
-									auto N = grid->getNeighboursCoords(x, y, CELL_TYPE::EMPTYSPACE);
+									auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
 
 									if (!N.empty()) {
 
@@ -356,7 +356,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					}
 
 				}
-				else if (SuperCell::getCellType(c) == CELL_TYPE::ICM) {
+				else if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
 
 					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
 
@@ -472,7 +472,7 @@ unsigned int readConfig(string cfg) {
 shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
-	int newSuperCell = SuperCell::makeNewSuperCell(CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
+	int newSuperCell = SuperCell::makeNewSuperCell((int)CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
 
 	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
 
