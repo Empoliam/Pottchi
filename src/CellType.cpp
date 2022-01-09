@@ -3,6 +3,11 @@
 
 static std::vector<CellType> cellTypes = std::vector<CellType>();
 
+CellType::CellType(int id) {
+	this->id = id;
+	this->J = std::vector<double>(0.0);
+};
+
 void CellType::addType(CellType T) {
 
 	cellTypes.push_back(T);

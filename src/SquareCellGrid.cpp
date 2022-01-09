@@ -413,7 +413,7 @@ double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int
 	for (int i = 0; i < 8; i++) {
 
 		int nSuper = internalGrid[neighbours[i][0]][neighbours[i][1]];
-		int nType = (int)SuperCell::getCellType(nSuper);
+		int nType = SuperCell::getCellType(nSuper);
 
 		initH += CellType::getType(destType).J[nType] * (nSuper != dest);
 		postH += CellType::getType(sourceType).J[nType] * (nSuper != source);

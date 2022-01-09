@@ -6,9 +6,7 @@ class CellType {
 
 public:
 
-	CellType(int id) {
-		this->id = id;
-	};
+	CellType(int id);
 		
 	int id = -1;
 
