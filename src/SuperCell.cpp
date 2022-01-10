@@ -2,6 +2,7 @@
 
 #include<vector>
 #include<algorithm>
+#include<iostream>
 
 #include "headers/RandomNumberGenerators.h"
 #include "headers/ColourScheme.h"
@@ -9,11 +10,10 @@
 using namespace std;
 
 static vector<SuperCell> superCells = vector<SuperCell>();
-static int idCounter = 0;
 
 SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurface) {
 
-	this->ID = idCounter;
+	this->ID = superCells.size();
 	this->cellType = type;
 	this->generation = generation;
 	this->targetVolume = targetVolume;
@@ -25,7 +25,6 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
 
 int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
 
-
 	SuperCell sc = SuperCell(type, gen, targetV, targetSurface);
 	superCells.push_back(sc);
 
@@ -33,7 +32,7 @@ int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurfac
 		return lhs.ID < rhs.ID;
 	});
 
-	return idCounter++;
+	return superCells.size() - 1;
 
 }
 
@@ -133,8 +132,8 @@ std::vector<double>& SuperCell::getJ(int c) {
 	return CellType::getType(superCells[c].cellType).J;
 }
 
-int SuperCell::getCounter() {
-	return idCounter;
+int SuperCell::getNumSupers() {
+	return superCells.size();
 }
 
 int SuperCell::getColourScheme(int c) {

@@ -356,7 +356,7 @@ int SquareCellGrid::calcSubCellPerimeter(int x, int y, int activeSuper) {
 
 void SquareCellGrid::fullPerimeterRefresh() {
 
-	for (int s = 0; s < SuperCell::getCounter(); s++) {
+	for (int s = 0; s < SuperCell::getNumSupers(); s++) {
 		SuperCell::setSurface(s, 0);
 	}
 

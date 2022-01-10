@@ -54,7 +54,7 @@ public:
 
 	static std::vector<double>& getJ(int c);
 
-	static int getCounter();
+	static int getNumSupers();
 
 	static int getColourScheme(int c);
 	static void setColour(int i, int r, int g, int b, int a);

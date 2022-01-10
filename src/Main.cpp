@@ -36,12 +36,6 @@ double SIGMA = 0;
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
-int TARGET_INIT_CELLS = 3200;
-
-//Target time morula cell division spacing
-double MCS_M_DIV_TARGET = 12 * MCS_HOUR_EST;
-double SD_M_DIV_TARGET = 0.5 * MCS_HOUR_EST;
-
 //Target time of compaction
 double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
 double SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
@@ -53,19 +47,6 @@ double SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
 //Fluid cell growth parameters
 int TARGET_MAX_FLUID = 6400;
 double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
-
-//Trophectoderm division
-double MCS_T_DIV_TARGET_INIT = 9 * MCS_HOUR_EST;
-double MCS_T_DIV_SCALE_TIME = 250;
-double SD_T_DIV_TARGET = 3 * MCS_HOUR_EST;
-
-int inline funcTrophectoderm(int m) {
-	return MCS_T_DIV_TARGET_INIT + pow(m / MCS_T_DIV_SCALE_TIME, 2);
-}
-
-//ICM division parameters
-const double MCS_I_DIV_TARGET = 12 * MCS_HOUR_EST;
-const double SD_I_DIV_TARGET = 1 * MCS_HOUR_EST;
 
 using namespace std;
 
@@ -82,13 +63,6 @@ int main(int argc, char* argv[]) {
 		cout << "Missing configuration option: " << configStatus << endl;
 		return 1;
 	}
-
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::BOUNDARY, 0, 0, 0);
-	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0);
-	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::FLUID, 0, 0, 50);
-	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
 	shared_ptr<SquareCellGrid> grid = initializeGrid("default.pgm");
 
@@ -191,7 +165,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 		}
 
-		for (int c = 0; c < SuperCell::getCounter(); c++) {
+		for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 
 			if (SuperCell::doDivide(c)) {
 
@@ -233,7 +207,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 		//Compaction stage
 		if (!compacted && m >= compactionTime) {
-			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
+			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getNumSupers(); c++) {
 
 				if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC) {
 
@@ -265,7 +239,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 							SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
 							SuperCell::generateNewColour(c);
-							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
+							SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 							SuperCell::setMCS(c, 0);
 
 						}
@@ -285,7 +259,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 						SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
 						SuperCell::generateNewColour(c);
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+						SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 						SuperCell::setMCS(c, 0);
 
 					}
@@ -449,10 +423,18 @@ unsigned int readConfig(string cfg) {
 
 shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
-	int targetInitCellLength = (int)BORDER_CONST * sqrt(TARGET_INIT_CELLS);
-	int newSuperCell = SuperCell::makeNewSuperCell((int)CELL_TYPE::GENERIC, 0, TARGET_INIT_CELLS, targetInitCellLength);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::BOUNDARY, 0, 0, 0);
+	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0);
+	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
+	SuperCell::makeNewSuperCell((int)CELL_TYPE::FLUID, 0, 0, 50);
+	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
 
-	SuperCell::setNextDiv(newSuperCell, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+	int targetInitCellLength = (int)BORDER_CONST * sqrt(3600);
+
+	int newSuperCell = SuperCell::makeNewSuperCell((int)CELL_TYPE::GENERIC, 0, 3600, targetInitCellLength);
+
+	SuperCell::setNextDiv(newSuperCell, SuperCell::generateNewDivisionTime(newSuperCell));
 
 	std::ifstream ifs(imgName);
 	string pgmString;
