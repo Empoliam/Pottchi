@@ -396,7 +396,6 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 
 }
 
-//TODO Swap adhesion delta to new format
 double SquareCellGrid::getAdhesionDelta(int sourceX, int sourceY, int destX, int destY) {
 
 	int sourceSuper = internalGrid[sourceX][sourceY];

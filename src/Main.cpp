@@ -21,6 +21,7 @@
 #include "./headers/MathConstants.h"
 #include "./headers/split.h"
 #include "./headers/CellType.h"
+#include "./headers/ColourScheme.h"
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 86400;
@@ -263,7 +264,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 						if (!N.empty()) {
 
 							SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
-							SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
+							SuperCell::generateNewColour(c);
 							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
 							SuperCell::setMCS(c, 0);
 
@@ -283,7 +284,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
 
 						SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
-						SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
+						SuperCell::generateNewColour(c);
 						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
 						SuperCell::setMCS(c, 0);
 
@@ -319,8 +320,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 			grid->fullPerimeterRefresh();
 
 		}
-
-
 
 		if (differentationA) {
 				
@@ -381,6 +380,7 @@ unsigned int readConfig(string cfg) {
 			else if (P == "BOLTZ_TEMP") BOLTZ_TEMP = stoi(value);
 
 		}
+
 		else if (V[0] == "CELL_TYPE") {
 
 			CellType T(stoi(V[1]));
@@ -404,10 +404,40 @@ unsigned int readConfig(string cfg) {
 				else if (P == "DIV_SD") T.divideSD = stod(V[1]) * MCS_HOUR_EST;
 				else if (P == "DIV_TYPE") T.divideType = stoi(V[1]);
 				else if (P == "DIV_MIN_VOL") T.divMinVolume = stoi(V[1]);
+				else if (P == "COLOUR") T.colourScheme = stoi(V[1]);
 
 			}
 
 			CellType::addType(T);
+
+		}
+
+		else if (V[0] == "COLOUR_SCHEME") {
+
+			ColourScheme CS(stoi(V[1]));
+			while (line != "END_COLOUR") {
+
+				std::getline(ifs, line);
+
+				V = split(line, ',');
+
+				string c = V[0];
+
+				if (c == "R") {
+					CS.rMin = stoi(V[1]);
+					CS.rMax = stoi(V[2]);
+				}
+				else if (c == "G") {
+					CS.gMin = stoi(V[1]);
+					CS.gMax = stoi(V[2]);
+				}
+				else if (c == "B") {
+					CS.bMin = stoi(V[1]);
+					CS.bMax = stoi(V[2]);
+				}
+			}
+
+			ColourScheme::addScheme(CS);
 
 		}
 

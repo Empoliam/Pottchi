@@ -4,6 +4,7 @@
 #include<algorithm>
 
 #include "headers/RandomNumberGenerators.h"
+#include "headers/ColourScheme.h"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
 
-	this->colour = generateNewColour(type);
+	this->colour = ColourScheme::generateColour(CellType::getType(type).colourScheme);
 
 }
 
@@ -136,6 +137,10 @@ int SuperCell::getCounter() {
 	return idCounter;
 }
 
+int SuperCell::getColourScheme(int c) {
+	return CellType::getType(superCells[c].cellType).colourScheme;
+}
+
 void SuperCell::setColour(int i, int r, int g, int b, int a) {
 	SuperCell& C = superCells[i];
 	C.colour[0] = b;
@@ -154,48 +159,9 @@ std::vector<int> SuperCell::getColour(int i) {
 }
 
 //TODO Update to new colour generation method
-std::vector<int> SuperCell::generateNewColour(int c) {
+void SuperCell::generateNewColour(int c) {
 
-	std::vector<int> newCol = std::vector<int>(4, 0);
-
-	if (c == 3 || c == 4) {
-
-		int r = RandomNumberGenerators::rUnifInt(150, 255);
-		int gb = RandomNumberGenerators::rUnifInt(0, 75);
-
-		newCol[0] = r;
-		newCol[1] = gb;
-		newCol[2] = gb;
-		newCol[3] = 255;
-	}
-	else if (c == 5) {
-
-		int b = RandomNumberGenerators::rUnifInt(150, 255);
-		int rg = RandomNumberGenerators::rUnifInt(0, 75);
-
-		newCol[0] = rg;
-		newCol[1] = rg;
-		newCol[2] = b;
-		newCol[3] = 255;
-	}
-	else if (c == 6) {
-
-		int g = RandomNumberGenerators::rUnifInt(150, 255);
-		int rb = RandomNumberGenerators::rUnifInt(0, 75);
-
-		newCol[0] = rb;
-		newCol[1] = g;
-		newCol[2] = rb;
-		newCol[3] = 255;
-	}
-	else {
-		newCol[0] = RandomNumberGenerators::rUnifInt(0, 255);
-		newCol[1] = RandomNumberGenerators::rUnifInt(0, 255);
-		newCol[2] = RandomNumberGenerators::rUnifInt(0, 255);
-		newCol[3] = 255;
-	}
-
-	return newCol;
+	setColour(c, ColourScheme::generateColour(getColourScheme(c)));
 
 }
 

@@ -46,7 +46,6 @@ public:
 	double getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
 	double getSurfaceDelta(int sourceX, int sourceY, int destX, int destY);
 
-
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);
 	std::vector<unsigned char> getPixels();
