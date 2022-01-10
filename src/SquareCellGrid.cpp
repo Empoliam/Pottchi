@@ -313,6 +313,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 	int swap = internalGrid[targetX][targetY];
 
 	if (!SuperCell::isStatic(swap) &&
+		!SuperCell::isStatic(origin) &&
 		swap != internalGrid[x][y]) {
 
 		double deltaH = 

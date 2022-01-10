@@ -55,6 +55,8 @@ int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCel
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
+map<int, int> initSCMap = map<int,int>();
+
 int main(int argc, char* argv[]) {
 
 	int configStatus = readConfig("default.cfg");
@@ -189,11 +191,13 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					}
 
 					if (newSuper > -1) {
-
-						grid->fullTextureRefresh();
+												
 						grid->fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
+
+						SuperCell::generateNewColour(newSuper);
+						grid->fullTextureRefresh();
 
 					}
 
@@ -333,7 +337,7 @@ unsigned int readConfig(string cfg) {
 
 		auto V = split(line, ',');
 
-		if (V[0] == "#") {
+		if (V[0][0] == '#') {
 
 			continue;
 
@@ -415,6 +419,45 @@ unsigned int readConfig(string cfg) {
 
 		}
 
+		else if (V[0] == "SUPERCELL") {
+			
+			int id = stoi(V[1]);
+
+			int type = 0;
+			int initVol = 0;
+			int initLength = 0;
+
+			while (line != "END_SUPER") {
+
+				std::getline(ifs, line);
+
+				V = split(line, ',');
+
+				string c = V[0];
+
+				if (c == "TYPE") type = stoi(V[1]);
+				else if (c == "INITIAL_VOLUME") initVol = stoi(V[1]);
+				else if (c == "INITIAL_LENGTH") initLength = stoi(V[1]);
+				else if (c == "LOAD_COLOUR") {
+					initSCMap[stoi(V[1])] = id;
+				}
+				
+			}
+
+			SuperCell::makeNewSuperCell(type, 0, initVol, initLength);
+
+		}		
+
+	}
+
+	for (int c = 0; c < SuperCell::getNumSupers(); c++) {
+		
+		SuperCell::generateNewColour(c);
+
+		if (SuperCell::doDivide(c)) {
+			SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
+		}
+
 	}
 
 	return 0;
@@ -423,18 +466,9 @@ unsigned int readConfig(string cfg) {
 
 shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::BOUNDARY, 0, 0, 0);
-	SuperCell::setColour((int)CELL_TYPE::BOUNDARY, 255, 255, 255, 255);
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0);
-	SuperCell::setColour((int)CELL_TYPE::EMPTYSPACE, 0, 0, 0, 255);
-	SuperCell::makeNewSuperCell((int)CELL_TYPE::FLUID, 0, 0, 50);
-	SuperCell::setColour((int)CELL_TYPE::FLUID, 50, 50, 50, 255);
-
 	int targetInitCellLength = (int)BORDER_CONST * sqrt(3600);
 
-	int newSuperCell = SuperCell::makeNewSuperCell((int)CELL_TYPE::GENERIC, 0, 3600, targetInitCellLength);
-
-	SuperCell::setNextDiv(newSuperCell, SuperCell::generateNewDivisionTime(newSuperCell));
+	int newSuperCell = 3;
 
 	std::ifstream ifs(imgName);
 	string pgmString;
@@ -453,8 +487,12 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 			uint8_t b = 0;
 			ifs >> b;
 
-			if (b == 0xFF) {
-				grid->setCell(x, y, newSuperCell);
+			try {
+				int setSC = initSCMap.at(b);
+				grid->setCell(x, y, setSC);
+			}
+			catch (out_of_range) {
+				grid->setCell(x, y, 0);
 			}
 
 		}

@@ -82,7 +82,7 @@ private:
 		
 	SuperCell(int type, int generation, int targetVolume, int targetSurface);
 
-	std::vector<int> colour = std::vector<int>(4,0);
+	std::vector<int> colour = std::vector<int>(4,255);
 
 };
 

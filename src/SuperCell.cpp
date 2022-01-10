@@ -19,8 +19,6 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
 
-	this->colour = ColourScheme::generateColour(CellType::getType(type).colourScheme);
-
 }
 
 int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
