@@ -20,6 +20,11 @@ public:
 	static bool ignoreVolume(int c);
 	static bool ignoreSurface(int c);
 
+	static double getDivMean(int c);
+	static double getDivSD(int c);
+	static int getDivType(int c);
+	static int getDivMinVol(int c);
+
 	static int getGeneration(int i);
 	static void increaseGeneration(int i);
 	static void setGeneration(int i, int gen);
@@ -56,6 +61,8 @@ public:
 	static std::vector<int> getColour(int i);
 	static std::vector<int> generateNewColour(int c);
 	
+	static int generateNewDivisionTime(int c);
+
 private:
 
 	int ID;

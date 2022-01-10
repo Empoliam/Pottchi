@@ -60,6 +60,22 @@ bool SuperCell::ignoreSurface(int c) {
 	return CellType::getType(superCells[c].cellType).ignoreSurface;
 }
 
+double SuperCell::getDivMean(int c) {
+	return CellType::getType(superCells[c].cellType).divideMean;
+}
+
+double SuperCell::getDivSD(int c) {
+	return CellType::getType(superCells[c].cellType).divideSD;
+}
+
+int SuperCell::getDivType(int c) {
+	return CellType::getType(superCells[c].cellType).divideType;
+}
+
+int SuperCell::getDivMinVol(int c) {
+	return CellType::getType(superCells[c].cellType).divMinVolume;
+}
+
 int SuperCell::getGeneration(int i) {
 	return superCells[i].generation;
 }
@@ -181,6 +197,10 @@ std::vector<int> SuperCell::generateNewColour(int c) {
 
 	return newCol;
 
+}
+
+int SuperCell::generateNewDivisionTime(int c) {
+	return (int) RandomNumberGenerators::rNormalDouble(SuperCell::getDivMean(c), SuperCell::getDivSD(c));
 }
 
 void SuperCell::changeVolume(int i, int delta) {

@@ -190,86 +190,81 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 		}
 
-		//Morula division stage
-		if (!compacted) {
-			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
+		for (int c = 0; c < SuperCell::getCounter(); c++) {
 
-				if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC && SuperCell::getGeneration(c) < 4) {
+			if (SuperCell::doDivide(c)) {
 
-					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
+				if (SuperCell::getMCS(c) > SuperCell::getNextDiv(c) && SuperCell::getVolume(c) >= SuperCell::getDivMinVol(c)) {
 
-						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid->cleaveCell(c);
+					int dType = SuperCell::getDivType(c);
+					int newSuper = -1;
+					switch (dType)
+					{
+					case(0):
+						newSuper = grid->divideCellRandomAxis(c);
+						break;
+					case(1):
+						newSuper = grid->divideCellShortAxis(c);
+						break;
+					case(2):
+						newSuper = grid->cleaveCell(c);
+						break;
+					default:
+						break;
+					}
+
+					if (newSuper > -1) {
 
 						grid->fullTextureRefresh();
 						grid->fullPerimeterRefresh();
 
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_M_DIV_TARGET, SD_M_DIV_TARGET));
+						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
 
 					}
 
-				}
-
-			}
-
-			//Compaction stage
-			if (m >= compactionTime) {
-				for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
-
-					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC) {
-
-						SuperCell::setCellType(c, (int)CELL_TYPE::GENERIC_COMPACT);
-
-					}
+					SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 
 				}
-				cout << "Compaction at: " << m << endl;
-				compacted = true;
+
 			}
 
 		}
 
-		if (compacted && !differentationA) {
+		//Compaction stage
+		if (!compacted && m >= compactionTime) {
+			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
 
-			if (m >= differentiationTime) {
+				if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC) {
 
-				cout << "Differentiation at: " << m << endl;
-
-				for (int y = 1; y <= grid->interiorHeight; y++) {
-					for (int x = 1; x <= grid->interiorWidth; x++) {
-
-						int c = grid->getCell(x, y);
-
-						if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
-
-							auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
-
-							if (!N.empty()) {
-
-								SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
-								SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
-								SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
-								SuperCell::setMCS(c, 0);
-
-							}
-
-						}
-
-					}
+					SuperCell::setCellType(c, (int)CELL_TYPE::GENERIC_COMPACT);
 
 				}
 
-				for (int y = 1; y <= grid->interiorHeight; y++) {
-					for (int x = 1; x <= grid->interiorWidth; x++) {
+			}
+			cout << "Compaction at: " << m << endl;
+			compacted = true;
+		}
 
-						int c = grid->getCell(x, y);
 
-						if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
 
-							SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
+		if (!differentationA && m >= differentiationTime) {
+
+			cout << "Differentiation at: " << m << endl;
+
+			for (int y = 1; y <= grid->interiorHeight; y++) {
+				for (int x = 1; x <= grid->interiorWidth; x++) {
+
+					int c = grid->getCell(x, y);
+
+					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
+
+						auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
+
+						if (!N.empty()) {
+
+							SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
 							SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
-							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+							SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(0), SD_T_DIV_TARGET));
 							SuperCell::setMCS(c, 0);
 
 						}
@@ -278,104 +273,57 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
-				bool fluidCreation = false;
-				while (!fluidCreation) {
+			}
 
-					int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
-					int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
+			for (int y = 1; y <= grid->interiorHeight; y++) {
+				for (int x = 1; x <= grid->interiorWidth; x++) {
 
 					int c = grid->getCell(x, y);
 
-					if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
+					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
 
-						grid->setCell(x, y, (int)CELL_TYPE::FLUID);
-						SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
-
-						fluidCreation = true;
+						SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
+						SuperCell::setColour(c, SuperCell::generateNewColour((int)SuperCell::getCellType(c)));
+						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
+						SuperCell::setMCS(c, 0);
 
 					}
 
 				}
 
-				diffStartMCS = m;
-				differentationA = true;
+			}
 
-				grid->fullTextureRefresh();
-				grid->fullPerimeterRefresh();
+			bool fluidCreation = false;
+			while (!fluidCreation) {
+
+				int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
+				int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
+
+				int c = grid->getCell(x, y);
+
+				if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
+
+					grid->setCell(x, y, (int)CELL_TYPE::FLUID);
+					SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
+
+					fluidCreation = true;
+
+				}
 
 			}
+
+			diffStartMCS = m;
+			differentationA = true;
+
+			grid->fullTextureRefresh();
+			grid->fullPerimeterRefresh();
 
 		}
 
+
+
 		if (differentationA) {
-
-			//TODO Cell type enum removal
-			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getCounter(); c++) {
-
-				if (SuperCell::getCellType(c) == (int)CELL_TYPE::TROPHECTODERM) {
-
-					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
-
-						bool divideSuccess = false;
-
-						for (int x = 0; x <= grid->interiorWidth; x++) {
-
-							for (int y = 0; y <= grid->interiorHeight; y++) {
-
-								int activeCell = grid->getCell(x, y);
-
-								if (activeCell == c) {
-
-									auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
-
-									if (!N.empty()) {
-
-										cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-										int newSuper = grid->divideCellRandomAxis(c);
-
-										SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
-
-										divideSuccess = true;
-										goto endLoop;
-
-									}
-
-								}
-
-							}
-
-						}					
-
-					endLoop:
-
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(funcTrophectoderm(m - diffStartMCS), SD_T_DIV_TARGET));
-
-						grid->fullTextureRefresh();
-						grid->fullPerimeterRefresh();
-
-					}
-
-				}
-				else if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
-
-					if (SuperCell::getMCS(c) >= SuperCell::getNextDiv(c)) {
-
-						cout << "Division: " << c << " at " << SuperCell::getMCS(c) << endl;
-						int newSuper = grid->divideCellShortAxis(c);
-
-						grid->fullTextureRefresh();
-						grid->fullPerimeterRefresh();
-
-						SuperCell::setNextDiv(c, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
-						SuperCell::setNextDiv(newSuper, (int)RandomNumberGenerators::rNormalDouble(MCS_I_DIV_TARGET, SD_I_DIV_TARGET));
-
-
-					}
-
-				}
-
-			}
-
+				
 			//Fluid expansion
 			int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
 			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
@@ -441,7 +389,7 @@ unsigned int readConfig(string cfg) {
 				std::getline(ifs, line);
 				V = split(line, ',');
 				string P = V[0];
-				
+
 				if (P == "J") {
 					vector<string> J = split(V[1], ':');
 					for (string S : J) {
@@ -452,10 +400,10 @@ unsigned int readConfig(string cfg) {
 				else if (P == "IS_STATIC") T.isStatic = (V[1] == "1");
 				else if (P == "IGNORE_VOLUME") T.ignoreVolume = (V[1] == "1");
 				else if (P == "IGNORE_SURFACE") T.ignoreSurface = (V[1] == "1");
-				else if (P == "DIV_MEAN") T.divideMean = stod(V[1]);
-				else if (P == "DIV_SD") T.divideSD = stod(V[1]);
+				else if (P == "DIV_MEAN") T.divideMean = stod(V[1]) * MCS_HOUR_EST;
+				else if (P == "DIV_SD") T.divideSD = stod(V[1]) * MCS_HOUR_EST;
 				else if (P == "DIV_TYPE") T.divideType = stoi(V[1]);
-
+				else if (P == "DIV_MIN_VOL") T.divMinVolume = stoi(V[1]);
 
 			}
 
@@ -485,7 +433,7 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 	int SIM_HEIGHT = stoi(pgmString);
 	getline(ifs, pgmString);
 
-	shared_ptr<SquareCellGrid> grid (new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT));
+	shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT));
 
 	for (int y = 1; y <= grid->interiorWidth; y++) {
 		for (int x = 1; x <= grid->interiorHeight; x++) {

@@ -20,6 +20,7 @@ public:
 	double divideMean = 0;
 	double divideSD = 0;
 	int divideType = 0;
+	int divMinVolume = 0;
 		
 	static void addType(CellType T);
 	static CellType& getType(int t);
