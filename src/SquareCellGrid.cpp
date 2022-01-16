@@ -8,12 +8,9 @@
 
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/MathConstants.h"
-#include "./headers/CellTypes.h"
 #include "./headers/SuperCell.h"
 
 using namespace std;
-
-const auto J = CellTypes::J;
 
 SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w+2) * (h+2) * 4, 0) {
 

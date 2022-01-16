@@ -8,9 +8,9 @@ project (HumanBlastocyst)
 # Add source to this project's executable.
 
 file(GLOB SRC "src/Main.cpp" "src/RandomNumberGenerators.cpp" "src/SquareCellGrid.cpp" "src/SuperCell.cpp")
-file(GLOB HDR "src/headers/CellTypes.h" "src/headers/RandomNumberGenerators.h" "src/headers/SquareCellGrid.h" "src/headers/SuperCell.h" "src/headers/Vector2D.h" "src/headers/MathConstants.h" "src/headers/split.h" "src/headers/CellType.h")
+file(GLOB HDR "src/headers/RandomNumberGenerators.h" "src/headers/SquareCellGrid.h" "src/headers/SuperCell.h" "src/headers/Vector2D.h" "src/headers/MathConstants.h" "src/headers/split.h" "src/headers/CellType.h")
 
-add_executable (HumanBlastocyst ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp")
+add_executable (HumanBlastocyst ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp" "src/headers/TransformEvent.h" "src/TransformEvent.cpp")
 
 # TODO: Add tests and install targets if needed.
 

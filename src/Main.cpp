@@ -22,6 +22,7 @@
 #include "./headers/split.h"
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
+#include "./headers/TransformEvent.h"
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 86400;
@@ -36,14 +37,6 @@ double SIGMA = 0;
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
-//Target time of compaction
-double MCS_COMPACT_TARGET = 3 * 24 * MCS_HOUR_EST;
-double SD_COMPACT_TARGET = 0.5 * MCS_HOUR_EST;
-
-//Target time of intiial differentiation
-double MCS_DIFFERENTIATE_TARGET = 4 * 24 * MCS_HOUR_EST;
-double SD_DIFFERENTIATE_TARGET = 1 * MCS_HOUR_EST;
-
 //Fluid cell growth parameters
 int TARGET_MAX_FLUID = 6400;
 double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
@@ -55,7 +48,7 @@ int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCel
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
-map<int, int> initSCMap = map<int,int>();
+map<int, int> initSCMap = map<int, int>();
 
 int main(int argc, char* argv[]) {
 
@@ -136,11 +129,6 @@ int main(int argc, char* argv[]) {
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 	//Target times for key events
-	bool compacted = false;
-	unsigned int compactionTime = (unsigned int)RandomNumberGenerators::rNormalDouble(MCS_COMPACT_TARGET, SD_COMPACT_TARGET);
-
-	bool differentationA = false;
-	unsigned int differentiationTime = (unsigned int)RandomNumberGenerators::rNormalDouble(MCS_DIFFERENTIATE_TARGET, SD_DIFFERENTIATE_TARGET);
 
 	unsigned int diffStartMCS;
 
@@ -191,7 +179,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					}
 
 					if (newSuper > -1) {
-												
+
 						grid->fullPerimeterRefresh();
 
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
@@ -203,48 +191,70 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 					SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 
+					cout << "Division at " << m << endl;
+
 				}
 
 			}
 
 		}
 
-		//Compaction stage
-		if (!compacted && m >= compactionTime) {
-			for (int c = (int)CELL_TYPE::GENERIC; c < SuperCell::getNumSupers(); c++) {
+		for (int e = 0; e < TransformEvent::getNumEvents(); e++) {
 
-				if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC) {
+			TransformEvent& T = TransformEvent::getEvent(e);
 
-					SuperCell::setCellType(c, (int)CELL_TYPE::GENERIC_COMPACT);
+			if (T.triggered) continue;
+
+			if (T.waitForOther) {
+				if (TransformEvent::getEvent(T.eventToWait).triggered) {
+					T.startTimer();
+				}
+			}
+
+			if (T.mcsTimer >= T.triggerMCS) {
+
+				cout << "Event " << T.id << " fired" << endl;
+
+				if (T.transformType == 0) {
+
+					for (int c = 0; c < SuperCell::getNumSupers(); c++) {
+						if (SuperCell::getCellType(c) == T.transformFrom) {
+							
+							SuperCell::setCellType(c, T.transformTo);
+							if (T.updateColour) SuperCell::generateNewColour(c);
+							if (T.updateDiv) {
+								SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
+								SuperCell::setMCS(c, 0);
+							}
+
+						}
+					}
 
 				}
 
-			}
-			cout << "Compaction at: " << m << endl;
-			compacted = true;
-		}
+				else if (T.transformType == 1) {
 
+					for (int y = 1; y <= grid->interiorHeight; y++) {
+						for (int x = 1; x <= grid->interiorWidth; x++) {
 
+							int c = grid->getCell(x, y);
 
-		if (!differentationA && m >= differentiationTime) {
+							if (SuperCell::getCellType(c) == T.transformFrom) {
 
-			cout << "Differentiation at: " << m << endl;
+								auto N = grid->getNeighboursCoords(x, y, T.transformData);
 
-			for (int y = 1; y <= grid->interiorHeight; y++) {
-				for (int x = 1; x <= grid->interiorWidth; x++) {
+								if (!N.empty()) {
 
-					int c = grid->getCell(x, y);
+									SuperCell::setCellType(c, T.transformTo);
+									if (T.updateColour) SuperCell::generateNewColour(c);
+									if (T.updateDiv) {
+										SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
+										SuperCell::setMCS(c, 0);
+									}
 
-					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
+								}
 
-						auto N = grid->getNeighboursCoords(x, y, (int)CELL_TYPE::EMPTYSPACE);
-
-						if (!N.empty()) {
-
-							SuperCell::setCellType(c, (int)CELL_TYPE::TROPHECTODERM);
-							SuperCell::generateNewColour(c);
-							SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
-							SuperCell::setMCS(c, 0);
+							}
 
 						}
 
@@ -252,60 +262,25 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
-			}
+				T.triggered = true;
 
-			for (int y = 1; y <= grid->interiorHeight; y++) {
-				for (int x = 1; x <= grid->interiorWidth; x++) {
-
-					int c = grid->getCell(x, y);
-
-					if (SuperCell::getCellType(c) == (int)CELL_TYPE::GENERIC_COMPACT) {
-
-						SuperCell::setCellType(c, (int)CELL_TYPE::ICM);
-						SuperCell::generateNewColour(c);
-						SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
-						SuperCell::setMCS(c, 0);
-
-					}
-
-				}
-
-			}
-
-			bool fluidCreation = false;
-			while (!fluidCreation) {
-
-				int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
-				int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
-
-				int c = grid->getCell(x, y);
-
-				if (SuperCell::getCellType(c) == (int)CELL_TYPE::ICM) {
-
-					grid->setCell(x, y, (int)CELL_TYPE::FLUID);
-					SuperCell::setColour((int)CELL_TYPE::FLUID, vector<int> {154, 102, 102, 255});
-
-					fluidCreation = true;
-
-				}
-
-			}
-
-			diffStartMCS = m;
-			differentationA = true;
-
-			grid->fullTextureRefresh();
-			grid->fullPerimeterRefresh();
-
-		}
-
-		if (differentationA) {
 				
-			//Fluid expansion
-			int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
-			SuperCell::setTargetVolume((int)CELL_TYPE::FLUID, newFluidVolume);
+
+			}
+
+				
 
 		}
+
+		grid->fullTextureRefresh();
+		grid->fullPerimeterRefresh();	
+
+
+		//Fluid expansion
+		//int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
+		//SuperCell::setTargetVolume(FLUID_TYPE, newFluidVolume);
+
+		
 
 		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
@@ -316,6 +291,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 		//Increase MCS count for each cell
 		SuperCell::increaseMCS();
+
+		//Update event timers
+		TransformEvent::updateTimers();
 
 		//Recalculate Perimeters
 		grid->fullPerimeterRefresh();
@@ -420,7 +398,7 @@ unsigned int readConfig(string cfg) {
 		}
 
 		else if (V[0] == "SUPERCELL") {
-			
+
 			int id = stoi(V[1]);
 
 			int type = 0;
@@ -441,21 +419,62 @@ unsigned int readConfig(string cfg) {
 				else if (c == "LOAD_COLOUR") {
 					initSCMap[stoi(V[1])] = id;
 				}
-				
+
 			}
 
 			SuperCell::makeNewSuperCell(type, 0, initVol, initLength);
 
-		}		
+		}
+		
+		else if (V[0] == "EVENT_DEFINE") {
+
+			TransformEvent T(stoi(V[1]));
+			
+			while (line != "END_EVENT") {
+
+				std::getline(ifs, line);
+
+				V = split(line, ',');
+
+				string c = V[0];
+
+				if (c == "TIME_MEAN") T.triggerMean = stod(V[1]) * MCS_HOUR_EST;
+				else if (c == "TIME_SD") T.triggerSD = stod(V[1]) * MCS_HOUR_EST;
+				else if (c == "TRANSFORM_FROM") T.transformFrom = stoi(V[1]);
+				else if (c == "TRANSFORM_TO") T.transformTo = stoi(V[1]);
+				else if (c == "TRANSFORM_TYPE") T.transformType = stoi(V[1]);
+				else if (c == "TRANSFORM_DATA") T.transformData = stoi(V[1]);
+				else if (c == "WAIT_FOR_OTHER") T.waitForOther = (V[1] == "1");
+				else if (c == "EVENT_TO_WAIT") T.eventToWait = stoi(V[1]);
+				else if (c == "UPDATE_COLOUR") T.updateColour = (V[1] == "1");
+				else if (c == "UPDATE_DIV") T.updateDiv = (V[1] == "1");
+
+			}
+
+			TransformEvent::addNewEvent(T);
+
+		}
 
 	}
 
+	ifs.close();
+
 	for (int c = 0; c < SuperCell::getNumSupers(); c++) {
-		
+
 		SuperCell::generateNewColour(c);
 
 		if (SuperCell::doDivide(c)) {
 			SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
+		}
+
+	}
+
+	for (int e = 0; e < TransformEvent::getNumEvents(); e++) {
+		TransformEvent& T = TransformEvent::getEvent(e);
+
+		if (T.waitForOther == false) {
+			T.generateNewTriggerTime();
+			T.startTimer();
 		}
 
 	}

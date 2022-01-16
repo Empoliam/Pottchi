@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CellTypes.h"
 #include "CellType.h"
 #include <vector>
 #include <string>

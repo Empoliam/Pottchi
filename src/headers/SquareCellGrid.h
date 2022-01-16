@@ -5,8 +5,6 @@
 
 #include <vector>
 
-#include "CellTypes.h"
-
 class SquareCellGrid {
 
 public:

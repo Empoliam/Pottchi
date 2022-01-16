@@ -8,7 +8,7 @@ public:
 
 	CellType(int id);
 		
-	int id = -1;
+	int id;
 
 	std::vector<double> J;
 
