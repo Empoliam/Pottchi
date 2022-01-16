@@ -273,6 +273,30 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
+				if (T.transformType == 2) {
+					
+					double pTransform = ((double)T.transformData / 100.0);
+
+					for (int c = 0; c < SuperCell::getNumSupers(); c++) {
+
+						if (SuperCell::getCellType(c) == T.transformFrom) {
+
+							if (RandomNumberGenerators::rUnifProb() < pTransform) {
+								SuperCell::setCellType(c, T.transformTo);
+								if (T.updateColour) SuperCell::generateNewColour(c);
+								if (T.updateDiv) {
+									SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
+									SuperCell::setMCS(c, 0);
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
 				T.triggered = true;
 
 				
