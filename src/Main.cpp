@@ -535,8 +535,8 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 	shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT));
 
-	for (int y = 1; y <= grid->interiorWidth; y++) {
-		for (int x = 1; x <= grid->interiorHeight; x++) {
+	for (int y = 1; y <= grid->interiorHeight; y++) {
+		for (int x = 1; x <= grid->interiorWidth; x++) {
 
 			uint8_t b = 0;
 			ifs >> b;
