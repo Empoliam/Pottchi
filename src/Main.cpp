@@ -24,6 +24,8 @@
 #include "./headers/ColourScheme.h"
 #include "./headers/TransformEvent.h"
 
+using namespace std;
+
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 86400;
 unsigned int SIM_DELAY = 0;
@@ -41,7 +43,7 @@ int MCS_HOUR_EST = 500.0;
 int TARGET_MAX_FLUID = 6400;
 double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
 
-using namespace std;
+string loadName;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done);
 int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCellGrid> grid);
@@ -52,14 +54,23 @@ map<int, int> initSCMap = map<int, int>();
 
 int main(int argc, char* argv[]) {
 
-	int configStatus = readConfig("default.cfg");
+	if (argc == 2) {
+		loadName = argv[1];
+	}
+	else {
+		loadName = "default";
+	}
+
+	cout << "Loading: " << loadName << endl;
+
+	int configStatus = readConfig(loadName + ".cfg");
 
 	if (configStatus) {
 		cout << "Missing configuration option: " << configStatus << endl;
 		return 1;
 	}
 
-	shared_ptr<SquareCellGrid> grid = initializeGrid("default.pgm");
+	shared_ptr<SquareCellGrid> grid = initializeGrid(loadName + ".pgm");
 
 	SDL_SetMainReady();
 	SDL_Event event;
