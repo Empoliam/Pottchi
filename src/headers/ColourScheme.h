@@ -20,6 +20,6 @@ public:
 	static std::vector<int> generateColour(int s);
 
 	ColourScheme(int id);
-	static void ColourScheme::addScheme(ColourScheme T);
+	static void addScheme(ColourScheme T);
 
 };

@@ -27,7 +27,7 @@
 using namespace std;
 
 unsigned int PIXEL_SCALE = 4;
-unsigned int MAX_MCS = 86400;
+unsigned int MAX_MCS = 84000;
 unsigned int SIM_DELAY = 0;
 unsigned int RENDER_FPS = 60;
 
