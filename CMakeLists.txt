@@ -3,21 +3,21 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project (HumanBlastocyst)
+project (Pottchi)
 
 # Add source to this project's executable.
 
 file(GLOB SRC "src/Main.cpp" "src/RandomNumberGenerators.cpp" "src/SquareCellGrid.cpp" "src/SuperCell.cpp")
 file(GLOB HDR "src/headers/RandomNumberGenerators.h" "src/headers/SquareCellGrid.h" "src/headers/SuperCell.h" "src/headers/Vector2D.h" "src/headers/MathConstants.h" "src/headers/split.h" "src/headers/CellType.h")
 
-add_executable (HumanBlastocyst ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp" "src/headers/TransformEvent.h" "src/TransformEvent.cpp")
+add_executable (Pottchi ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp" "src/headers/TransformEvent.h" "src/TransformEvent.cpp")
 
 # TODO: Add tests and install targets if needed.
 
 find_package(SDL2 CONFIG REQUIRED)
 
 
-target_link_libraries(HumanBlastocyst PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(Pottchi PRIVATE SDL2::SDL2 SDL2::SDL2main)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 #Copy default settings
@@ -40,4 +40,4 @@ add_custom_command(COMMAND ${CMAKE_COMMAND} -E copy
                    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/default.pgm
                    COMMENT "Copied default layout"
 )
-add_dependencies(HumanBlastocyst copy-cfg copy-img)
+add_dependencies(Pottchi copy-cfg copy-img)
