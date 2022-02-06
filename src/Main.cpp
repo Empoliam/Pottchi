@@ -421,11 +421,11 @@ unsigned int readConfig(string cfg) {
 			string P = V[1];
 			string value = V[2];
 
-			if (P == "MAX_MCS") MAX_MCS = stoi(value);
+			if (P == "MCS_HOUR_EST")MCS_HOUR_EST = stoi(value);
+			else if (P == "MAX_HOURS") MAX_MCS = stod(value) * MCS_HOUR_EST;
 			else if (P == "PIXEL_SCALE")PIXEL_SCALE = stoi(value);
 			else if (P == "DELAY") SIM_DELAY = stoi(value);
-			else if (P == "FPS") RENDER_FPS = stoi(value);
-			else if (P == "MCS_HOUR_EST")MCS_HOUR_EST = stoi(value);
+			else if (P == "FPS") RENDER_FPS = stoi(value);			
 			else if (P == "OMEGA") OMEGA = stod(value);
 			else if (P == "LAMBDA") LAMBDA = stoi(value);
 			else if (P == "SIGMA") SIGMA = stoi(value);
