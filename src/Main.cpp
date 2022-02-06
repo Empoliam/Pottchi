@@ -273,7 +273,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
-				if (T.transformType == 2) {
+				else if (T.transformType == 2) {
 
 					double pTransform = ((double)T.transformData / 100.0);
 
@@ -297,9 +297,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
-				if (T.transformType == 3) {
-
-					double pTransform = ((double)T.transformData / 100.0);
+				else if (T.transformType == 3) {
 
 					bool success = false;
 
@@ -310,7 +308,36 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 						if (SuperCell::getCellType(grid->getCell(x, y)) == T.transformFrom) {
 
-							if (RandomNumberGenerators::rUnifProb() < pTransform) {
+							int newSuper = SuperCell::makeNewSuperCell(T.transformTo);
+							SuperCell::generateNewColour(newSuper);
+							grid->setCell(x, y, newSuper);
+
+							success = true;
+
+
+						}
+
+					}
+
+				}
+
+				else if (T.transformType == 4) {
+
+					bool success = false;
+					int attempts = 0;
+
+					while (!success && (attempts < (grid->interiorWidth * grid->interiorHeight))) {
+
+						attempts++;
+
+						int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
+						int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
+
+						if (SuperCell::getCellType(grid->getCell(x, y)) == T.transformFrom) {
+
+							auto N = grid->getNeighboursCoords(x, y, T.transformData);
+
+							if (!N.empty()) {
 
 								int newSuper = SuperCell::makeNewSuperCell(T.transformTo);
 								SuperCell::generateNewColour(newSuper);
@@ -534,7 +561,7 @@ unsigned int readConfig(string cfg) {
 
 		else {
 
-			cout << "Unrecognised tag " << V[0] << " on line "  << lineNumber << endl;
+			cout << "Unrecognised tag " << V[0] << " on line " << lineNumber << endl;
 
 		}
 
