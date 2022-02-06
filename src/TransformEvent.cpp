@@ -24,6 +24,7 @@ void TransformEvent::generateNewTriggerTime() {
 }
 
 void TransformEvent::startTimer() {
+	mcsTimer = 0;
 	timerStart = true;
 	generateNewTriggerTime();
 }

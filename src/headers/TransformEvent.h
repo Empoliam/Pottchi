@@ -42,8 +42,11 @@ public:
 	bool updateColour = true;
 	bool updateDiv = true;
 
-private:
+	bool doRepeat = false;
 
 	bool timerStart = false;
+
+
+	
 
 };

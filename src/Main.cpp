@@ -216,7 +216,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 			if (T.triggered) continue;
 
-			if (T.waitForOther) {
+			if (T.waitForOther && !T.timerStart) {
 				if (TransformEvent::getEvent(T.eventToWait).triggered) {
 					T.startTimer();
 				}
@@ -308,14 +308,13 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 						int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
 						int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
-						cout << "try " << x << " , " << y << " : " << SuperCell::getCellType(grid->getCell(x, y)) << endl;
-						cout << T.transformFrom << endl;
-
 						if (SuperCell::getCellType(grid->getCell(x, y)) == T.transformFrom) {
 
 							if (RandomNumberGenerators::rUnifProb() < pTransform) {
 
-								grid->setCell(x, y, T.transformTo);
+								int newSuper = SuperCell::makeNewSuperCell(T.transformTo);
+								SuperCell::generateNewColour(newSuper);
+								grid->setCell(x, y, newSuper);
 
 								success = true;
 
@@ -327,8 +326,12 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
-				T.triggered = true;
-
+				if (T.doRepeat) {
+					T.startTimer();
+				}
+				else {
+					T.triggered = true;
+				}
 
 			}
 
@@ -521,6 +524,7 @@ unsigned int readConfig(string cfg) {
 				else if (c == "EVENT_TO_WAIT") T.eventToWait = stoi(V[1]);
 				else if (c == "UPDATE_COLOUR") T.updateColour = (V[1] == "1");
 				else if (c == "UPDATE_DIV") T.updateDiv = (V[1] == "1");
+				else if (c == "DO_REPEAT") T.doRepeat = (V[1] == "1");
 
 			}
 
