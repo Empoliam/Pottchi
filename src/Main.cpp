@@ -230,7 +230,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 					for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 						if (SuperCell::getCellType(c) == T.transformFrom) {
-							
+
 							SuperCell::setCellType(c, T.transformTo);
 							if (T.updateColour) SuperCell::generateNewColour(c);
 							if (T.updateDiv) {
@@ -274,7 +274,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 				}
 
 				if (T.transformType == 2) {
-					
+
 					double pTransform = ((double)T.transformData / 100.0);
 
 					for (int c = 0; c < SuperCell::getNumSupers(); c++) {
@@ -297,25 +297,54 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 				}
 
+				if (T.transformType == 3) {
+
+					double pTransform = ((double)T.transformData / 100.0);
+
+					bool success = false;
+
+					while (!success) {
+
+						int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
+						int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
+
+						cout << "try " << x << " , " << y << " : " << SuperCell::getCellType(grid->getCell(x, y)) << endl;
+						cout << T.transformFrom << endl;
+
+						if (SuperCell::getCellType(grid->getCell(x, y)) == T.transformFrom) {
+
+							if (RandomNumberGenerators::rUnifProb() < pTransform) {
+
+								grid->setCell(x, y, T.transformTo);
+
+								success = true;
+
+							}
+
+						}
+
+					}
+
+				}
+
 				T.triggered = true;
 
-				
 
 			}
 
-				
+
 
 		}
 
 		grid->fullTextureRefresh();
-		grid->fullPerimeterRefresh();	
+		grid->fullPerimeterRefresh();
 
 
 		//Fluid expansion
 		//int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
 		//SuperCell::setTargetVolume(FLUID_TYPE, newFluidVolume);
 
-		
+
 
 		//Artificial delay if desired
 		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
@@ -346,11 +375,15 @@ unsigned int readConfig(string cfg) {
 	std::ifstream ifs(cfg);
 	string line;
 
+	int lineNumber = 0;
+
 	while (std::getline(ifs, line)) {
+
+		lineNumber++;
 
 		auto V = split(line, ',');
 
-		if (V[0][0] == '#') {
+		if (V.empty() || V[0][0] == '#') {
 
 			continue;
 
@@ -378,6 +411,8 @@ unsigned int readConfig(string cfg) {
 			while (line != "END_TYPE") {
 
 				std::getline(ifs, line);
+				lineNumber++;
+
 				V = split(line, ',');
 				string P = V[0];
 
@@ -409,6 +444,7 @@ unsigned int readConfig(string cfg) {
 			while (line != "END_COLOUR") {
 
 				std::getline(ifs, line);
+				lineNumber++;
 
 				V = split(line, ',');
 
@@ -443,6 +479,7 @@ unsigned int readConfig(string cfg) {
 			while (line != "END_SUPER") {
 
 				std::getline(ifs, line);
+				lineNumber++;
 
 				V = split(line, ',');
 
@@ -460,14 +497,15 @@ unsigned int readConfig(string cfg) {
 			SuperCell::makeNewSuperCell(type, 0, initVol, initLength);
 
 		}
-		
+
 		else if (V[0] == "EVENT_DEFINE") {
 
 			TransformEvent T(stoi(V[1]));
-			
+
 			while (line != "END_EVENT") {
 
 				std::getline(ifs, line);
+				lineNumber++;
 
 				V = split(line, ',');
 
@@ -487,6 +525,12 @@ unsigned int readConfig(string cfg) {
 			}
 
 			TransformEvent::addNewEvent(T);
+
+		}
+
+		else {
+
+			cout << "Unrecognised tag " << V[0] << " on line "  << lineNumber << endl;
 
 		}
 
