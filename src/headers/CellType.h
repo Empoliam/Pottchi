@@ -21,6 +21,8 @@ public:
 	double divideSD = 0;
 	int divideType = 0;
 	int divMinVolume = 0;
+	double divMinRatio = 0.0;
+
 
 	int colourScheme = -1;
 		

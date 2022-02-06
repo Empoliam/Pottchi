@@ -74,6 +74,11 @@ int SuperCell::getDivMinVol(int c) {
 	return CellType::getType(superCells[c].cellType).divMinVolume;
 }
 
+int SuperCell::getDivMinRatio(int c)
+{
+	return CellType::getType(superCells[c].cellType).divMinRatio;
+}
+
 int SuperCell::getGeneration(int i) {
 	return superCells[i].generation;
 }

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w+2) * (h+2) * 4, 0) {
+SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w + 2)* (h + 2) * 4, 0) {
 
 	//Temporary initialization
 	BOLTZ_TEMP = 0.0;
@@ -34,9 +34,9 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<i
 		internalGrid[0][y] = 0;
 		internalGrid[boundaryWidth - 1][y] = 0;
 	};
-	
+
 	SuperCell::setVolume(1, interiorWidth * interiorHeight);
-	SuperCell::setVolume(0, (boundaryWidth*boundaryHeight) - (interiorWidth * interiorHeight));
+	SuperCell::setVolume(0, (boundaryWidth * boundaryHeight) - (interiorWidth * interiorHeight));
 
 }
 
@@ -58,7 +58,7 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col)
 }
 
 std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, int type) {
-	
+
 	vector<Vector2D<int>> neighbours;
 
 	neighbours.reserve(8);
@@ -68,7 +68,7 @@ std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col,
 
 			if (x == 0 && y == 0) continue;
 			if (SuperCell::getCellType(internalGrid[row + x][col + y]) == type) neighbours.push_back(Vector2D<int>(row + x, col + y));
-			
+
 		}
 	}
 	return neighbours;
@@ -174,10 +174,10 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	int midY = (int)(0.5 * (minY + maxY));
 
 	int gradM = RandomNumberGenerators::rUnifInt(-89, 89);
-	double grad = tan(gradM*PI_D/180.f);
+	double grad = tan(gradM * PI_D / 180.f);
 
 	for (unsigned int k = 0; k < cellList.size(); k++) {
-		if (cellList[k][1] > grad*(cellList[k][0]-midX)+midY) {
+		if (cellList[k][1] > grad * (cellList[k][0] - midX) + midY) {
 			newList.push_back(cellList[k]);
 		}
 	}
@@ -215,7 +215,7 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 		}
 
 	}
-	
+
 	//Abort if cell less than one subcell
 	if (cellList.size() <= 1) {
 		return -1;
@@ -231,44 +231,51 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 
 	double mu20 = (calculateRawImageMoment(cellList, 2, 0) / m00) - pow(xBar, 2);
 	double mu02 = (calculateRawImageMoment(cellList, 0, 2) / m00) - pow(yBar, 2);
-	double mu11 = (calculateRawImageMoment(cellList, 1, 1) / m00) - xBar*yBar;
+	double mu11 = (calculateRawImageMoment(cellList, 1, 1) / m00) - xBar * yBar;
 
 	double covTrace = mu20 + mu02;
-	double covDet = mu20 * mu02 - pow(mu11,2);
+	double covDet = mu20 * mu02 - pow(mu11, 2);
 
-	double eigA = (- covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
-	double eigB = (- covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+	double eigA = (covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
+	double eigB = (covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
 
 	double smallEig = min(abs(eigA), abs(eigB));
 
-	Vector2D<double> eigVec(mu11, smallEig-mu20);
+	Vector2D<double> eigVec(mu11, smallEig - mu20);
 	double grad = eigVec[1] / eigVec[0];
 
-	for (unsigned int k = 0; k < cellList.size(); k++) {
-		if (cellList[k][1] > grad * (cellList[k][0] - xBar) + yBar) {
-			newList.push_back(cellList[k]);
-		}
-	}
+	int newSuperCell = -1;
+	double minRatio = SuperCell::getDivMinRatio(c);
 
-	SuperCell::increaseGeneration(c);
-	int newSuperCell = SuperCell::makeNewSuperCell(c);
+	if (max(abs(eigA), abs(eigB)) / min(abs(eigA), abs(eigB)) > minRatio) {
+
+		for (unsigned int k = 0; k < cellList.size(); k++) {
+			if (cellList[k][1] > grad * (cellList[k][0] - xBar) + yBar) {
+				newList.push_back(cellList[k]);
+			}
+		}
+
+		SuperCell::increaseGeneration(c);
+		newSuperCell = SuperCell::makeNewSuperCell(c);
+
+		SuperCell::setMCS(newSuperCell, 0);
+
+		for (unsigned int c = 0; c < newList.size(); c++) {
+			Vector2D<int>& V = newList[c];
+			setCell(V[0], V[1], newSuperCell);
+		}
+
+	}
 
 	SuperCell::setMCS(c, 0);
-	SuperCell::setMCS(newSuperCell, 0);
-
-	for (unsigned int c = 0; c < newList.size(); c++) {
-		Vector2D<int>& V = newList[c];
-		setCell(V[0], V[1], newSuperCell);
-	}
-
 	return newSuperCell;
 
 }
 
 double SquareCellGrid::calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO) {
-	
+
 	double moment = 0.0f;
-	
+
 	for (Vector2D<int> V : data) {
 
 		moment += pow(V[0], iO) * pow(V[1], jO);
@@ -286,7 +293,7 @@ int SquareCellGrid::cleaveCell(int c) {
 	if (superCellB == -1) return -1;
 
 	int newTargetVolume = SuperCell::getTargetVolume(c) / 2;
-	int newTargetSurface = (int) sqrt(newTargetVolume) * BORDER_CONST;
+	int newTargetSurface = (int)sqrt(newTargetVolume) * BORDER_CONST;
 
 	SuperCell::setTargetVolume(superCellA, newTargetVolume);
 	SuperCell::setTargetVolume(superCellB, newTargetVolume);
@@ -313,18 +320,18 @@ int SquareCellGrid::moveCell(int x, int y) {
 		!SuperCell::isStatic(origin) &&
 		swap != internalGrid[x][y]) {
 
-		double deltaH = 
-			getAdhesionDelta(x, y, targetX, targetY) * OMEGA 
-			+ getVolumeDelta(x, y, targetX, targetY) * LAMBDA + 
+		double deltaH =
+			getAdhesionDelta(x, y, targetX, targetY) * OMEGA
+			+ getVolumeDelta(x, y, targetX, targetY) * LAMBDA +
 			getSurfaceDelta(x, y, targetX, targetY) * SIGMA;
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y]);
-			
+
 			localTextureRefresh(x, y);
 			localTextureRefresh(targetX, targetY);
 
-			return 1;	
+			return 1;
 		}
 
 	}
@@ -334,7 +341,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 }
 
 int SquareCellGrid::calcSubCellPerimeter(int x, int y) {
-	
+
 	int activeSuper = internalGrid[x][y];
 	return calcSubCellPerimeter(x, y, activeSuper);
 
@@ -384,8 +391,8 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 
 	//Surface Change
 
-	int deltaOld = 2*calcSubCellPerimeter(x, y, originalSuper) - 4;
-	int deltaNew = 4 - 2*calcSubCellPerimeter(x, y, superCell);
+	int deltaOld = 2 * calcSubCellPerimeter(x, y, originalSuper) - 4;
+	int deltaNew = 4 - 2 * calcSubCellPerimeter(x, y, superCell);
 
 	SuperCell::changeSurface(originalSuper, deltaOld);
 	SuperCell::changeSurface(superCell, deltaNew);
@@ -441,8 +448,8 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	bool sourceIgnore = SuperCell::ignoreVolume(sourceSuper);
 	bool destIgnore = SuperCell::ignoreVolume(destSuper);
 
-	deltaH = (!sourceIgnore)*((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2))
-			+ (!destIgnore)*((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
+	deltaH = (!sourceIgnore) * ((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2))
+		+ (!destIgnore) * ((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
 
 	return deltaH;
 }
@@ -487,9 +494,9 @@ void SquareCellGrid::fullTextureRefresh() {
 				colourIn = { 0,0,0,0 };
 			}
 
-			pixels[pixOffset + 3] = (char) colourIn[0];
-			pixels[pixOffset + 2] = (char) colourIn[1];
-			pixels[pixOffset + 1] = (char) colourIn[2];
+			pixels[pixOffset + 3] = (char)colourIn[0];
+			pixels[pixOffset + 2] = (char)colourIn[1];
+			pixels[pixOffset + 1] = (char)colourIn[2];
 			pixels[pixOffset + 0] = SDL_ALPHA_OPAQUE;
 
 		}

@@ -23,6 +23,7 @@ public:
 	static double getDivSD(int c);
 	static int getDivType(int c);
 	static int getDivMinVol(int c);
+	static int getDivMinRatio(int c);
 
 	static int getGeneration(int i);
 	static void increaseGeneration(int i);

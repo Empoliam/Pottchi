@@ -39,10 +39,6 @@ double SIGMA = 0;
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
-//Fluid cell growth parameters
-int TARGET_MAX_FLUID = 6400;
-double TARGET_SCALE_FLUID = 36 * MCS_HOUR_EST;
-
 string loadName;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done);
@@ -192,7 +188,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 					if (newSuper > -1) {
 
 						grid->fullPerimeterRefresh();
-
+						
+						cout << "Division at " << m << endl;
+						
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
 
 						SuperCell::generateNewColour(newSuper);
@@ -202,7 +200,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 					SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 
-					cout << "Division at " << m << endl;
+					
 
 				}
 
@@ -460,6 +458,7 @@ unsigned int readConfig(string cfg) {
 				else if (P == "DIV_SD") T.divideSD = stod(V[1]) * MCS_HOUR_EST;
 				else if (P == "DIV_TYPE") T.divideType = stoi(V[1]);
 				else if (P == "DIV_MIN_VOL") T.divMinVolume = stoi(V[1]);
+				else if (P == "DIV_MIN_RATIO") T.divMinRatio = stod(V[1]);
 				else if (P == "COLOUR") T.colourScheme = stoi(V[1]);
 
 			}
