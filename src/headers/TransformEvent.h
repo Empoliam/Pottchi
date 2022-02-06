@@ -46,7 +46,7 @@ public:
 
 	bool timerStart = false;
 
-
+	bool reportFire = true;
 	
 
 };

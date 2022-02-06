@@ -222,7 +222,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 			if (T.mcsTimer >= T.triggerMCS) {
 
-				cout << "Event " << T.id << " fired" << endl;
+				if(T.reportFire) cout << "Event " << T.id << " fired" << endl;
 
 				if (T.transformType == 0) {
 
@@ -551,6 +551,7 @@ unsigned int readConfig(string cfg) {
 				else if (c == "UPDATE_COLOUR") T.updateColour = (V[1] == "1");
 				else if (c == "UPDATE_DIV") T.updateDiv = (V[1] == "1");
 				else if (c == "DO_REPEAT") T.doRepeat = (V[1] == "1");
+				else if (c == "REPORT_FIRE") T.reportFire = (V[1] == "1");
 
 			}
 
