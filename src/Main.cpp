@@ -41,6 +41,8 @@ double SIGMA = 0;
 //Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
+bool AUTO_QUIT = false;
+
 string loadName;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done);
@@ -106,6 +108,11 @@ int main(int argc, char* argv[]) {
 				printGrid(renderer, texture, grid);
 				simLoopThread.join();
 				waitForEnd = true;
+
+
+				//Auto quit
+				if(AUTO_QUIT) quit = true;
+
 			}
 			else {
 
@@ -443,6 +450,7 @@ unsigned int readConfig(string cfg) {
 			else if (P == "LAMBDA") LAMBDA = stoi(value);
 			else if (P == "SIGMA") SIGMA = stoi(value);
 			else if (P == "BOLTZ_TEMP") BOLTZ_TEMP = stoi(value);
+			else if (P == "AUTO_QUIT") AUTO_QUIT = (value == "1");
 
 		}
 
