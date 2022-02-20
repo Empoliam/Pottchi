@@ -9,6 +9,7 @@
 #include <bitset>
 #include <iomanip>
 #include <ctime>
+#include <filesystem>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -135,13 +136,22 @@ int main(int argc, char* argv[]) {
 
 	}
 
+	string filename;
 
-	auto t = std::time(nullptr);
-	auto tm = *std::localtime(&t);
+	int attempt = 0;
 
-	std::ostringstream oss;
-	oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << ".bmp";
-	const auto filename = oss.str();
+	do { 
+		
+		auto t = std::time(nullptr);
+		auto tm = *std::localtime(&t);
+
+		std::ostringstream oss;
+		oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "-" << attempt << ".bmp";
+		filename = oss.str();
+
+		++attempt;
+
+	} while (filesystem::exists(filename));
 
 	writeGrid(renderer, texture, filename.c_str());
 
