@@ -255,6 +255,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 								SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 								SuperCell::setMCS(c, 0);
 							}
+							if (T.volumeMult != 1.0) {
+								SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
+							}
 
 						}
 					}
@@ -279,6 +282,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 									if (T.updateDiv) {
 										SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 										SuperCell::setMCS(c, 0);
+									}
+									if (T.volumeMult != 1.0) {
+										SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
 									}
 
 								}
@@ -305,6 +311,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 								if (T.updateDiv) {
 									SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 									SuperCell::setMCS(c, 0);
+								}
+								if (T.volumeMult != 1.0) {
+								SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
 								}
 
 							}
@@ -573,6 +582,7 @@ unsigned int readConfig(string cfg) {
 				else if (c == "UPDATE_DIV") T.updateDiv = (V[1] == "1");
 				else if (c == "DO_REPEAT") T.doRepeat = (V[1] == "1");
 				else if (c == "REPORT_FIRE") T.reportFire = (V[1] == "1");
+				else if (c == "VOLUME_MULT") T.volumeMult = stod(V[1]);
 
 			}
 

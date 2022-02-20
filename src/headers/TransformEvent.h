@@ -42,6 +42,8 @@ public:
 	bool updateColour = true;
 	bool updateDiv = true;
 
+	double volumeMult = 1.0;
+
 	bool doRepeat = false;
 
 	bool timerStart = false;
