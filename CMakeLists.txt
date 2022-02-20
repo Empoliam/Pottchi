@@ -12,13 +12,15 @@ file(GLOB HDR "src/headers/RandomNumberGenerators.h" "src/headers/SquareCellGrid
 
 add_executable (Pottchi ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp" "src/headers/TransformEvent.h" "src/TransformEvent.cpp")
 
+set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
+
 # TODO: Add tests and install targets if needed.
 
 find_package(SDL2 CONFIG REQUIRED)
 
 
 target_link_libraries(Pottchi PRIVATE SDL2::SDL2 SDL2::SDL2main)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
 
 #Copy default settings
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/default.cfg ${CMAKE_CURRENT_BINARY_DIR}/default.cfg COPYONLY)
