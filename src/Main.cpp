@@ -16,6 +16,7 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #include "./headers/SuperCell.h"
 #include "./headers/SquareCellGrid.h"
@@ -146,7 +147,7 @@ int main(int argc, char* argv[]) {
 		auto tm = *std::localtime(&t);
 
 		std::ostringstream oss;
-		oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "-" << attempt << ".bmp";
+		oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "-" << attempt << ".png";
 		filename = oss.str();
 
 		++attempt;
@@ -636,10 +637,6 @@ unsigned int readConfig(string cfg) {
 
 shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
-	int targetInitCellLength = (int)BORDER_CONST * sqrt(3600);
-
-	int newSuperCell = 3;
-
 	std::ifstream ifs(imgName);
 	string pgmString;
 	getline(ifs, pgmString);
@@ -757,7 +754,7 @@ int writeGrid(SDL_Renderer* renderer, SDL_Texture* texture, const char* filename
 	}
 
 	/* Save result to an image */
-	st = SDL_SaveBMP(surf, filename);
+	st = IMG_SavePNG(surf, filename);
 	if (st != 0) {
 		SDL_Log("Failed saving image: %s\n", SDL_GetError());
 		goto cleanup;
