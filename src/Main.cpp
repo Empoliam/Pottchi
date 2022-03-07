@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 		auto tm = *std::localtime(&t);
 
 		std::ostringstream oss;
-		oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "-" << attempt << ".png";
+		oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << attempt << ".png";
 		filename = oss.str();
 
 		++attempt;
