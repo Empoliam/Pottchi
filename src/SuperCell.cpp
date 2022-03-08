@@ -38,6 +38,10 @@ int SuperCell::makeNewSuperCell(int sC) {
 	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC), SuperCell::getTargetSurface(sC));
 }
 
+int SuperCell::makeNewSuperCell(SuperCellTemplate& T) {
+	return SuperCell::makeNewSuperCell(T.type,0,T.volume,T.surface);
+}
+
 int SuperCell::getID(int i) {
 	return superCells[i].ID;
 }
@@ -160,7 +164,6 @@ std::vector<int> SuperCell::getColour(int i) {
 	return superCells[i].colour;
 }
 
-//TODO Update to new colour generation method
 void SuperCell::generateNewColour(int c) {
 
 	setColour(c, ColourScheme::generateColour(getColourScheme(c)));

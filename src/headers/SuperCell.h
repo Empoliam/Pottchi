@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SuperCellTemplate.h"
 #include "CellType.h"
 #include <vector>
 #include <string>
@@ -11,6 +12,7 @@ public:
 	
 	static int makeNewSuperCell(int type, int gen, int targetV, int targetSurface);
 	static int makeNewSuperCell(int sC);
+	static int makeNewSuperCell(SuperCellTemplate& T);
 
 	static int getID(int i);
 

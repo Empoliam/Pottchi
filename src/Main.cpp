@@ -8,6 +8,7 @@
 #include <iostream>
 #include <math.h>
 #include <random>
+#include <stdlib.h>
 #include <thread>
 
 #define _USE_MATH_DEFINES
@@ -24,6 +25,7 @@
 #include "./headers/ReportEvent.h"
 #include "./headers/SquareCellGrid.h"
 #include "./headers/SuperCell.h"
+#include "./headers/SuperCellTemplate.h"
 #include "./headers/TransformEvent.h"
 #include "./headers/Vector2D.h"
 #include "./headers/split.h"
@@ -55,7 +57,10 @@ int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
+//TODO: Get rid of me
 map<int, int> initSCMap = map<int, int>();
+
+map<int,int> templateColourMap;
 
 int main(int argc, char *argv[]) {
 
@@ -340,6 +345,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 						if (SuperCell::getCellType(grid->getCell(x, y)) == T.transformFrom) {
 
+							// TODO: Change to template
 							int newSuper = SuperCell::makeNewSuperCell(T.transformTo);
 							SuperCell::generateNewColour(newSuper);
 							grid->setCell(x, y, newSuper);
@@ -368,6 +374,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 							if (!N.empty()) {
 
+								// TODO: Change to template
 								int newSuper = SuperCell::makeNewSuperCell(T.transformTo);
 								SuperCell::generateNewColour(newSuper);
 								grid->setCell(x, y, newSuper);
@@ -611,6 +618,37 @@ unsigned int readConfig(string cfg) {
 
 		}
 
+		else if (V[0] == "TEMPLATE") {
+
+			SuperCellTemplate T(stoi(V[1]));
+
+			while (line != "END_TEMPLATE") {
+
+				std::getline(ifs, line);
+				lineNumber++;
+
+				V = split(line, ',');
+
+				string c = V[0];
+
+				if (c == "TYPE")
+					T.type = stoi(V[1]);
+				else if (c == "VOLUME")
+					T.volume = stoi(V[1]);
+				else if (c == "SURFACE")
+					T.surface = stoi(V[1]);
+			}
+
+			if (T.type != -1) {
+				SuperCellTemplate::addTemplate(T);
+			}
+
+		}
+
+		if(V[0] == "MAP_TEMPLATE") {
+			templateColourMap[stoi(V[1])] = stoi(V[2]);
+		}
+
 		else if (V[0] == "EVENT_DEFINE") {
 
 			TransformEvent T(stoi(V[1]));
@@ -653,7 +691,6 @@ unsigned int readConfig(string cfg) {
 			}
 
 			TransformEvent::addNewEvent(T);
-
 		}
 
 		else if (V[0] == "REPORT_DEFINE") {
@@ -687,7 +724,6 @@ unsigned int readConfig(string cfg) {
 			}
 
 			ReportEvent::addNewEvent(R);
-
 		}
 
 		else {
@@ -698,6 +734,7 @@ unsigned int readConfig(string cfg) {
 
 	ifs.close();
 
+	//TODO: Move me
 	for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 
 		SuperCell::generateNewColour(c);
