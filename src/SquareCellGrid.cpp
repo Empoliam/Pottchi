@@ -12,7 +12,7 @@
 
 using namespace std;
 
-SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<int>(h + 2, 1)), pixels((w + 2) * (h + 2) * 4, 0) {
+SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) : internalGrid(w + 2, std::vector<int>(h + 2, spaceSC)), pixels((w + 2) * (h + 2) * 4, 0) {
 
 	// Temporary initialization
 	BOLTZ_TEMP = 0.0;
@@ -26,17 +26,17 @@ SquareCellGrid::SquareCellGrid(int w, int h) : internalGrid(w + 2, std::vector<i
 	boundaryHeight = h + 2;
 
 	for (int x = 0; x < boundaryWidth; x++) {
-		internalGrid[x][0] = 0;
-		internalGrid[x][boundaryHeight - 1] = 0;
+		internalGrid[x][0] = boundarySC;
+		internalGrid[x][boundaryHeight - 1] = boundarySC;
 	};
 
 	for (int y = 0; y < boundaryHeight; y++) {
-		internalGrid[0][y] = 0;
-		internalGrid[boundaryWidth - 1][y] = 0;
+		internalGrid[0][y] = boundarySC;
+		internalGrid[boundaryWidth - 1][y] = boundarySC;
 	};
 
-	SuperCell::setVolume(1, interiorWidth * interiorHeight);
-	SuperCell::setVolume(0, (boundaryWidth * boundaryHeight) - (interiorWidth * interiorHeight));
+	SuperCell::setVolume(spaceSC, interiorWidth * interiorHeight);
+	SuperCell::setVolume(boundarySC, (boundaryWidth * boundaryHeight) - (interiorWidth * interiorHeight));
 }
 
 vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col) {

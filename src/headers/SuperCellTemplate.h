@@ -7,6 +7,8 @@ public:
 	int volume = 0;
 	int surface = 0;
 
+	int specialType = 0;
+
 	SuperCellTemplate();
 	SuperCellTemplate(int id);
 
