@@ -32,7 +32,7 @@ file(GLOB HDR
     "src/TransformEvent.cpp"
 )
 
-add_executable (Pottchi ${SRC} ${HDR}     )
+add_executable (Pottchi ${SRC} ${HDR})
 
 set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")

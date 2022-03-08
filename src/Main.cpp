@@ -384,50 +384,59 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					T.triggered = true;
 				}
 			}
-			
 		}
 
 		for (int r = 0; r < ReportEvent::getNumEvents(); r++) {
 
-				ReportEvent &R = ReportEvent::getEvent(r);
+			ReportEvent &R = ReportEvent::getEvent(r);
 
-				if (m != 0 && !(R.fired) && (m % R.triggerOn == 0)) {
+			if (m != 0 && !(R.fired) && (m % R.triggerOn == 0)) {
 
-					if (R.type == 0) {
+				if (R.type == 0) {
 
-						int typeA = R.data[0];
-						int typeB = R.data[1];
+					logStream << R.reportText << "," << m << "\n";
 
-						for (int y = 1; y <= grid->interiorHeight; y++) {
-
-							for (int x = 1; x <= grid->interiorWidth; x++) {
-
-								if (SuperCell::getCellType(grid->getCell(x, y)) == typeA) {
-
-									std::vector<int> neighbourTypes = grid->getNeighboursTypes(x, y);
-
-									if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
-
-										logStream << R.reportText << "," << m << "\n";
-
-										if (!R.doRepeat) {
-											R.fired = true;
-										}
-
-										goto endLoop;
-
-									}
-								}
-							}					
-
-						}
-
-						endLoop: ;
-
+					if (!R.doRepeat) {
+						R.fired = true;
 					}
 				}
 
+				if (R.type == 1) {
+					int nSupers = SuperCell::getNumSupers();
+					logStream << R.reportText << "," << m << "," << nSupers << "\n";
+				}
+
+				if (R.type == 2) {
+
+					int typeA = R.data[0];
+					int typeB = R.data[1];
+
+					for (int y = 1; y <= grid->interiorHeight; y++) {
+
+						for (int x = 1; x <= grid->interiorWidth; x++) {
+
+							if (SuperCell::getCellType(grid->getCell(x, y)) == typeA) {
+
+								std::vector<int> neighbourTypes = grid->getNeighboursTypes(x, y);
+
+								if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
+
+									logStream << R.reportText << "," << m << "\n";
+
+									if (!R.doRepeat) {
+										R.fired = true;
+									}
+
+									goto endLoop;
+								}
+							}
+						}
+					}
+
+				endLoop:;
+				}
 			}
+		}
 
 		grid->fullTextureRefresh();
 		grid->fullPerimeterRefresh();
