@@ -16,6 +16,7 @@ file(GLOB SRC
     "src/ColourScheme.cpp"
     "src/TransformEvent.cpp"
     "src/ReportEvent.cpp"
+    "src/SuperCellTemplate.cpp"
 )
 
 file(GLOB HDR
@@ -29,7 +30,7 @@ file(GLOB HDR
     "src/headers/CellType.h"
     "src/headers/ReportEvent.h"
     "src/headers/TransformEvent.h"
-    "src/TransformEvent.cpp"
+    "src/headers/SuperCellTemplate.h"
 )
 
 add_executable (Pottchi ${SRC} ${HDR})
