@@ -25,6 +25,8 @@ public:
 
 	void setCell(int row, int col, int superCell);
 	
+	std::vector<int> getNeighboursSuperCells(int row, int col);
+	std::vector<int> getNeighboursTypes(int row, int col);
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col);
 	std::vector<Vector2D<int>> getNeighboursCoords(int row, int col, int type);
 

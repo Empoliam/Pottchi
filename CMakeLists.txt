@@ -7,10 +7,32 @@ project (Pottchi)
 
 # Add source to this project's executable.
 
-file(GLOB SRC "src/Main.cpp" "src/RandomNumberGenerators.cpp" "src/SquareCellGrid.cpp" "src/SuperCell.cpp")
-file(GLOB HDR "src/headers/RandomNumberGenerators.h" "src/headers/SquareCellGrid.h" "src/headers/SuperCell.h" "src/headers/Vector2D.h" "src/headers/MathConstants.h" "src/headers/split.h" "src/headers/CellType.h")
+file(GLOB SRC 
+    "src/Main.cpp"
+    "src/RandomNumberGenerators.cpp"
+    "src/SquareCellGrid.cpp"
+    "src/SuperCell.cpp"
+    "src/CellType.cpp"
+    "src/ColourScheme.cpp"
+    "src/TransformEvent.cpp"
+    "src/ReportEvent.cpp"
+)
 
-add_executable (Pottchi ${SRC} ${HDR} "src/CellType.cpp" "src/headers/ColourScheme.h" "src/ColourScheme.cpp" "src/headers/TransformEvent.h" "src/TransformEvent.cpp")
+file(GLOB HDR
+    "src/headers/ColourScheme.h"
+    "src/headers/RandomNumberGenerators.h"
+    "src/headers/SquareCellGrid.h"
+    "src/headers/SuperCell.h"
+    "src/headers/Vector2D.h"
+    "src/headers/MathConstants.h"
+    "src/headers/split.h"
+    "src/headers/CellType.h"
+    "src/headers/ReportEvent.h"
+    "src/headers/TransformEvent.h"
+    "src/TransformEvent.cpp"
+)
+
+add_executable (Pottchi ${SRC} ${HDR}     )
 
 set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
