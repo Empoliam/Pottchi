@@ -1,15 +1,14 @@
-#include <random>
-#include <chrono>
-#include <thread>
-#include <iostream>
-#include <fstream>
 #include <atomic>
-#include <thread>
-#include <math.h>
 #include <bitset>
-#include <iomanip>
+#include <chrono>
 #include <ctime>
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <math.h>
+#include <random>
+#include <thread>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -18,15 +17,16 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "./headers/SuperCell.h"
-#include "./headers/SquareCellGrid.h"
-#include "./headers/Vector2D.h"
-#include "./headers/RandomNumberGenerators.h"
-#include "./headers/MathConstants.h"
-#include "./headers/split.h"
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
+#include "./headers/MathConstants.h"
+#include "./headers/RandomNumberGenerators.h"
+#include "./headers/ReportEvent.h"
+#include "./headers/SquareCellGrid.h"
+#include "./headers/SuperCell.h"
 #include "./headers/TransformEvent.h"
+#include "./headers/Vector2D.h"
+#include "./headers/split.h"
 
 using namespace std;
 
@@ -40,27 +40,28 @@ double OMEGA = 1.0;
 double LAMBDA = 5.0;
 double SIGMA = 0;
 
-//Number of MCS per real hour
+// Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
 bool AUTO_QUIT = false;
 
 string loadName;
 
-int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done);
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCellGrid> grid);
-int writeGrid(SDL_Renderer* renderer, SDL_Texture* texture, const char* filename);
+ostringstream logStream;
+
+int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done);
+int printGrid(SDL_Renderer *renderer, SDL_Texture *texture, shared_ptr<SquareCellGrid> grid);
+int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
 map<int, int> initSCMap = map<int, int>();
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
 	if (argc == 2) {
 		loadName = argv[1];
-	}
-	else {
+	} else {
 		loadName = "default";
 	}
 
@@ -75,17 +76,20 @@ int main(int argc, char* argv[]) {
 
 	shared_ptr<SquareCellGrid> grid = initializeGrid(loadName + ".pgm");
 
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+
 	SDL_SetMainReady();
 	SDL_Event event;
-	SDL_Renderer* renderer;
-	SDL_Window* window;
+	SDL_Renderer *renderer;
+	SDL_Window *window;
 
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_CreateWindowAndRenderer((grid->boundaryWidth) * PIXEL_SCALE, (grid->boundaryHeight + 2) * PIXEL_SCALE, 0, &window, &renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
-	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid->boundaryWidth, grid->boundaryHeight);
+	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid->boundaryWidth, grid->boundaryHeight);
 
 	printGrid(renderer, texture, grid);
 
@@ -111,50 +115,51 @@ int main(int argc, char* argv[]) {
 				simLoopThread.join();
 				waitForEnd = true;
 
+				// Auto quit
+				if (AUTO_QUIT)
+					quit = true;
 
-				//Auto quit
-				if(AUTO_QUIT) quit = true;
-
-			}
-			else {
+			} else {
 
 				if (tickDelta > 1000 / RENDER_FPS) {
 
-					//cout << "fps: " << (double)1000 / tickDelta << "\n";
+					// cout << "fps: " << (double)1000 / tickDelta << "\n";
 					tickB = tickA;
 					printGrid(renderer, texture, grid);
-
 				}
-
 			}
-
 		}
 
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
 			done = true;
 			quit = true;
 		}
-
 	}
 
-	string filename;
+	string imgName;
 
 	int attempt = 0;
 
-	do { 
-		
-		auto t = std::time(nullptr);
-		auto tm = *std::localtime(&t);
+	do {
 
 		std::ostringstream oss;
 		oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << attempt << ".png";
-		filename = oss.str();
+		imgName = oss.str();
 
 		++attempt;
 
-	} while (filesystem::exists(filename));
+	} while (filesystem::exists(imgName));
 
-	writeGrid(renderer, texture, filename.c_str());
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << (attempt - 1) << ".log";
+	string logName = oss.str();
+
+	ofstream logFile;
+	logFile.open(logName);
+	logFile << logStream.str();
+	logFile.close();
+
+	writeGrid(renderer, texture, imgName.c_str());
 
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
@@ -164,22 +169,22 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
+int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
-	//Target times for key events
+	// Target times for key events
 
 	unsigned int diffStartMCS;
 
 	grid->fullTextureRefresh();
 	grid->fullPerimeterRefresh();
 
-	//Number of samples to take before increasing MCS count
+	// Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
 
-	//Simulation loop
+	// Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
-		//Monte Carlo Step
+		// Monte Carlo Step
 		for (unsigned int i = 0; i < iMCS; i++) {
 
 			int x = RandomNumberGenerators::rUnifInt(1, grid->interiorWidth);
@@ -190,7 +195,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 			if (done) {
 				break;
 			}
-
 		}
 
 		for (int c = 0; c < SuperCell::getNumSupers(); c++) {
@@ -201,15 +205,14 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 					int dType = SuperCell::getDivType(c);
 					int newSuper = -1;
-					switch (dType)
-					{
-					case(0):
+					switch (dType) {
+					case (0):
 						newSuper = grid->divideCellRandomAxis(c);
 						break;
-					case(1):
+					case (1):
 						newSuper = grid->divideCellShortAxis(c);
 						break;
-					case(2):
+					case (2):
 						newSuper = grid->cleaveCell(c);
 						break;
 					default:
@@ -226,24 +229,19 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 						SuperCell::generateNewColour(newSuper);
 						grid->fullTextureRefresh();
-
 					}
 
 					SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
-
-
-
 				}
-
 			}
-
 		}
 
 		for (int e = 0; e < TransformEvent::getNumEvents(); e++) {
 
-			TransformEvent& T = TransformEvent::getEvent(e);
+			TransformEvent &T = TransformEvent::getEvent(e);
 
-			if (T.triggered) continue;
+			if (T.triggered)
+				continue;
 
 			if (T.waitForOther && !T.timerStart) {
 				if (TransformEvent::getEvent(T.eventToWait).triggered) {
@@ -253,7 +251,8 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 			if (T.mcsTimer >= T.triggerMCS) {
 
-				if (T.reportFire) cout << "Event " << T.id << " fired" << endl;
+				if (T.reportFire)
+					cout << "Event " << T.id << " fired" << endl;
 
 				if (T.transformType == 0) {
 
@@ -261,15 +260,15 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 						if (SuperCell::getCellType(c) == T.transformFrom) {
 
 							SuperCell::setCellType(c, T.transformTo);
-							if (T.updateColour) SuperCell::generateNewColour(c);
+							if (T.updateColour)
+								SuperCell::generateNewColour(c);
 							if (T.updateDiv) {
 								SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 								SuperCell::setMCS(c, 0);
 							}
 							if (T.volumeMult != 1.0) {
-								SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
+								SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c) * T.volumeMult);
 							}
-
 						}
 					}
 
@@ -289,21 +288,18 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 								if (!N.empty()) {
 
 									SuperCell::setCellType(c, T.transformTo);
-									if (T.updateColour) SuperCell::generateNewColour(c);
+									if (T.updateColour)
+										SuperCell::generateNewColour(c);
 									if (T.updateDiv) {
 										SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 										SuperCell::setMCS(c, 0);
 									}
 									if (T.volumeMult != 1.0) {
-										SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
+										SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c) * T.volumeMult);
 									}
-
 								}
-
 							}
-
 						}
-
 					}
 
 				}
@@ -318,19 +314,17 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 
 							if (RandomNumberGenerators::rUnifProb() < pTransform) {
 								SuperCell::setCellType(c, T.transformTo);
-								if (T.updateColour) SuperCell::generateNewColour(c);
+								if (T.updateColour)
+									SuperCell::generateNewColour(c);
 								if (T.updateDiv) {
 									SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 									SuperCell::setMCS(c, 0);
 								}
 								if (T.volumeMult != 1.0) {
-								SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c)*T.volumeMult);
+									SuperCell::setTargetVolume(c, SuperCell::getTargetVolume(c) * T.volumeMult);
 								}
-
 							}
-
 						}
-
 					}
 
 				}
@@ -351,10 +345,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 							grid->setCell(x, y, newSuper);
 
 							success = true;
-
-
 						}
-
 					}
 
 				}
@@ -382,60 +373,86 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool>& done) {
 								grid->setCell(x, y, newSuper);
 
 								success = true;
-
 							}
-
 						}
-
 					}
-
 				}
 
 				if (T.doRepeat) {
 					T.startTimer();
-				}
-				else {
+				} else {
 					T.triggered = true;
+				}
+			}
+			
+		}
+
+		for (int r = 0; r < ReportEvent::getNumEvents(); r++) {
+
+				ReportEvent &R = ReportEvent::getEvent(r);
+
+				if (m != 0 && !(R.fired) && (m % R.triggerOn == 0)) {
+
+					if (R.type == 0) {
+
+						int typeA = R.data[0];
+						int typeB = R.data[1];
+
+						for (int y = 1; y <= grid->interiorHeight; y++) {
+
+							for (int x = 1; x <= grid->interiorWidth; x++) {
+
+								if (SuperCell::getCellType(grid->getCell(x, y)) == typeA) {
+
+									std::vector<int> neighbourTypes = grid->getNeighboursTypes(x, y);
+
+									if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
+
+										logStream << R.reportText << "," << m << "\n";
+
+										if (!R.doRepeat) {
+											R.fired = true;
+										}
+
+										goto endLoop;
+
+									}
+								}
+							}					
+
+						}
+
+						endLoop: ;
+
+					}
 				}
 
 			}
 
-
-
-		}
-
 		grid->fullTextureRefresh();
 		grid->fullPerimeterRefresh();
 
-
-		//Fluid expansion
-		//int newFluidVolume = max(50, (int)(TARGET_MAX_FLUID * (1 - exp(-((m - diffStartMCS) / (TARGET_SCALE_FLUID))))));
-		//SuperCell::setTargetVolume(FLUID_TYPE, newFluidVolume);
-
-
-
-		//Artificial delay if desired
-		if (SIM_DELAY != 0) std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
+		// Artificial delay if desired
+		if (SIM_DELAY != 0)
+			std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
 
 		if (done) {
 			break;
 		}
 
-		//Increase MCS count for each cell
+		// Increase MCS count for each cell
 		SuperCell::increaseMCS();
 
-		//Update event timers
+		// Update event timers
 		TransformEvent::updateTimers();
 
-		//Recalculate Perimeters
+		// Recalculate Perimeters
 		grid->fullPerimeterRefresh();
-
 	}
 
 	done = true;
 
 	return 0;
-
 }
 
 unsigned int readConfig(string cfg) {
@@ -455,22 +472,31 @@ unsigned int readConfig(string cfg) {
 
 			continue;
 
-		}
-		else if (V[0] == "SIM_PARAM") {
+		} else if (V[0] == "SIM_PARAM") {
 
 			string P = V[1];
 			string value = V[2];
 
-			if (P == "MCS_HOUR_EST")MCS_HOUR_EST = stoi(value);
-			else if (P == "MAX_HOURS") MAX_MCS = stod(value) * MCS_HOUR_EST;
-			else if (P == "PIXEL_SCALE")PIXEL_SCALE = stoi(value);
-			else if (P == "DELAY") SIM_DELAY = stoi(value);
-			else if (P == "FPS") RENDER_FPS = stoi(value);
-			else if (P == "OMEGA") OMEGA = stod(value);
-			else if (P == "LAMBDA") LAMBDA = stoi(value);
-			else if (P == "SIGMA") SIGMA = stoi(value);
-			else if (P == "BOLTZ_TEMP") BOLTZ_TEMP = stoi(value);
-			else if (P == "AUTO_QUIT") AUTO_QUIT = (value == "1");
+			if (P == "MCS_HOUR_EST")
+				MCS_HOUR_EST = stoi(value);
+			else if (P == "MAX_HOURS")
+				MAX_MCS = stod(value) * MCS_HOUR_EST;
+			else if (P == "PIXEL_SCALE")
+				PIXEL_SCALE = stoi(value);
+			else if (P == "DELAY")
+				SIM_DELAY = stoi(value);
+			else if (P == "FPS")
+				RENDER_FPS = stoi(value);
+			else if (P == "OMEGA")
+				OMEGA = stod(value);
+			else if (P == "LAMBDA")
+				LAMBDA = stoi(value);
+			else if (P == "SIGMA")
+				SIGMA = stoi(value);
+			else if (P == "BOLTZ_TEMP")
+				BOLTZ_TEMP = stoi(value);
+			else if (P == "AUTO_QUIT")
+				AUTO_QUIT = (value == "1");
 
 		}
 
@@ -490,18 +516,26 @@ unsigned int readConfig(string cfg) {
 					for (string S : J) {
 						T.J.push_back(stod(S));
 					}
-				}
-				else if (P == "DO_DIVIDE") T.doesDivide = (V[1] == "1");
-				else if (P == "IS_STATIC") T.isStatic = (V[1] == "1");
-				else if (P == "IGNORE_VOLUME") T.ignoreVolume = (V[1] == "1");
-				else if (P == "IGNORE_SURFACE") T.ignoreSurface = (V[1] == "1");
-				else if (P == "DIV_MEAN") T.divideMean = stod(V[1]) * MCS_HOUR_EST;
-				else if (P == "DIV_SD") T.divideSD = stod(V[1]) * MCS_HOUR_EST;
-				else if (P == "DIV_TYPE") T.divideType = stoi(V[1]);
-				else if (P == "DIV_MIN_VOL") T.divMinVolume = stoi(V[1]);
-				else if (P == "DIV_MIN_RATIO") T.divMinRatio = stod(V[1]);
-				else if (P == "COLOUR") T.colourScheme = stoi(V[1]);
-
+				} else if (P == "DO_DIVIDE")
+					T.doesDivide = (V[1] == "1");
+				else if (P == "IS_STATIC")
+					T.isStatic = (V[1] == "1");
+				else if (P == "IGNORE_VOLUME")
+					T.ignoreVolume = (V[1] == "1");
+				else if (P == "IGNORE_SURFACE")
+					T.ignoreSurface = (V[1] == "1");
+				else if (P == "DIV_MEAN")
+					T.divideMean = stod(V[1]) * MCS_HOUR_EST;
+				else if (P == "DIV_SD")
+					T.divideSD = stod(V[1]) * MCS_HOUR_EST;
+				else if (P == "DIV_TYPE")
+					T.divideType = stoi(V[1]);
+				else if (P == "DIV_MIN_VOL")
+					T.divMinVolume = stoi(V[1]);
+				else if (P == "DIV_MIN_RATIO")
+					T.divMinRatio = stod(V[1]);
+				else if (P == "COLOUR")
+					T.colourScheme = stoi(V[1]);
 			}
 
 			CellType::addType(T);
@@ -523,12 +557,10 @@ unsigned int readConfig(string cfg) {
 				if (c == "R") {
 					CS.rMin = stoi(V[1]);
 					CS.rMax = stoi(V[2]);
-				}
-				else if (c == "G") {
+				} else if (c == "G") {
 					CS.gMin = stoi(V[1]);
 					CS.gMax = stoi(V[2]);
-				}
-				else if (c == "B") {
+				} else if (c == "B") {
 					CS.bMin = stoi(V[1]);
 					CS.bMax = stoi(V[2]);
 				}
@@ -555,13 +587,15 @@ unsigned int readConfig(string cfg) {
 
 				string c = V[0];
 
-				if (c == "TYPE") type = stoi(V[1]);
-				else if (c == "INITIAL_VOLUME") initVol = stoi(V[1]);
-				else if (c == "INITIAL_LENGTH") initLength = stoi(V[1]);
+				if (c == "TYPE")
+					type = stoi(V[1]);
+				else if (c == "INITIAL_VOLUME")
+					initVol = stoi(V[1]);
+				else if (c == "INITIAL_LENGTH")
+					initLength = stoi(V[1]);
 				else if (c == "LOAD_COLOUR") {
 					initSCMap[stoi(V[1])] = id;
 				}
-
 			}
 
 			SuperCell::makeNewSuperCell(type, 0, initVol, initLength);
@@ -581,32 +615,76 @@ unsigned int readConfig(string cfg) {
 
 				string c = V[0];
 
-				if (c == "TIME_MEAN") T.triggerMean = stod(V[1]) * MCS_HOUR_EST;
-				else if (c == "TIME_SD") T.triggerSD = stod(V[1]) * MCS_HOUR_EST;
-				else if (c == "TRANSFORM_FROM") T.transformFrom = stoi(V[1]);
-				else if (c == "TRANSFORM_TO") T.transformTo = stoi(V[1]);
-				else if (c == "TRANSFORM_TYPE") T.transformType = stoi(V[1]);
-				else if (c == "TRANSFORM_DATA") T.transformData = stoi(V[1]);
-				else if (c == "WAIT_FOR_OTHER") T.waitForOther = (V[1] == "1");
-				else if (c == "EVENT_TO_WAIT") T.eventToWait = stoi(V[1]);
-				else if (c == "UPDATE_COLOUR") T.updateColour = (V[1] == "1");
-				else if (c == "UPDATE_DIV") T.updateDiv = (V[1] == "1");
-				else if (c == "DO_REPEAT") T.doRepeat = (V[1] == "1");
-				else if (c == "REPORT_FIRE") T.reportFire = (V[1] == "1");
-				else if (c == "VOLUME_MULT") T.volumeMult = stod(V[1]);
-
+				if (c == "TIME_MEAN")
+					T.triggerMean = stod(V[1]) * MCS_HOUR_EST;
+				else if (c == "TIME_SD")
+					T.triggerSD = stod(V[1]) * MCS_HOUR_EST;
+				else if (c == "TRANSFORM_FROM")
+					T.transformFrom = stoi(V[1]);
+				else if (c == "TRANSFORM_TO")
+					T.transformTo = stoi(V[1]);
+				else if (c == "TRANSFORM_TYPE")
+					T.transformType = stoi(V[1]);
+				else if (c == "TRANSFORM_DATA")
+					T.transformData = stoi(V[1]);
+				else if (c == "WAIT_FOR_OTHER")
+					T.waitForOther = (V[1] == "1");
+				else if (c == "EVENT_TO_WAIT")
+					T.eventToWait = stoi(V[1]);
+				else if (c == "UPDATE_COLOUR")
+					T.updateColour = (V[1] == "1");
+				else if (c == "UPDATE_DIV")
+					T.updateDiv = (V[1] == "1");
+				else if (c == "DO_REPEAT")
+					T.doRepeat = (V[1] == "1");
+				else if (c == "REPORT_FIRE")
+					T.reportFire = (V[1] == "1");
+				else if (c == "VOLUME_MULT")
+					T.volumeMult = stod(V[1]);
 			}
 
 			TransformEvent::addNewEvent(T);
 
 		}
 
-		else {
+		else if (V[0] == "REPORT_DEFINE") {
 
-			cout << "Unrecognised tag " << V[0] << " on line " << lineNumber << endl;
+			ReportEvent R(stoi(V[1]));
+
+			while (line != "END_REPORT") {
+
+				std::getline(ifs, line);
+				lineNumber++;
+
+				V = split(line, ',');
+
+				string c = V[0];
+
+				if (c == "TIME")
+					R.triggerOn = (int)(stod(V[1]) * MCS_HOUR_EST);
+				else if (c == "TYPE")
+					R.type = stoi(V[1]);
+				else if (c == "REPEAT")
+					R.doRepeat = (V[1] == "1");
+				else if (c == "DATA") {
+					vector<string> D = split(V[1], ':');
+					for (string S : D) {
+						R.data.push_back(stod(S));
+					}
+				} else if (c == "TEXT")
+					R.reportText = V[1];
+				else if (c != "END_REPORT")
+					cout << "Unknown report config on line " << lineNumber << endl;
+			}
+
+			ReportEvent::addNewEvent(R);
 
 		}
 
+		else {
+
+			cout << "Unrecognised tag " << V[0] << " on line " << lineNumber << endl;
+		}
 	}
 
 	ifs.close();
@@ -618,21 +696,18 @@ unsigned int readConfig(string cfg) {
 		if (SuperCell::doDivide(c)) {
 			SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
 		}
-
 	}
 
 	for (int e = 0; e < TransformEvent::getNumEvents(); e++) {
-		TransformEvent& T = TransformEvent::getEvent(e);
+		TransformEvent &T = TransformEvent::getEvent(e);
 
 		if (T.waitForOther == false) {
 			T.generateNewTriggerTime();
 			T.startTimer();
 		}
-
 	}
 
 	return 0;
-
 }
 
 shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
@@ -657,11 +732,9 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 			try {
 				int setSC = initSCMap.at(b);
 				grid->setCell(x, y, setSC);
-			}
-			catch (out_of_range) {
+			} catch (out_of_range) {
 				grid->setCell(x, y, 0);
 			}
-
 		}
 	}
 
@@ -671,10 +744,9 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 	grid->LAMBDA = LAMBDA;
 
 	return grid;
-
 }
 
-int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCellGrid> grid) {
+int printGrid(SDL_Renderer *renderer, SDL_Texture *texture, shared_ptr<SquareCellGrid> grid) {
 
 	std::vector<unsigned char> pixels = grid->getPixels();
 
@@ -683,18 +755,17 @@ int printGrid(SDL_Renderer* renderer, SDL_Texture* texture, shared_ptr<SquareCel
 	SDL_RenderPresent(renderer);
 
 	return 0;
-
 }
 
-int writeGrid(SDL_Renderer* renderer, SDL_Texture* texture, const char* filename) {
+int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename) {
 
-	SDL_Texture* ren_tex;
-	SDL_Surface* surf;
+	SDL_Texture *ren_tex;
+	SDL_Surface *surf;
 	int st;
 	int w;
 	int h;
 	int format;
-	void* pixels;
+	void *pixels;
 
 	pixels = NULL;
 	surf = NULL;
@@ -766,5 +837,4 @@ cleanup:
 	SDL_DestroyTexture(ren_tex);
 
 	return 0;
-
 }

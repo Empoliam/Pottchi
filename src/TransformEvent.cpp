@@ -4,7 +4,7 @@
 #include "./headers/TransformEvent.h"
 #include "./headers/RandomNumberGenerators.h"
 
-std::vector<TransformEvent> transformEvents = std::vector<TransformEvent>();
+static std::vector<TransformEvent> transformEvents = std::vector<TransformEvent>();
 
 TransformEvent::TransformEvent(int id) {
 
