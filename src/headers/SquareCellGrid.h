@@ -19,7 +19,7 @@ public:
 	double LAMBDA;
 	double SIGMA;
 
-	SquareCellGrid(int w, int h);
+	SquareCellGrid(int w, int h, int boundarySC, int spaceSC);
 
 	int getCell(int row, int col);
 
