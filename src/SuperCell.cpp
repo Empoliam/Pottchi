@@ -211,3 +211,8 @@ void SuperCell::changeSurface(int c, int delta) {
 	superCells[c].surface += delta;
 
 }
+
+
+bool SuperCell::isCountable(int c) {
+	return CellType::getType(superCells[c].cellType).countable;
+}

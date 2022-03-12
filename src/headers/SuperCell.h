@@ -54,6 +54,8 @@ public:
 	static int getCellType(int c);
 	static void setCellType(int c, int t);
 
+	static bool isCountable(int c);
+
 	static std::vector<double>& getJ(int c);
 
 	static int getNumSupers();

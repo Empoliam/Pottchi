@@ -407,8 +407,14 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 				}
 
 				if (R.type == 1) {
-					int nSupers = SuperCell::getNumSupers();
-					logStream << R.reportText << "," << m << "," << nSupers << "\n";
+					
+					int cellCount = 0;
+
+					for(int s = 0; s < SuperCell::getNumSupers(); s++) {
+						cellCount += SuperCell::isCountable(s);
+					}
+
+					logStream << R.reportText << "," << m << "," << cellCount << "\n";
 				}
 
 				if (R.type == 2) {
@@ -440,6 +446,19 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 				endLoop:;
 				}
+
+				if (R.type == 3) {
+
+					int cellCount = 0;
+
+					for(int s = 0; s < SuperCell::getNumSupers(); s++) {
+						cellCount += SuperCell::getCellType(s) == R.data[0];
+					}
+
+					logStream << R.reportText << "," << m << "," << cellCount << "\n";
+
+				}
+
 			}
 		}
 
@@ -550,6 +569,8 @@ unsigned int readConfig(string cfg) {
 					T.divMinRatio = stod(V[1]);
 				else if (P == "COLOUR")
 					T.colourScheme = stoi(V[1]);
+				else if (P == "COUNTABLE")
+					T.countable = (V[1] == "1");
 			}
 
 			CellType::addType(T);
@@ -583,39 +604,7 @@ unsigned int readConfig(string cfg) {
 			ColourScheme::addScheme(CS);
 
 		}
-		/*
-				else if (V[0] == "SUPERCELL") {
 
-					int id = stoi(V[1]);
-
-					int type = 0;
-					int initVol = 0;
-					int initLength = 0;
-
-					while (line != "END_SUPER") {
-
-						std::getline(ifs, line);
-						lineNumber++;
-
-						V = split(line, ',');
-
-						string c = V[0];
-
-						if (c == "TYPE")
-							type = stoi(V[1]);
-						else if (c == "INITIAL_VOLUME")
-							initVol = stoi(V[1]);
-						else if (c == "INITIAL_LENGTH")
-							initLength = stoi(V[1]);
-						else if (c == "LOAD_COLOUR") {
-							initSCMap[stoi(V[1])] = id;
-						}
-					}
-
-					SuperCell::makeNewSuperCell(type, 0, initVol, initLength);
-
-				}
-		 */
 		else if (V[0] == "TEMPLATE") {
 
 			SuperCellTemplate T(stoi(V[1]));
@@ -764,14 +753,13 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 	for (const auto &[cVal, superTemplate] : templateColourMap) {
 		tempSuperMap[cVal] = SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(superTemplate));
-		
+
 		int sType = SuperCellTemplate::getTemplate(superTemplate).specialType;
 		if (sType == 1) {
 			boundarySuper = tempSuperMap[cVal];
 		} else if (sType == 2) {
 			spaceSuper = tempSuperMap[cVal];
 		}
-
 	}
 
 	shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper));

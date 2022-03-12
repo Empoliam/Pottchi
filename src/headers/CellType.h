@@ -16,6 +16,7 @@ public:
 	bool isStatic = false;
 	bool ignoreVolume = false;
 	bool ignoreSurface = false;
+	bool countable = true;	
 
 	double divideMean = 0;
 	double divideSD = 0;
