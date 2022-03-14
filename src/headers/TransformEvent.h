@@ -45,6 +45,8 @@ public:
 	double volumeMult = 1.0;
 
 	bool doRepeat = false;
+	bool killRepeat = false;
+	int killOnEvent = -1;
 
 	bool timerStart = false;
 

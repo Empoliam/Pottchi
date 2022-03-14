@@ -42,6 +42,8 @@ double OMEGA = 1.0;
 double LAMBDA = 5.0;
 double SIGMA = 0;
 
+std::string IMAGE_NAME = "default";
+
 // Number of MCS per real hour
 int MCS_HOUR_EST = 500.0;
 
@@ -57,9 +59,6 @@ int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
-// TODO: Get rid of me
-map<int, int> initSCMap = map<int, int>();
-
 map<int, int> templateColourMap;
 
 int main(int argc, char *argv[]) {
@@ -74,12 +73,15 @@ int main(int argc, char *argv[]) {
 
 	int configStatus = readConfig(loadName + ".cfg");
 
+	cout << "Done loading" << endl;
+
+	//TODO sort this out
 	if (configStatus) {
 		cout << "Missing configuration option: " << configStatus << endl;
 		return 1;
 	}
 
-	shared_ptr<SquareCellGrid> grid = initializeGrid(loadName + ".pgm");
+	shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
 
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
@@ -383,6 +385,12 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 				}
 
+				if(T.killRepeat) {
+					if(TransformEvent::getEvent(T.killOnEvent).triggered == true) {
+						T.triggered = true;
+					}
+				}
+
 				if (T.doRepeat) {
 					T.startTimer();
 				} else {
@@ -395,11 +403,15 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 			ReportEvent &R = ReportEvent::getEvent(r);
 
+			bool isFired = R.fired;
+			bool triggerMet = false;
+			bool notZero = (m != 0);
+
 			if (m != 0 && !(R.fired) && (m % R.triggerOn == 0)) {
 
 				if (R.type == 0) {
 
-					logStream << R.reportText << "," << m << "\n";
+					logStream << R.reportText << "," << m << "," << R.data[0] << "\n";
 
 					if (!R.doRepeat) {
 						R.fired = true;
@@ -407,14 +419,18 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 				}
 
 				if (R.type == 1) {
-					
+
 					int cellCount = 0;
 
-					for(int s = 0; s < SuperCell::getNumSupers(); s++) {
+					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
 						cellCount += SuperCell::isCountable(s);
 					}
 
 					logStream << R.reportText << "," << m << "," << cellCount << "\n";
+
+					if (!R.doRepeat) {
+						R.fired = true;
+					}
 				}
 
 				if (R.type == 2) {
@@ -451,14 +467,12 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 					int cellCount = 0;
 
-					for(int s = 0; s < SuperCell::getNumSupers(); s++) {
+					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
 						cellCount += SuperCell::getCellType(s) == R.data[0];
 					}
 
 					logStream << R.reportText << "," << m << "," << cellCount << "\n";
-
 				}
-
 			}
 		}
 
@@ -530,6 +544,8 @@ unsigned int readConfig(string cfg) {
 				BOLTZ_TEMP = stoi(value);
 			else if (P == "AUTO_QUIT")
 				AUTO_QUIT = (value == "1");
+			else if (P == "IMAGE")
+				IMAGE_NAME = value;
 
 		}
 
