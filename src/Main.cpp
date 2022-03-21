@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "Done loading" << endl;
 
-	//TODO sort this out
+	// TODO sort this out
 	if (configStatus) {
 		cout << "Missing configuration option: " << configStatus << endl;
 		return 1;
@@ -385,8 +385,8 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 				}
 
-				if(T.killRepeat) {
-					if(TransformEvent::getEvent(T.killOnEvent).triggered == true) {
+				if (T.killRepeat) {
+					if (TransformEvent::getEvent(T.killOnEvent).triggered == true) {
 						T.triggered = true;
 					}
 				}
@@ -433,6 +433,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 				}
 
+				// Check if a cell of type 0 is touching type 1
 				if (R.type == 2) {
 
 					int typeA = R.data[0];
@@ -463,6 +464,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 				endLoop:;
 				}
 
+				// Count all cells of a specific type
 				if (R.type == 3) {
 
 					int cellCount = 0;
@@ -472,6 +474,59 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 
 					logStream << R.reportText << "," << m << "," << cellCount << "\n";
+				}
+
+				// Check for any cell of type 0 not touching type 1
+				if (R.type == 4) {
+
+					int typeA = R.data[0];
+					int typeB = R.data[1];
+
+					std::map<int, bool> listOfTypeASupers;
+
+					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
+						if (SuperCell::getCellType(s) == typeA) {
+							listOfTypeASupers[s] = false;
+						}
+					}
+
+					if (listOfTypeASupers.empty())
+						goto emptyMap;
+
+					for (int y = 1; y <= grid->interiorHeight; y++) {
+
+						for (int x = 1; x <= grid->interiorWidth; x++) {
+
+							int sc = grid->getCell(x, y);
+
+							if (SuperCell::getCellType(sc) == typeA) {
+
+								if (listOfTypeASupers[sc] == true)
+									continue;
+
+								std::vector<int> neighbourTypes = grid->getNeighboursTypes(x, y);
+
+								if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
+									listOfTypeASupers[sc] = true;
+								}
+							}
+						}
+					}
+
+					for (auto neighbourStatusPair : listOfTypeASupers) {
+						if (neighbourStatusPair.second == false) {
+							
+							logStream << R.reportText << "," << m << "\n";
+							
+							if (!R.doRepeat) {
+								R.fired = true;
+							}
+
+							break;
+						}
+					}
+
+				emptyMap:;
 				}
 			}
 		}
