@@ -515,9 +515,9 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 					for (auto neighbourStatusPair : listOfTypeASupers) {
 						if (neighbourStatusPair.second == false) {
-							
+
 							logStream << R.reportText << "," << m << "\n";
-							
+
 							if (!R.doRepeat) {
 								R.fired = true;
 							}
@@ -527,6 +527,38 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 
 				emptyMap:;
+				}
+
+				// Count cells of type 0 is touching type 1
+				if (R.type == 5) {
+
+					int typeA = R.data[0];
+					int typeB = R.data[1];
+
+					vector<int> confirmedSupers;
+
+					for (int y = 1; y <= grid->interiorHeight; y++) {
+
+						for (int x = 1; x <= grid->interiorWidth; x++) {
+
+							if (!(std::count(confirmedSupers.begin(), confirmedSupers.end(), grid->getCell(x, y))) && SuperCell::getCellType(grid->getCell(x, y)) == typeA) {
+
+								std::vector<int> neighbourTypes = grid->getNeighboursTypes(x, y);
+
+								if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
+
+									confirmedSupers.push_back(grid->getCell(x, y));
+
+								}
+							}
+						}
+					}
+
+					logStream << R.reportText << "," << m << "," << confirmedSupers.size() << "\n";
+
+					if (!R.doRepeat) {
+						R.fired = true;
+					}
 				}
 			}
 		}
