@@ -13,7 +13,6 @@ public:
 	int interiorWidth;
 	int interiorHeight;
 
-	//Always overriden, do not change
 	double BOLTZ_TEMP;
 	double OMEGA;
 	double LAMBDA;

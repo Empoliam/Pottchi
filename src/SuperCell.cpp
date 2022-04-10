@@ -1,16 +1,24 @@
 #include "headers/SuperCell.h"
 
-#include<vector>
-#include<algorithm>
-#include<iostream>
+#include <algorithm>
+#include <iostream>
+#include <vector>
 
-#include "headers/RandomNumberGenerators.h"
 #include "headers/ColourScheme.h"
+#include "headers/RandomNumberGenerators.h"
 
 using namespace std;
 
 static vector<SuperCell> superCells = vector<SuperCell>();
 
+/**
+ * @brief Construct a new SuperCell object. Should only be used by "makeNewSuperCell"
+ *
+ * @param type ID of cell type
+ * @param generation Generation of new SuperCell
+ * @param targetVolume Target Volume
+ * @param targetSurface Target Surface
+ */
 SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurface) {
 
 	this->ID = superCells.size();
@@ -18,35 +26,54 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
 	this->generation = generation;
 	this->targetVolume = targetVolume;
 	this->targetSurface = targetSurface;
-
 }
 
+/**
+ * @brief Make a new SuperCell with the requested parameters, and add it to the list of SuperCells
+ *
+ * @param type ID of cell type
+ * @param gen generation of cell to create
+ * @param targetV Target volume of new cell
+ * @param targetSurface Target surface of new cell
+ * @return int ID of the newly created SuperCell
+ */
 int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
 
 	SuperCell sc = SuperCell(type, gen, targetV, targetSurface);
 	superCells.push_back(sc);
 
-	std::sort(superCells.begin(), superCells.end(), [](const SuperCell& lhs, const SuperCell& rhs) {
+	std::sort(superCells.begin(), superCells.end(), [](const SuperCell &lhs, const SuperCell &rhs) {
 		return lhs.ID < rhs.ID;
 	});
 
 	return superCells.size() - 1;
-
 }
 
+/**
+ * @brief Copy the SuperCell with the requested ID
+ *
+ * @param sC ID of SuperCell  to copy
+ * @return int ID of newly created SuperCell
+ */
 int SuperCell::makeNewSuperCell(int sC) {
 	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC), SuperCell::getTargetSurface(sC));
 }
 
-int SuperCell::makeNewSuperCell(SuperCellTemplate& T) {
-	return SuperCell::makeNewSuperCell(T.type,0,T.volume,T.surface);
+/**
+ * @brief Create a new SuperCell from the provided template
+ *
+ * @param T Template to copy
+ * @return int ID of newly created SuperCell
+ */
+int SuperCell::makeNewSuperCell(SuperCellTemplate &T) {
+	return SuperCell::makeNewSuperCell(T.type, 0, T.volume, T.surface);
 }
 
 int SuperCell::getID(int i) {
 	return superCells[i].ID;
 }
 
-bool SuperCell::isStatic(int c){
+bool SuperCell::isStatic(int c) {
 	return CellType::getType(superCells[c].cellType).isStatic;
 }
 
@@ -78,8 +105,7 @@ int SuperCell::getDivMinVol(int c) {
 	return CellType::getType(superCells[c].cellType).divMinVolume;
 }
 
-int SuperCell::getDivMinRatio(int c)
-{
+int SuperCell::getDivMinRatio(int c) {
 	return CellType::getType(superCells[c].cellType).divMinRatio;
 }
 
@@ -124,7 +150,6 @@ int SuperCell::getTargetVolume(int c) {
 void SuperCell::setTargetVolume(int i, int target) {
 
 	superCells[i].targetVolume = target;
-
 }
 
 int SuperCell::getCellType(int c) {
@@ -135,7 +160,7 @@ void SuperCell::setCellType(int c, int t) {
 	superCells[c].cellType = t;
 }
 
-std::vector<double>& SuperCell::getJ(int c) {
+std::vector<double> &SuperCell::getJ(int c) {
 	return CellType::getType(superCells[c].cellType).J;
 }
 
@@ -148,12 +173,11 @@ int SuperCell::getColourScheme(int c) {
 }
 
 void SuperCell::setColour(int i, int r, int g, int b, int a) {
-	SuperCell& C = superCells[i];
+	SuperCell &C = superCells[i];
 	C.colour[0] = b;
 	C.colour[1] = g;
 	C.colour[2] = r;
 	C.colour[3] = a;
-
 }
 
 void SuperCell::setColour(int i, std::vector<int> col) {
@@ -167,11 +191,10 @@ std::vector<int> SuperCell::getColour(int i) {
 void SuperCell::generateNewColour(int c) {
 
 	setColour(c, ColourScheme::generateColour(getColourScheme(c)));
-
 }
 
 int SuperCell::generateNewDivisionTime(int c) {
-	return (int) RandomNumberGenerators::rNormalDouble(SuperCell::getDivMean(c), SuperCell::getDivSD(c));
+	return (int)RandomNumberGenerators::rNormalDouble(SuperCell::getDivMean(c), SuperCell::getDivSD(c));
 }
 
 void SuperCell::changeVolume(int i, int delta) {
@@ -189,7 +212,6 @@ int SuperCell::getVolume(int i) {
 void SuperCell::setTargetSurface(int c, int t) {
 
 	superCells[c].targetSurface = t;
-
 }
 
 int SuperCell::getTargetSurface(int c) {
@@ -199,7 +221,6 @@ int SuperCell::getTargetSurface(int c) {
 void SuperCell::setSurface(int c, int l) {
 
 	superCells[c].surface = l;
-
 }
 
 int SuperCell::getSurface(int c) {
@@ -209,9 +230,7 @@ int SuperCell::getSurface(int c) {
 void SuperCell::changeSurface(int c, int delta) {
 
 	superCells[c].surface += delta;
-
 }
-
 
 bool SuperCell::isCountable(int c) {
 	return CellType::getType(superCells[c].cellType).countable;

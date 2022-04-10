@@ -1,18 +1,17 @@
 #pragma once
 
-#include "SuperCellTemplate.h"
 #include "CellType.h"
-#include <vector>
-#include <string>
+#include "SuperCellTemplate.h"
 #include <map>
+#include <string>
+#include <vector>
 
 class SuperCell {
 
 public:
-	
 	static int makeNewSuperCell(int type, int gen, int targetV, int targetSurface);
 	static int makeNewSuperCell(int sC);
-	static int makeNewSuperCell(SuperCellTemplate& T);
+	static int makeNewSuperCell(SuperCellTemplate &T);
 
 	static int getID(int i);
 
@@ -43,7 +42,7 @@ public:
 	static void changeVolume(int i, int delta);
 	static void setVolume(int i, int v);
 	static int getVolume(int i);
-	
+
 	static void setTargetSurface(int c, int t);
 	static int getTargetSurface(int c);
 
@@ -56,7 +55,7 @@ public:
 
 	static bool isCountable(int c);
 
-	static std::vector<double>& getJ(int c);
+	static std::vector<double> &getJ(int c);
 
 	static int getNumSupers();
 
@@ -65,11 +64,10 @@ public:
 	static void setColour(int i, std::vector<int> col);
 	static std::vector<int> getColour(int i);
 	static void generateNewColour(int c);
-	
+
 	static int generateNewDivisionTime(int c);
 
 private:
-
 	int ID;
 	int generation;
 
@@ -77,16 +75,14 @@ private:
 
 	int targetVolume;
 	int volume = 0;
-	
+
 	int targetSurface;
 	int surface = 0;
 
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
-		
+
 	SuperCell(int type, int generation, int targetVolume, int targetSurface);
 
-	std::vector<int> colour = std::vector<int>(4,255);
-
+	std::vector<int> colour = std::vector<int>(4, 255);
 };
-

@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
 
+	// Initialize SDL and window
 	SDL_SetMainReady();
 	SDL_Event event;
 	SDL_Renderer *renderer;
@@ -96,10 +97,12 @@ int main(int argc, char *argv[]) {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 
+	// Texture to render simulation to
 	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid->boundaryWidth, grid->boundaryHeight);
 
 	printGrid(renderer, texture, grid);
 
+	// Start simulation loop
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, grid, std::ref(done));
 
@@ -137,6 +140,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
+		// Exit on close button pressed
 		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
 			done = true;
 			quit = true;
@@ -145,8 +149,8 @@ int main(int argc, char *argv[]) {
 
 	string imgName;
 
+	// Rendering to PNG and outputing log
 	int attempt = 0;
-
 	do {
 
 		std::ostringstream oss;
@@ -167,6 +171,8 @@ int main(int argc, char *argv[]) {
 	logFile.close();
 
 	writeGrid(renderer, texture, imgName.c_str());
+
+	// Safe exit
 
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
@@ -204,6 +210,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			}
 		}
 
+		// Cell division
 		for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 
 			if (SuperCell::doDivide(c)) {
@@ -243,6 +250,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			}
 		}
 
+		// Transform Events
 		for (int e = 0; e < TransformEvent::getNumEvents(); e++) {
 
 			TransformEvent &T = TransformEvent::getEvent(e);
@@ -261,6 +269,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 				if (T.reportFire)
 					cout << "Event " << T.id << " fired" << endl;
 
+				// Global transform
 				if (T.transformType == 0) {
 
 					for (int c = 0; c < SuperCell::getNumSupers(); c++) {
@@ -281,6 +290,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 				}
 
+				// Transform, conditional on neighbours
 				else if (T.transformType == 1) {
 
 					for (int y = 1; y <= grid->interiorHeight; y++) {
@@ -311,6 +321,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 				}
 
+				// Probabilistic transform
 				else if (T.transformType == 2) {
 
 					double pTransform = ((double)T.transformData / 100.0);
@@ -336,6 +347,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 				}
 
+				// Random Spawn on type
 				else if (T.transformType == 3) {
 
 					bool success = false;
@@ -357,6 +369,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 				}
 
+				// Random spawn, conditional on subcell neighbours
 				else if (T.transformType == 4) {
 
 					bool success = false;
@@ -385,6 +398,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 				}
 
+				// Kill event after kill condition met
 				if (T.killRepeat) {
 					if (TransformEvent::getEvent(T.killOnEvent).triggered == true) {
 						T.triggered = true;
@@ -399,6 +413,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			}
 		}
 
+		// Reporting
 		for (int r = 0; r < ReportEvent::getNumEvents(); r++) {
 
 			ReportEvent &R = ReportEvent::getEvent(r);
@@ -409,6 +424,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 			if (m != 0 && !(R.fired) && (m % R.triggerOn == 0)) {
 
+				// Unconditional log entry
 				if (R.type == 0) {
 
 					logStream << R.reportText << "," << m << "," << R.data[0] << "\n";
@@ -418,6 +434,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 				}
 
+				// Count all countable cells
 				if (R.type == 1) {
 
 					int cellCount = 0;
@@ -548,7 +565,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 								if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
 
 									confirmedSupers.push_back(grid->getCell(x, y));
-
 								}
 							}
 						}
@@ -910,6 +926,7 @@ int printGrid(SDL_Renderer *renderer, SDL_Texture *texture, shared_ptr<SquareCel
 	return 0;
 }
 
+// https://stackoverflow.com/a/48176678
 int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename) {
 
 	SDL_Texture *ren_tex;
