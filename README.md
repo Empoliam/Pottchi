@@ -2,11 +2,13 @@
 
 Cellular Potts Model implementation, designed around a blastocyst simulation. Designed to be rapidly configurable. The current build is mostly stable, and should be compatible with all noteworthy operating systems.
 
-Requires:
+# Requires
+
 SDL2 (Preferably 2.0.14 or higher)
+
 SDL2_image
 
-Cmake files provided
+Cmake
 
 # How to run
 
