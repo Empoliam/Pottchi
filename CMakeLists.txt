@@ -7,6 +7,10 @@ project (Pottchi)
 
 # Add source to this project's executable.
 
+IF(APPLE)
+include_directories("/usr/local/include")
+ENDIF()
+
 file(GLOB SRC 
     "src/Main.cpp"
     "src/RandomNumberGenerators.cpp"
