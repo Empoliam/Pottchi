@@ -9,7 +9,7 @@
 class SuperCell {
 
 public:
-	static int makeNewSuperCell(int type, int gen, int targetV, int targetSurface);
+	static int makeNewSuperCell(int type, int gen, int targetV);
 	static int makeNewSuperCell(int sC);
 	static int makeNewSuperCell(SuperCellTemplate &T);
 
@@ -43,13 +43,6 @@ public:
 	static void setVolume(int i, int v);
 	static int getVolume(int i);
 
-	static void setTargetSurface(int c, int t);
-	static int getTargetSurface(int c);
-
-	static void setSurface(int c, int l);
-	static int getSurface(int c);
-	static void changeSurface(int c, int delta);
-
 	static int getCellType(int c);
 	static void setCellType(int c, int t);
 
@@ -76,13 +69,10 @@ private:
 	int targetVolume;
 	int volume = 0;
 
-	int targetSurface;
-	int surface = 0;
-
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
 
-	SuperCell(int type, int generation, int targetVolume, int targetSurface);
+	SuperCell(int type, int generation, int targetVolume);
 
 	std::vector<int> colour = std::vector<int>(4, 255);
 };

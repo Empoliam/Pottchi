@@ -15,7 +15,6 @@ public:
 	bool doesDivide = false;
 	bool isStatic = false;
 	bool ignoreVolume = false;
-	bool ignoreSurface = false;
 	bool countable = true;	
 
 	double divideMean = 0;

@@ -19,13 +19,12 @@ static vector<SuperCell> superCells = vector<SuperCell>();
  * @param targetVolume Target Volume
  * @param targetSurface Target Surface
  */
-SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurface) {
+SuperCell::SuperCell(int type, int generation, int targetVolume) {
 
 	this->ID = superCells.size();
 	this->cellType = type;
 	this->generation = generation;
 	this->targetVolume = targetVolume;
-	this->targetSurface = targetSurface;
 }
 
 /**
@@ -37,9 +36,9 @@ SuperCell::SuperCell(int type, int generation, int targetVolume, int targetSurfa
  * @param targetSurface Target surface of new cell
  * @return int ID of the newly created SuperCell
  */
-int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurface) {
+int SuperCell::makeNewSuperCell(int type, int gen, int targetV) {
 
-	SuperCell sc = SuperCell(type, gen, targetV, targetSurface);
+	SuperCell sc = SuperCell(type, gen, targetV);
 	superCells.push_back(sc);
 
 	std::sort(superCells.begin(), superCells.end(), [](const SuperCell &lhs, const SuperCell &rhs) {
@@ -56,7 +55,7 @@ int SuperCell::makeNewSuperCell(int type, int gen, int targetV, int targetSurfac
  * @return int ID of newly created SuperCell
  */
 int SuperCell::makeNewSuperCell(int sC) {
-	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC), SuperCell::getTargetSurface(sC));
+	return SuperCell::makeNewSuperCell(SuperCell::getCellType(sC), SuperCell::getGeneration(sC), SuperCell::getTargetVolume(sC));
 }
 
 /**
@@ -66,7 +65,7 @@ int SuperCell::makeNewSuperCell(int sC) {
  * @return int ID of newly created SuperCell
  */
 int SuperCell::makeNewSuperCell(SuperCellTemplate &T) {
-	return SuperCell::makeNewSuperCell(T.type, 0, T.volume, T.surface);
+	return SuperCell::makeNewSuperCell(T.type, 0, T.volume);
 }
 
 int SuperCell::getID(int i) {
@@ -83,10 +82,6 @@ bool SuperCell::doDivide(int c) {
 
 bool SuperCell::ignoreVolume(int c) {
 	return CellType::getType(superCells[c].cellType).ignoreVolume;
-}
-
-bool SuperCell::ignoreSurface(int c) {
-	return CellType::getType(superCells[c].cellType).ignoreSurface;
 }
 
 double SuperCell::getDivMean(int c) {
@@ -207,29 +202,6 @@ void SuperCell::setVolume(int i, int v) {
 
 int SuperCell::getVolume(int i) {
 	return superCells[i].volume;
-}
-
-void SuperCell::setTargetSurface(int c, int t) {
-
-	superCells[c].targetSurface = t;
-}
-
-int SuperCell::getTargetSurface(int c) {
-	return superCells[c].targetSurface;
-}
-
-void SuperCell::setSurface(int c, int l) {
-
-	superCells[c].surface = l;
-}
-
-int SuperCell::getSurface(int c) {
-	return superCells[c].surface;
-}
-
-void SuperCell::changeSurface(int c, int delta) {
-
-	superCells[c].surface += delta;
 }
 
 bool SuperCell::isCountable(int c) {

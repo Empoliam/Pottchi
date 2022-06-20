@@ -5,7 +5,6 @@ public:
 	int id = -1;
 	int type = -1;
 	int volume = 0;
-	int surface = 0;
 
 	int specialType = 0;
 

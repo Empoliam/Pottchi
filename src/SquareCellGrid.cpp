@@ -16,7 +16,6 @@ SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) : inte
 
 	// Temporary initialization
 	BOLTZ_TEMP = 0.0;
-	SIGMA = 0.0;
 	OMEGA = 0.0;
 	LAMBDA = 0.0;
 
@@ -322,13 +321,9 @@ int SquareCellGrid::cleaveCell(int c) {
 		return -1;
 
 	int newTargetVolume = SuperCell::getTargetVolume(c) / 2;
-	int newTargetSurface = (int)sqrt(newTargetVolume) * BORDER_CONST;
 
 	SuperCell::setTargetVolume(superCellA, newTargetVolume);
 	SuperCell::setTargetVolume(superCellB, newTargetVolume);
-
-	SuperCell::setTargetSurface(superCellA, newTargetSurface);
-	SuperCell::setTargetSurface(superCellB, newTargetSurface);
 
 	return superCellB;
 }
@@ -350,8 +345,7 @@ int SquareCellGrid::moveCell(int x, int y) {
 		swap != internalGrid[x][y]) {
 
 		double deltaH =
-			getAdhesionDelta(x, y, targetX, targetY) * OMEGA + getVolumeDelta(x, y, targetX, targetY) * LAMBDA +
-			getSurfaceDelta(x, y, targetX, targetY) * SIGMA;
+			getAdhesionDelta(x, y, targetX, targetY) * OMEGA + getVolumeDelta(x, y, targetX, targetY) * LAMBDA;
 
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y]);
@@ -366,44 +360,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 	return 0;
 }
 
-int SquareCellGrid::calcSubCellPerimeter(int x, int y) {
-
-	int activeSuper = internalGrid[x][y];
-	return calcSubCellPerimeter(x, y, activeSuper);
-}
-
-int SquareCellGrid::calcSubCellPerimeter(int x, int y, int activeSuper) {
-
-	int perimeterCount = 0;
-
-	if (internalGrid[x][y - 1] != activeSuper)
-		perimeterCount++;
-	if (internalGrid[x][y + 1] != activeSuper)
-		perimeterCount++;
-	if (internalGrid[x - 1][y] != activeSuper)
-		perimeterCount++;
-	if (internalGrid[x + 1][y] != activeSuper)
-		perimeterCount++;
-
-	return perimeterCount;
-}
-
-void SquareCellGrid::fullPerimeterRefresh() {
-
-	for (int s = 0; s < SuperCell::getNumSupers(); s++) {
-		SuperCell::setSurface(s, 0);
-	}
-
-	for (int x = 1; x <= interiorWidth; x++) {
-		for (int y = 1; y < interiorHeight; y++) {
-
-			int activeSuper = internalGrid[x][y];
-
-			SuperCell::changeSurface(activeSuper, calcSubCellPerimeter(x, y));
-		}
-	}
-}
-
 int SquareCellGrid::getCell(int row, int col) {
 	return internalGrid[row][col];
 }
@@ -415,14 +371,6 @@ void SquareCellGrid::setCell(int x, int y, int superCell) {
 	// Volume Change
 	SuperCell::changeVolume(originalSuper, -1);
 	SuperCell::changeVolume(superCell, 1);
-
-	// Surface Change
-
-	int deltaOld = 2 * calcSubCellPerimeter(x, y, originalSuper) - 4;
-	int deltaNew = 4 - 2 * calcSubCellPerimeter(x, y, superCell);
-
-	SuperCell::changeSurface(originalSuper, deltaOld);
-	SuperCell::changeSurface(superCell, deltaNew);
 
 	internalGrid[x][y] = superCell;
 }
@@ -475,31 +423,6 @@ double SquareCellGrid::getVolumeDelta(int sourceX, int sourceY, int destX, int d
 	bool destIgnore = SuperCell::ignoreVolume(destSuper);
 
 	deltaH = (!sourceIgnore) * ((double)pow(sourceVol + 1 - sourceTarget, 2) - (double)pow(sourceVol - sourceTarget, 2)) + (!destIgnore) * ((double)pow(destVol - 1 - destTarget, 2) - (double)pow(destVol - destTarget, 2));
-
-	return deltaH;
-}
-
-double SquareCellGrid::getSurfaceDelta(int sourceX, int sourceY, int destX, int destY) {
-
-	int destSuper = internalGrid[destX][destY];
-	int sourceSuper = internalGrid[sourceX][sourceY];
-
-	int sourceSurf = SuperCell::getSurface(sourceSuper);
-	int destSurf = SuperCell::getSurface(destSuper);
-
-	int sourceTarget = SuperCell::getTargetSurface(sourceSuper);
-	int destTarget = SuperCell::getTargetSurface(destSuper);
-
-	int deltaSource = 2 * calcSubCellPerimeter(destX, destY, sourceSuper) - 4;
-	int deltaTarget = 4 - 2 * calcSubCellPerimeter(destX, destY, destSuper);
-
-	double deltaH = 0.0f;
-
-	// Prevent medium surface from affecting energy
-	bool sourceIgnore = SuperCell::ignoreSurface(sourceSuper);
-	bool destIgnore = SuperCell::ignoreSurface(destSuper);
-
-	deltaH = (!sourceIgnore) * ((double)pow(sourceSurf + deltaSource - sourceTarget, 2) - (double)pow(sourceSurf - sourceTarget, 2)) + (!destIgnore) * ((double)pow(destSurf - deltaTarget - destTarget, 2) - (double)pow(destSurf - destTarget, 2));
 
 	return deltaH;
 }

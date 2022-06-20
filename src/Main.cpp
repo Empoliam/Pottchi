@@ -40,7 +40,6 @@ unsigned int RENDER_FPS = 60;
 double BOLTZ_TEMP = 10.0;
 double OMEGA = 1.0;
 double LAMBDA = 5.0;
-double SIGMA = 0;
 
 std::string IMAGE_NAME = "default";
 
@@ -189,7 +188,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 	unsigned int diffStartMCS;
 
 	grid->fullTextureRefresh();
-	grid->fullPerimeterRefresh();
 
 	// Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
@@ -234,8 +232,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					}
 
 					if (newSuper > -1) {
-
-						grid->fullPerimeterRefresh();
 
 						cout << "Division at " << m << endl;
 
@@ -580,7 +576,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 		}
 
 		grid->fullTextureRefresh();
-		grid->fullPerimeterRefresh();
 
 		// Artificial delay if desired
 		if (SIM_DELAY != 0)
@@ -596,8 +591,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 		// Update event timers
 		TransformEvent::updateTimers();
 
-		// Recalculate Perimeters
-		grid->fullPerimeterRefresh();
 	}
 
 	done = true;
@@ -641,8 +634,6 @@ unsigned int readConfig(string cfg) {
 				OMEGA = stod(value);
 			else if (P == "LAMBDA")
 				LAMBDA = stoi(value);
-			else if (P == "SIGMA")
-				SIGMA = stoi(value);
 			else if (P == "BOLTZ_TEMP")
 				BOLTZ_TEMP = stoi(value);
 			else if (P == "AUTO_QUIT")
@@ -674,8 +665,6 @@ unsigned int readConfig(string cfg) {
 					T.isStatic = (V[1] == "1");
 				else if (P == "IGNORE_VOLUME")
 					T.ignoreVolume = (V[1] == "1");
-				else if (P == "IGNORE_SURFACE")
-					T.ignoreSurface = (V[1] == "1");
 				else if (P == "DIV_MEAN")
 					T.divideMean = stod(V[1]) * MCS_HOUR_EST;
 				else if (P == "DIV_SD")
@@ -741,8 +730,6 @@ unsigned int readConfig(string cfg) {
 					T.type = stoi(V[1]);
 				else if (c == "VOLUME")
 					T.volume = stoi(V[1]);
-				else if (c == "SURFACE")
-					T.surface = stoi(V[1]);
 				else if (c == "SPECIAL")
 					T.specialType = stoi(V[1]);
 			}
@@ -909,7 +896,6 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 
 	grid->BOLTZ_TEMP = BOLTZ_TEMP;
 	grid->OMEGA = OMEGA;
-	grid->SIGMA = SIGMA;
 	grid->LAMBDA = LAMBDA;
 
 	return grid;

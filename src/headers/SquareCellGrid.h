@@ -16,7 +16,6 @@ public:
 	double BOLTZ_TEMP;
 	double OMEGA;
 	double LAMBDA;
-	double SIGMA;
 
 	SquareCellGrid(int w, int h, int boundarySC, int spaceSC);
 
@@ -36,14 +35,8 @@ public:
 
 	int moveCell(int x, int y);
 
-	int calcSubCellPerimeter(int x, int y);
-	int calcSubCellPerimeter(int x, int y, int activeSuper);
-
-	void fullPerimeterRefresh();
-
 	double getAdhesionDelta(int sourceX, int sourceY, int destX, int destY);
 	double getVolumeDelta(int sourceX, int sourceY, int destX, int destY);
-	double getSurfaceDelta(int sourceX, int sourceY, int destX, int destY);
 
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);
