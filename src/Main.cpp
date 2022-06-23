@@ -14,10 +14,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include <SFML/Window.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Window.hpp>
 
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
@@ -49,12 +49,14 @@ int MCS_HOUR_EST = 500.0;
 
 bool AUTO_QUIT = false;
 
+bool HEADLESS = false;
+
 string loadName;
 
 ostringstream logStream;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done);
-//int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
+// int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
@@ -85,57 +87,68 @@ int main(int argc, char *argv[]) {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
 
-	// Initialize window
-	sf::RenderWindow window(sf::VideoMode(PIXEL_SCALE*grid->boundaryWidth,PIXEL_SCALE*grid->boundaryHeight), "Pottchi");
-	window.setFramerateLimit(60);
-
 	// Texture to render simulation to
 	sf::Texture gridTexture;
-	gridTexture.create(grid->boundaryWidth,grid->boundaryHeight);
+	gridTexture.create(grid->boundaryWidth, grid->boundaryHeight);
 	sf::Sprite sprite(gridTexture);
-	sprite.setScale(PIXEL_SCALE,PIXEL_SCALE);
+	sprite.setScale(PIXEL_SCALE, PIXEL_SCALE);
 
 	// Grid render method
-	auto refreshGridTexture = [&]{
-		Uint8* pixels = grid->getPixels().data();
+	auto refreshGridTexture = [&] {
+		Uint8 *pixels = grid->getPixels().data();
 		gridTexture.update(pixels);
 	};
 
-	// Start simulation loop
-	std::atomic<bool> done(false);
-	std::thread simLoopThread(simLoop, grid, std::ref(done));
+	// RUN WITH GUI
 
-	bool quit = AUTO_QUIT;
+	if (!HEADLESS) {
 
-	// Graphics loop
-	while (window.isOpen()) {
+		// Start simulation loop
+		std::atomic<bool> done(false);
+		std::thread simLoopThread(simLoop, grid, std::ref(done));
 
-		// Draw to window
+		bool quit = AUTO_QUIT;
+
+		// Initialize window
+		sf::RenderWindow window(sf::VideoMode(PIXEL_SCALE * grid->boundaryWidth, PIXEL_SCALE * grid->boundaryHeight), "Pottchi");
+		window.setFramerateLimit(60);
+
+		// Graphics loop
+		while (window.isOpen()) {
+
+			// Draw to window
+			refreshGridTexture();
+			window.draw(sprite);
+			window.display();
+
+			sf::Event event;
+			while (window.pollEvent(event)) {
+				if (event.type == sf::Event::Closed) {
+					done = true;
+					quit = true;
+				}
+			}
+
+			if (done) {
+
+				if (static bool doOnce; !std::exchange(doOnce, true)) {
+					cout << "Simulation finished\n";
+				}
+
+				if (quit) {
+					refreshGridTexture();
+					simLoopThread.join();
+					window.close();
+				}
+			}
+		}
+	} else {
+
+		cout << "Headless Launch\n";
+
+		std::atomic<bool> done(false);
+		simLoop(grid, std::ref(done));
 		refreshGridTexture();
-		window.draw(sprite);
-		window.display();
-
-		sf::Event event;
-		while(window.pollEvent(event)) {
-			if(event.type == sf::Event::Closed) {
-				done = true;
-				quit = true;				
-			}
-		}
-
-		if(done) {
-
-			if (static bool doOnce; !std::exchange(doOnce,true)) {
-				cout << "Simulation finished\n";
-			}
-
-			if(quit) {
-				refreshGridTexture();
-				simLoopThread.join();
-				window.close();
-			}
-
-		}
 
 	}
 
@@ -192,7 +205,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
 			bool success = grid->moveCell(x, y);
-			
 		}
 
 		// Cell division
@@ -577,7 +589,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 		// Update event timers
 		TransformEvent::updateTimers();
-
 	}
 
 	done = true;
