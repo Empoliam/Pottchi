@@ -95,6 +95,12 @@ int main(int argc, char *argv[]) {
 	sf::Sprite sprite(gridTexture);
 	sprite.setScale(PIXEL_SCALE,PIXEL_SCALE);
 
+	// Grid render method
+	auto refreshGridTexture = [&]{
+		Uint8* pixels = grid->getPixels().data();
+		gridTexture.update(pixels);
+	};
+
 	// Start simulation loop
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, grid, std::ref(done));
@@ -104,22 +110,17 @@ int main(int argc, char *argv[]) {
 	// Graphics loop
 	while (window.isOpen()) {
 
-		// Draw grid
-		Uint8* pixels = grid->getPixels().data();
-		gridTexture.update(pixels);
+		// Draw to window
+		refreshGridTexture();
 		window.draw(sprite);
 		window.display();
 
 		sf::Event event;
 		while(window.pollEvent(event)) {
-
 			if(event.type == sf::Event::Closed) {
-
 				done = true;
-				quit = true;
-				
+				quit = true;				
 			}
-
 		}
 
 		if(done) {
@@ -129,6 +130,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			if(quit) {
+				refreshGridTexture();
 				simLoopThread.join();
 				window.close();
 			}
