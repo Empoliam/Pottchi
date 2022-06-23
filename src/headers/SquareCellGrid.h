@@ -40,12 +40,9 @@ public:
 
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);
-	std::vector<unsigned char> getPixels();
+	std::vector<Uint8> getPixels();
 
 protected:
-
-	std::vector<std::vector<int>> internalGrid;
-	std::vector<unsigned char> pixels;
 
 	double calculateRawImageMoment(std::vector<Vector2D<int>> data, int iO, int jO);
 

@@ -12,7 +12,13 @@
 
 using namespace std;
 
-SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) : internalGrid(w + 2, std::vector<int>(h + 2, spaceSC)), pixels((w + 2) * (h + 2) * 4, 0) {
+std::vector<std::vector<int>> internalGrid;
+std::vector<Uint8> pixels;
+
+SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) {
+
+	internalGrid = std::vector<std::vector<int>>(w + 2, std::vector<int>(h + 2, spaceSC));
+	pixels = std::vector<Uint8>((w+2)*(h+2)*4);
 
 	// Temporary initialization
 	BOLTZ_TEMP = 0.0;
@@ -440,10 +446,10 @@ void SquareCellGrid::fullTextureRefresh() {
 				colourIn = {0, 0, 0, 0};
 			}
 
-			pixels[pixOffset + 3] = (char)colourIn[0];
-			pixels[pixOffset + 2] = (char)colourIn[1];
-			pixels[pixOffset + 1] = (char)colourIn[2];
-			pixels[pixOffset + 0] = SDL_ALPHA_OPAQUE;
+			pixels[pixOffset + 0] = (Uint8)colourIn[0];
+			pixels[pixOffset + 1] = (Uint8)colourIn[1];
+			pixels[pixOffset + 2] = (Uint8)colourIn[2];
+			pixels[pixOffset + 3] = (Uint8)255;
 		}
 	}
 }
@@ -457,13 +463,13 @@ void SquareCellGrid::localTextureRefresh(int x, int y) {
 		colourIn = {0, 0, 0, 0};
 	}
 
-	pixels[pixOffset + 3] = (char)colourIn[0];
-	pixels[pixOffset + 2] = (char)colourIn[1];
-	pixels[pixOffset + 1] = (char)colourIn[2];
-	pixels[pixOffset + 0] = SDL_ALPHA_OPAQUE;
+	pixels[pixOffset + 0] = (Uint8)colourIn[0];
+	pixels[pixOffset + 1] = (Uint8)colourIn[1];
+	pixels[pixOffset + 2] = (Uint8)colourIn[2];
+	pixels[pixOffset + 3] = (Uint8) 255;
 }
 
-std::vector<unsigned char> SquareCellGrid::getPixels() {
+std::vector<Uint8> SquareCellGrid::getPixels() {
 
 	return pixels;
 }

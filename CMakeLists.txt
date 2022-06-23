@@ -44,10 +44,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 # TODO: Add tests and install targets if needed.
 
-find_package(SDL2 CONFIG REQUIRED)
-find_package(SDL2_image REQUIRED)
+find_package(SFML REQUIRED graphics window system)
 
-target_link_libraries(Pottchi PRIVATE SDL2::SDL2 SDL2::SDL2main ${SDL2_IMAGE_LIBRARIES})
+target_link_libraries(Pottchi PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
 
 #Copy default settings

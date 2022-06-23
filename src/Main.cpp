@@ -14,9 +14,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SFML/Window.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
@@ -53,8 +54,7 @@ string loadName;
 ostringstream logStream;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done);
-int printGrid(SDL_Renderer *renderer, SDL_Texture *texture, shared_ptr<SquareCellGrid> grid);
-int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
+//int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
@@ -85,21 +85,15 @@ int main(int argc, char *argv[]) {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
 
-	// Initialize SDL and window
-	SDL_SetMainReady();
-	SDL_Event event;
-	SDL_Renderer *renderer;
-	SDL_Window *window;
-
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_CreateWindowAndRenderer((grid->boundaryWidth) * PIXEL_SCALE, (grid->boundaryHeight + 2) * PIXEL_SCALE, 0, &window, &renderer);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-	SDL_RenderClear(renderer);
+	// Initialize window
+	sf::RenderWindow window(sf::VideoMode(PIXEL_SCALE*grid->boundaryWidth,PIXEL_SCALE*grid->boundaryHeight), "Pottchi");
+	window.setFramerateLimit(60);
 
 	// Texture to render simulation to
-	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, grid->boundaryWidth, grid->boundaryHeight);
-
-	printGrid(renderer, texture, grid);
+	sf::Texture gridTexture;
+	gridTexture.create(grid->boundaryWidth,grid->boundaryHeight);
+	sf::Sprite sprite(gridTexture);
+	sprite.setScale(PIXEL_SCALE,PIXEL_SCALE);
 
 	// Start simulation loop
 	std::atomic<bool> done(false);
@@ -108,47 +102,42 @@ int main(int argc, char *argv[]) {
 	bool quit = false;
 	bool waitForEnd = false;
 
-	unsigned int tickA, tickB, tickDelta;
-	tickB = SDL_GetTicks();
+	//TODO Auto quit fix
 
-	while (!quit) {
+	// Graphics loop
+	while (window.isOpen()) {
 
-		if (!waitForEnd) {
 
-			tickA = SDL_GetTicks();
-			tickDelta = tickA - tickB;
+		// Draw grid
+		Uint8* pixels = grid->getPixels().data();
+		gridTexture.update(pixels);
+		window.draw(sprite);
+		window.display();
 
-			if (done) {
-				cout << "done";
-				printGrid(renderer, texture, grid);
-				simLoopThread.join();
-				waitForEnd = true;
+		sf::Event event;
+		while(window.pollEvent(event)) {
 
-				// Auto quit
-				if (AUTO_QUIT)
-					quit = true;
+			if(event.type == sf::Event::Closed) {
 
-			} else {
-
-				if (tickDelta > 1000 / RENDER_FPS) {
-
-					// cout << "fps: " << (double)1000 / tickDelta << "\n";
-					tickB = tickA;
-					printGrid(renderer, texture, grid);
-				}
+				done = true;
+				
 			}
+
 		}
 
-		// Exit on close button pressed
-		if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-			done = true;
-			quit = true;
+		if(done) {
+
+			cout << "Simulation finished\n";
+			simLoopThread.join();
+			window.close();
+
 		}
+
 	}
 
 	string imgName;
 
-	// Rendering to PNG and outputing log
+	// Rendering to PNG and outputting log
 	int attempt = 0;
 	do {
 
@@ -169,14 +158,7 @@ int main(int argc, char *argv[]) {
 	logFile << logStream.str();
 	logFile.close();
 
-	writeGrid(renderer, texture, imgName.c_str());
-
-	// Safe exit
-
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	gridTexture.copyToImage().saveToFile(imgName);
 
 	return 0;
 }
@@ -195,6 +177,10 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 	// Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
+		if (done) {
+			break;
+		}
+
 		// Monte Carlo Step
 		for (unsigned int i = 0; i < iMCS; i++) {
 
@@ -202,10 +188,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			int y = RandomNumberGenerators::rUnifInt(1, grid->interiorHeight);
 
 			bool success = grid->moveCell(x, y);
-
-			if (done) {
-				break;
-			}
+			
 		}
 
 		// Cell division
@@ -899,98 +882,4 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 	grid->LAMBDA = LAMBDA;
 
 	return grid;
-}
-
-int printGrid(SDL_Renderer *renderer, SDL_Texture *texture, shared_ptr<SquareCellGrid> grid) {
-
-	std::vector<unsigned char> pixels = grid->getPixels();
-
-	SDL_UpdateTexture(texture, NULL, pixels.data(), grid->boundaryWidth * 4);
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
-	SDL_RenderPresent(renderer);
-
-	return 0;
-}
-
-// https://stackoverflow.com/a/48176678
-int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename) {
-
-	SDL_Texture *ren_tex;
-	SDL_Surface *surf;
-	int st;
-	int w;
-	int h;
-	int format;
-	void *pixels;
-
-	pixels = NULL;
-	surf = NULL;
-	ren_tex = NULL;
-	format = SDL_PIXELFORMAT_RGBA32;
-
-	/* Get information about texture we want to save */
-	st = SDL_QueryTexture(texture, NULL, NULL, &w, &h);
-	if (st != 0) {
-		SDL_Log("Failed querying texture: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	ren_tex = SDL_CreateTexture(renderer, format, SDL_TEXTUREACCESS_TARGET, w, h);
-	if (!ren_tex) {
-		SDL_Log("Failed creating render texture: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	/*
-	 * Initialize our canvas, then copy texture to a target whose pixel data we
-	 * can access
-	 */
-	st = SDL_SetRenderTarget(renderer, ren_tex);
-	if (st != 0) {
-		SDL_Log("Failed setting render target: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-	SDL_RenderClear(renderer);
-
-	st = SDL_RenderCopy(renderer, texture, NULL, NULL);
-	if (st != 0) {
-		SDL_Log("Failed copying texture data: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	/* Create buffer to hold texture data and load it */
-	pixels = malloc(w * h * SDL_BYTESPERPIXEL(format));
-	if (!pixels) {
-		SDL_Log("Failed allocating memory\n");
-		goto cleanup;
-	}
-
-	st = SDL_RenderReadPixels(renderer, NULL, format, pixels, w * SDL_BYTESPERPIXEL(format));
-	if (st != 0) {
-		SDL_Log("Failed reading pixel data: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	/* Copy pixel data over to surface */
-	surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, SDL_BITSPERPIXEL(format), w * SDL_BYTESPERPIXEL(format), format);
-	if (!surf) {
-		SDL_Log("Failed creating new surface: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-	/* Save result to an image */
-	st = IMG_SavePNG(surf, filename);
-	if (st != 0) {
-		SDL_Log("Failed saving image: %s\n", SDL_GetError());
-		goto cleanup;
-	}
-
-cleanup:
-	SDL_FreeSurface(surf);
-	free(pixels);
-	SDL_DestroyTexture(ren_tex);
-
-	return 0;
 }
