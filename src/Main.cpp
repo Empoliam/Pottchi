@@ -99,14 +99,10 @@ int main(int argc, char *argv[]) {
 	std::atomic<bool> done(false);
 	std::thread simLoopThread(simLoop, grid, std::ref(done));
 
-	bool quit = false;
-	bool waitForEnd = false;
-
-	//TODO Auto quit fix
+	bool quit = AUTO_QUIT;
 
 	// Graphics loop
 	while (window.isOpen()) {
-
 
 		// Draw grid
 		Uint8* pixels = grid->getPixels().data();
@@ -120,6 +116,7 @@ int main(int argc, char *argv[]) {
 			if(event.type == sf::Event::Closed) {
 
 				done = true;
+				quit = true;
 				
 			}
 
@@ -127,9 +124,14 @@ int main(int argc, char *argv[]) {
 
 		if(done) {
 
-			cout << "Simulation finished\n";
-			simLoopThread.join();
-			window.close();
+			if (static bool doOnce; !std::exchange(doOnce,true)) {
+				cout << "Simulation finished\n";
+			}
+
+			if(quit) {
+				simLoopThread.join();
+				window.close();
+			}
 
 		}
 
