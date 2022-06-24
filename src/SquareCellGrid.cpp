@@ -356,9 +356,6 @@ int SquareCellGrid::moveCell(int x, int y) {
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y]);
 
-			localTextureRefresh(x, y);
-			localTextureRefresh(targetX, targetY);
-
 			return 1;
 		}
 	}
@@ -452,21 +449,6 @@ void SquareCellGrid::fullTextureRefresh() {
 			pixels[pixOffset + 3] = (uint8_t)255;
 		}
 	}
-}
-
-void SquareCellGrid::localTextureRefresh(int x, int y) {
-
-	const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
-	vector<int> colourIn = SuperCell::getColour(internalGrid[x][y]);
-
-	if (colourIn.size() == 0) {
-		colourIn = {0, 0, 0, 0};
-	}
-
-	pixels[pixOffset + 0] = (uint8_t)colourIn[0];
-	pixels[pixOffset + 1] = (uint8_t)colourIn[1];
-	pixels[pixOffset + 2] = (uint8_t)colourIn[2];
-	pixels[pixOffset + 3] = (uint8_t) 255;
 }
 
 std::vector<uint8_t> SquareCellGrid::getPixels() {

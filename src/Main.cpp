@@ -50,14 +50,13 @@ int MCS_HOUR_EST = 500.0;
 
 bool AUTO_QUIT = false;
 
-bool HEADLESS = false;
+bool HEADLESS = true;
 
 string loadName;
 
 ostringstream logStream;
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done);
-// int writeGrid(SDL_Renderer *renderer, SDL_Texture *texture, const char *filename);
 unsigned int readConfig(string cfg);
 shared_ptr<SquareCellGrid> initializeGrid(string imgName);
 
@@ -96,6 +95,7 @@ int main(int argc, char *argv[]) {
 
 	// Grid render method
 	auto refreshGridTexture = [&] {
+		grid->fullTextureRefresh();
 		uint8_t *pixels = grid->getPixels().data();
 		gridTexture.update(pixels);
 	};
@@ -183,8 +183,6 @@ int main(int argc, char *argv[]) {
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
-	grid->fullTextureRefresh();
-
 	// Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
 
@@ -234,7 +232,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
 
 						SuperCell::generateNewColour(newSuper);
-						grid->fullTextureRefresh();
+
 					}
 
 					SuperCell::setNextDiv(c, SuperCell::generateNewDivisionTime(c));
@@ -570,8 +568,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 				}
 			}
 		}
-
-		grid->fullTextureRefresh();
 
 		// Artificial delay if desired
 		if (SIM_DELAY != 0)
