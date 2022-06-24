@@ -11,6 +11,7 @@ IF(APPLE)
 include_directories("/usr/local/include")
 ENDIF()
 
+
 file(GLOB SRC 
     "src/Main.cpp"
     "src/RandomNumberGenerators.cpp"
@@ -42,12 +43,15 @@ add_executable (Pottchi ${SRC} ${HDR})
 set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-# TODO: Add tests and install targets if needed.
+set(SFML_FIND_QUIETLY FALSE)
+set(SFML_STATIC_LIBRARIES TRUE)
+find_package(SFML COMPONENTS graphics window system CONFIG REQUIRED)
 
-find_package(SFML REQUIRED graphics window system)
+target_link_libraries(Pottchi PRIVATE sfml-graphics sfml-window ${SFML_DEPENDENCIES})
 
-target_link_libraries(Pottchi PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
+IF(NOT WIN32)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
+ENDIF()
 
 #Copy default settings
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/default.cfg ${CMAKE_CURRENT_BINARY_DIR}/default.cfg COPYONLY)

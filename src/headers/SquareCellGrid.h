@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Vector2D.h"
-#include <SDL2/SDL.h>
 
 #include <vector>
+#include <cstdint>
 
 class SquareCellGrid {
 
@@ -40,7 +40,7 @@ public:
 
 	void fullTextureRefresh();
 	void localTextureRefresh(int x, int y);
-	std::vector<Uint8> getPixels();
+	std::vector<uint8_t> getPixels();
 
 protected:
 

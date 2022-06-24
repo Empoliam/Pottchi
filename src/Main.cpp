@@ -13,6 +13,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <cstdint>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]) {
 
 	// Grid render method
 	auto refreshGridTexture = [&] {
-		Uint8 *pixels = grid->getPixels().data();
+		uint8_t *pixels = grid->getPixels().data();
 		gridTexture.update(pixels);
 	};
 
@@ -181,10 +182,6 @@ int main(int argc, char *argv[]) {
 }
 
 int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
-
-	// Target times for key events
-
-	unsigned int diffStartMCS;
 
 	grid->fullTextureRefresh();
 
