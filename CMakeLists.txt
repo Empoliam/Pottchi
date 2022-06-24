@@ -44,7 +44,6 @@ set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 set(SFML_FIND_QUIETLY FALSE)
-set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML COMPONENTS graphics window system CONFIG REQUIRED)
 
 target_link_libraries(Pottchi PRIVATE sfml-graphics sfml-window ${SFML_DEPENDENCIES})
