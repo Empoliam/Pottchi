@@ -10,6 +10,7 @@
 #include <random>
 #include <stdlib.h>
 #include <thread>
+#include <mutex>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -51,6 +52,33 @@ int MCS_HOUR_EST = 500.0;
 bool AUTO_QUIT = false;
 
 bool HEADLESS = true;
+
+// Thread safety stuff
+std::mutex mData;
+std::mutex mNext;
+std::mutex mLowPriority;
+
+void highPriorityLock() {
+	mNext.lock();
+	mData.lock();
+	mNext.unlock();
+}
+
+void highPriorityUnlock() {
+	mData.unlock();
+}
+
+void lowPriorityLock() {
+	mLowPriority.lock();
+	mNext.lock();
+	mData.lock();
+	mNext.unlock();
+}
+
+void lowPriorityUnlock() {
+	mData.unlock();
+	mLowPriority.unlock();
+}
 
 string loadName;
 
@@ -95,7 +123,9 @@ int main(int argc, char *argv[]) {
 
 	// Grid render method
 	auto refreshGridTexture = [&] {
+		highPriorityLock();
 		grid->fullTextureRefresh();
+		highPriorityUnlock();
 		uint8_t *pixels = grid->getPixels().data();
 		gridTexture.update(pixels);
 	};
@@ -137,7 +167,6 @@ int main(int argc, char *argv[]) {
 				}
 
 				if (quit) {
-					refreshGridTexture();
 					simLoopThread.join();
 					window.close();
 				}
@@ -149,9 +178,10 @@ int main(int argc, char *argv[]) {
 
 		std::atomic<bool> done(false);
 		simLoop(grid, std::ref(done));
-		refreshGridTexture();
-
+		
 	}
+
+	refreshGridTexture();
 
 	string imgName;
 
@@ -189,8 +219,11 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 	// Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
+		lowPriorityLock();
+
 		if (done) {
-			break;
+			lowPriorityUnlock();
+			break;			
 		}
 
 		// Monte Carlo Step
@@ -403,6 +436,8 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			}
 		}
 
+		lowPriorityUnlock();
+
 		// Reporting
 		for (int r = 0; r < ReportEvent::getNumEvents(); r++) {
 
@@ -572,10 +607,6 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 		// Artificial delay if desired
 		if (SIM_DELAY != 0)
 			std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
-
-		if (done) {
-			break;
-		}
 
 		// Increase MCS count for each cell
 		SuperCell::increaseMCS();
