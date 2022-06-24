@@ -7,9 +7,7 @@
 #include "headers/ColourScheme.h"
 #include "headers/RandomNumberGenerators.h"
 
-using namespace std;
-
-static vector<SuperCell> superCells = vector<SuperCell>();
+static std::vector<SuperCell> superCells = std::vector<SuperCell>();
 
 /**
  * @brief Construct a new SuperCell object. Should only be used by "makeNewSuperCell"

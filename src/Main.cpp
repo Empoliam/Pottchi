@@ -33,8 +33,6 @@
 #include "./headers/Vector2D.h"
 #include "./headers/split.h"
 
-using namespace std;
-
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 84000;
 unsigned int SIM_DELAY = 0;
@@ -51,6 +49,7 @@ int MCS_HOUR_EST = 500.0;
 
 bool AUTO_QUIT = false;
 
+// TODO command line option
 bool HEADLESS = true;
 
 // Thread safety stuff
@@ -80,15 +79,15 @@ void lowPriorityUnlock() {
 	mLowPriority.unlock();
 }
 
-string loadName;
+std::string loadName;
 
-ostringstream logStream;
+std::ostringstream logStream;
 
-int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done);
-unsigned int readConfig(string cfg);
-shared_ptr<SquareCellGrid> initializeGrid(string imgName);
+int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done);
+unsigned int readConfig(std::string cfg);
+std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName);
 
-map<int, int> templateColourMap;
+std::map<int, int> templateColourMap;
 
 int main(int argc, char *argv[]) {
 
@@ -98,19 +97,19 @@ int main(int argc, char *argv[]) {
 		loadName = "default";
 	}
 
-	cout << "Loading: " << loadName << endl;
+	std::cout << "Loading: " << loadName << std::endl;
 
 	int configStatus = readConfig(loadName + ".cfg");
 
-	cout << "Done loading" << endl;
+	std::cout << "Done loading" << std::endl;
 
 	// TODO sort this out
 	if (configStatus) {
-		cout << "Missing configuration option: " << configStatus << endl;
+		std::cout << "Missing configuration option: " << configStatus << std::endl;
 		return 1;
 	}
 
-	shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
+	std::shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
 
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
@@ -163,7 +162,7 @@ int main(int argc, char *argv[]) {
 			if (done) {
 
 				if (static bool doOnce; !std::exchange(doOnce, true)) {
-					cout << "Simulation finished\n";
+					std::cout << "Simulation finished\n";
 				}
 
 				if (quit) {
@@ -174,7 +173,7 @@ int main(int argc, char *argv[]) {
 		}
 	} else {
 
-		cout << "Headless Launch\n";
+		std::cout << "Headless Launch\n";
 
 		std::atomic<bool> done(false);
 		simLoop(grid, std::ref(done));
@@ -183,7 +182,7 @@ int main(int argc, char *argv[]) {
 
 	refreshGridTexture();
 
-	string imgName;
+	std::string imgName;
 
 	// Rendering to PNG and outputting log
 	int attempt = 0;
@@ -195,13 +194,13 @@ int main(int argc, char *argv[]) {
 
 		++attempt;
 
-	} while (filesystem::exists(imgName));
+	} while (std::filesystem::exists(imgName));
 
 	std::ostringstream oss;
 	oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << (attempt - 1) << ".log";
-	string logName = oss.str();
+	std::string logName = oss.str();
 
-	ofstream logFile;
+	std::ofstream logFile;
 	logFile.open(logName);
 	logFile << logStream.str();
 	logFile.close();
@@ -211,7 +210,7 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
+int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 
 	// Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
@@ -260,7 +259,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 
 					if (newSuper > -1) {
 
-						cout << "Division at " << m << endl;
+						std::cout << "Division at " << m << std::endl;
 
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
 
@@ -290,7 +289,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 			if (T.mcsTimer >= T.triggerMCS) {
 
 				if (T.reportFire)
-					cout << "Event " << T.id << " fired" << endl;
+					std::cout << "Event " << T.id << " fired" << std::endl;
 
 				// Global transform
 				if (T.transformType == 0) {
@@ -577,7 +576,7 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 					int typeA = R.data[0];
 					int typeB = R.data[1];
 
-					vector<int> confirmedSupers;
+					std::vector<int> confirmedSupers;
 
 					for (int y = 1; y <= grid->interiorHeight; y++) {
 
@@ -620,10 +619,10 @@ int simLoop(shared_ptr<SquareCellGrid> grid, atomic<bool> &done) {
 	return 0;
 }
 
-unsigned int readConfig(string cfg) {
+unsigned int readConfig(std::string cfg) {
 
 	std::ifstream ifs(cfg);
-	string line;
+	std::string line;
 
 	int lineNumber = 0;
 
@@ -639,8 +638,8 @@ unsigned int readConfig(string cfg) {
 
 		} else if (V[0] == "SIM_PARAM") {
 
-			string P = V[1];
-			string value = V[2];
+			std::string P = V[1];
+			std::string value = V[2];
 
 			if (P == "MCS_HOUR_EST")
 				MCS_HOUR_EST = stoi(value);
@@ -674,11 +673,11 @@ unsigned int readConfig(string cfg) {
 				lineNumber++;
 
 				V = split(line, ',');
-				string P = V[0];
+				std::string P = V[0];
 
 				if (P == "J") {
-					vector<string> J = split(V[1], ':');
-					for (string S : J) {
+					std::vector<std::string> J = split(V[1], ':');
+					for (std::string S : J) {
 						T.J.push_back(stod(S));
 					}
 				} else if (P == "DO_DIVIDE")
@@ -717,7 +716,7 @@ unsigned int readConfig(string cfg) {
 
 				V = split(line, ',');
 
-				string c = V[0];
+				std::string c = V[0];
 
 				if (c == "R") {
 					CS.rMin = stoi(V[1]);
@@ -746,7 +745,7 @@ unsigned int readConfig(string cfg) {
 
 				V = split(line, ',');
 
-				string c = V[0];
+				std::string c = V[0];
 
 				if (c == "TYPE")
 					T.type = stoi(V[1]);
@@ -777,7 +776,7 @@ unsigned int readConfig(string cfg) {
 
 				V = split(line, ',');
 
-				string c = V[0];
+				std::string c = V[0];
 
 				if (c == "TIME_MEAN")
 					T.triggerMean = stod(V[1]) * MCS_HOUR_EST;
@@ -821,7 +820,7 @@ unsigned int readConfig(string cfg) {
 
 				V = split(line, ',');
 
-				string c = V[0];
+				std::string c = V[0];
 
 				if (c == "TIME")
 					R.triggerOn = (int)(stod(V[1]) * MCS_HOUR_EST);
@@ -830,14 +829,14 @@ unsigned int readConfig(string cfg) {
 				else if (c == "REPEAT")
 					R.doRepeat = (V[1] == "1");
 				else if (c == "DATA") {
-					vector<string> D = split(V[1], ':');
-					for (string S : D) {
+					std::vector<std::string> D = split(V[1], ':');
+					for (std::string S : D) {
 						R.data.push_back(stod(S));
 					}
 				} else if (c == "TEXT")
 					R.reportText = V[1];
 				else if (c != "END_REPORT")
-					cout << "Unknown report config on line " << lineNumber << endl;
+					std::cout << "Unknown report config on line " << lineNumber << std::endl;
 			}
 
 			ReportEvent::addNewEvent(R);
@@ -845,7 +844,7 @@ unsigned int readConfig(string cfg) {
 
 		else {
 
-			cout << "Unrecognised tag " << V[0] << " on line " << lineNumber << endl;
+			std::cout << "Unrecognised tag " << V[0] << " on line " << lineNumber << std::endl;
 		}
 	}
 
@@ -863,10 +862,10 @@ unsigned int readConfig(string cfg) {
 	return 0;
 }
 
-shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
+std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName) {
 
 	std::ifstream ifs(imgName);
-	string pgmString;
+	std::string pgmString;
 	getline(ifs, pgmString);
 	getline(ifs, pgmString);
 	int SIM_WIDTH = stoi(pgmString);
@@ -890,7 +889,7 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 		}
 	}
 
-	shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper));
+	std::shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper));
 
 	for (int y = 1; y <= grid->interiorHeight; y++) {
 		for (int x = 1; x <= grid->interiorWidth; x++) {
@@ -901,7 +900,7 @@ shared_ptr<SquareCellGrid> initializeGrid(string imgName) {
 			try {
 				int setSC = tempSuperMap[b];
 				grid->setCell(x, y, setSC);
-			} catch (out_of_range) {
+			} catch (std::out_of_range) {
 				grid->setCell(x, y, 0);
 			}
 		}

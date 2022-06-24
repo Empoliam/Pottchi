@@ -10,8 +10,6 @@
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/SuperCell.h"
 
-using namespace std;
-
 std::vector<std::vector<int>> internalGrid;
 std::vector<uint8_t> pixels;
 
@@ -44,8 +42,8 @@ SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) {
 	SuperCell::setVolume(boundarySC, (boundaryWidth * boundaryHeight) - (interiorWidth * interiorHeight));
 }
 
-vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col) {
-	vector<Vector2D<int>> neighbours;
+std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col) {
+	std::vector<Vector2D<int>> neighbours;
 
 	neighbours.reserve(8);
 
@@ -60,9 +58,9 @@ vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col) {
 	return neighbours;
 }
 
-vector<int> SquareCellGrid::getNeighboursSuperCells(int row, int col) {
+std::vector<int> SquareCellGrid::getNeighboursSuperCells(int row, int col) {
 
-	vector<int> neighbours;
+	std::vector<int> neighbours;
 
 	neighbours.reserve(8);
 
@@ -77,9 +75,9 @@ vector<int> SquareCellGrid::getNeighboursSuperCells(int row, int col) {
 	return neighbours;
 }
 
-vector<int> SquareCellGrid::getNeighboursTypes(int row, int col) {
+std::vector<int> SquareCellGrid::getNeighboursTypes(int row, int col) {
 
-	vector<int> neighbours;
+	std::vector<int> neighbours;
 
 	neighbours.reserve(8);
 
@@ -97,7 +95,7 @@ vector<int> SquareCellGrid::getNeighboursTypes(int row, int col) {
 
 std::vector<Vector2D<int>> SquareCellGrid::getNeighboursCoords(int row, int col, int type) {
 
-	vector<Vector2D<int>> neighbours;
+	std::vector<Vector2D<int>> neighbours;
 
 	neighbours.reserve(8);
 
@@ -120,8 +118,8 @@ int SquareCellGrid::divideCell(int c) {
 	int maxX = 1;
 	int maxY = 1;
 
-	vector<Vector2D<int>> cellList;
-	vector<Vector2D<int>> newList;
+	std::vector<Vector2D<int>> cellList;
+	std::vector<Vector2D<int>> newList;
 
 	for (int X = 1; X <= interiorWidth; X++) {
 		for (int Y = 1; Y <= interiorHeight; Y++) {
@@ -184,8 +182,8 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 	int maxX = 1;
 	int maxY = 1;
 
-	vector<Vector2D<int>> cellList;
-	vector<Vector2D<int>> newList;
+	std::vector<Vector2D<int>> cellList;
+	std::vector<Vector2D<int>> newList;
 
 	for (int X = 1; X <= interiorWidth; X++) {
 		for (int Y = 1; Y <= interiorHeight; Y++) {
@@ -238,8 +236,8 @@ int SquareCellGrid::divideCellRandomAxis(int c) {
 
 int SquareCellGrid::divideCellShortAxis(int c) {
 
-	vector<Vector2D<int>> cellList;
-	vector<Vector2D<int>> newList;
+	std::vector<Vector2D<int>> cellList;
+	std::vector<Vector2D<int>> newList;
 
 	// Find all subcells in cell
 	for (int X = 1; X <= interiorWidth; X++) {
@@ -275,7 +273,7 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 	double eigA = (covTrace + sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
 	double eigB = (covTrace - sqrt(pow(covTrace, 2) - 4 * covDet)) / 2;
 
-	double smallEig = min(abs(eigA), abs(eigB));
+	double smallEig = std::min(abs(eigA), abs(eigB));
 
 	Vector2D<double> eigVec(mu11, smallEig - mu20);
 	double grad = eigVec[1] / eigVec[0];
@@ -283,7 +281,7 @@ int SquareCellGrid::divideCellShortAxis(int c) {
 	int newSuperCell = -1;
 	double minRatio = SuperCell::getDivMinRatio(c);
 
-	if (max(abs(eigA), abs(eigB)) / min(abs(eigA), abs(eigB)) > minRatio) {
+	if (std::max(abs(eigA), abs(eigB)) / std::min(abs(eigA), abs(eigB)) > minRatio) {
 
 		for (unsigned int k = 0; k < cellList.size(); k++) {
 			if (cellList[k][1] > grad * (cellList[k][0] - xBar) + yBar) {
@@ -336,7 +334,7 @@ int SquareCellGrid::cleaveCell(int c) {
 
 int SquareCellGrid::moveCell(int x, int y) {
 
-	vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
+	std::vector<Vector2D<int>> neighbours = getNeighboursCoords(x, y);
 
 	int r = RandomNumberGenerators::rUnifInt(0, (int)neighbours.size() - 1);
 
@@ -437,7 +435,7 @@ void SquareCellGrid::fullTextureRefresh() {
 		for (int y = 0; y < boundaryHeight; y++) {
 
 			const unsigned int pixOffset = (boundaryWidth * 4 * y) + x * 4;
-			vector<int> colourIn = SuperCell::getColour(internalGrid[x][y]);
+			std::vector<int> colourIn = SuperCell::getColour(internalGrid[x][y]);
 
 			if (colourIn.size() == 0) {
 				colourIn = {0, 0, 0, 0};
