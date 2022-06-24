@@ -218,7 +218,9 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 	// Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
-		lowPriorityLock();
+		if(!HEADLESS) {
+			lowPriorityLock();
+		}
 
 		if (done) {
 			lowPriorityUnlock();
@@ -259,7 +261,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 
 					if (newSuper > -1) {
 
-						std::cout << "Division at " << m << std::endl;
+						//std::cout << "Division at " << m << std::endl;
 
 						SuperCell::setNextDiv(newSuper, SuperCell::generateNewDivisionTime(c));
 
@@ -435,7 +437,9 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 			}
 		}
 
-		lowPriorityUnlock();
+		if(!HEADLESS) {
+			lowPriorityUnlock();
+		}
 
 		// Reporting
 		for (int r = 0; r < ReportEvent::getNumEvents(); r++) {
@@ -604,8 +608,10 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 		}
 
 		// Artificial delay if desired
+		/*
 		if (SIM_DELAY != 0)
 			std::this_thread::sleep_for(std::chrono::milliseconds(SIM_DELAY));
+		*/
 
 		// Increase MCS count for each cell
 		SuperCell::increaseMCS();
@@ -613,6 +619,9 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 		// Update event timers
 		TransformEvent::updateTimers();
 	}
+
+	//Ensure Mutex unlock
+	lowPriorityUnlock();
 
 	done = true;
 
