@@ -11,7 +11,10 @@ Cmake
 # How to run
 
 To run the default blastocyst simulation, execute as is.
-To run a custom simulation, use the name of the config file as the command line argument. There should be a matching pgm file to use as the initial condition.
+
+To run a custom simulation, use the argument -f "filename"
+
+To run headless, use the argument -h
 
 # Documentation
 Check the wiki for documentation on how to set up a custom simulation.
