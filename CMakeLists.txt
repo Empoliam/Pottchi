@@ -38,7 +38,9 @@ file(GLOB HDR
     "src/headers/SuperCellTemplate.h"
 )
 
-add_executable (Pottchi ${SRC} ${HDR})
+file(GLOB LIB "lib/cxxopts.hpp")
+
+add_executable (Pottchi ${SRC} ${HDR} ${LIB})
 
 set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")

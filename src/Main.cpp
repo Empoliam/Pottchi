@@ -33,6 +33,8 @@
 #include "./headers/Vector2D.h"
 #include "./headers/split.h"
 
+#include "../lib/cxxopts.hpp"
+
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 84000;
 unsigned int SIM_DELAY = 0;
@@ -91,11 +93,15 @@ std::map<int, int> templateColourMap;
 
 int main(int argc, char *argv[]) {
 
-	if (argc == 2) {
-		loadName = argv[1];
-	} else {
-		loadName = "default";
-	}
+	cxxopts::Options options("Pottchi", "CPM Software");
+
+	options.add_options()
+		("h,headless", "Run in headless mode")
+		("f,file","File name to load", cxxopts::value<std::string>()->default_value("default"));
+	
+	auto result = options.parse(argc, argv);
+	loadName = result["f"].as<std::string>();
+	HEADLESS = result["h"].as<bool>();
 
 	std::cout << "Loading: " << loadName << std::endl;
 
