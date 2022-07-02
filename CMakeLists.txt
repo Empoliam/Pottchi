@@ -22,6 +22,8 @@ file(GLOB SRC
     "src/TransformEvent.cpp"
     "src/ReportEvent.cpp"
     "src/SuperCellTemplate.cpp"
+    "src/DivisionHandler.cpp"
+    "src/TransformHandler.cpp"
 )
 
 file(GLOB HDR
@@ -36,6 +38,8 @@ file(GLOB HDR
     "src/headers/ReportEvent.h"
     "src/headers/TransformEvent.h"
     "src/headers/SuperCellTemplate.h"
+    "src/headers/DivisionHandler.h"
+    "src/headers/TransformHandler.h"
 )
 
 file(GLOB LIB "lib/cxxopts.hpp")
@@ -55,7 +59,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")
 ENDIF()
 
 #Copy default settings
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/default.cfg ${CMAKE_CURRENT_BINARY_DIR}/default.cfg COPYONLY)
 
 add_custom_target(copy-cfg ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/default.cfg")
 add_custom_command(COMMAND ${CMAKE_COMMAND} -E copy 
