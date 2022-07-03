@@ -105,9 +105,7 @@ int main(int argc, char *argv[]) {
 	HEADLESS = result["h"].as<bool>();
 
 	std::cout << "Loading: " << loadName << std::endl;
-
 	int configStatus = readConfig(loadName + ".cfg");
-
 	std::cout << "Done loading" << std::endl;
 
 	// TODO sort this out
@@ -116,12 +114,34 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	std::shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
-	DivisionHandler::initializeHandler(grid);
-	TransformHandler::initializeHandler(grid);
+	// TODO File handling
 
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
+
+	std::string fileName;
+
+	// Random number to add to filename to avoid conflicts
+	int randName = RandomNumberGenerators::rUnifInt(0,1000);
+
+	// Try extra hard to avoid conflicts
+	int attempt = 0;
+	do {
+
+		std::ostringstream oss;
+		oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << randName << attempt;
+		fileName = oss.str();
+
+		++attempt;
+
+	} while (std::filesystem::exists(fileName));
+
+	std::ofstream temp(fileName);
+
+	// Initialize grid and event handlers
+	std::shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
+	DivisionHandler::initializeHandler(grid);
+	TransformHandler::initializeHandler(grid);
 
 	// Texture to render simulation to
 	sf::Texture gridTexture;
@@ -193,28 +213,17 @@ int main(int argc, char *argv[]) {
 
 	std::string imgName;
 
+	// TODO File output change
 	// Rendering to PNG and outputting log
-	int attempt = 0;
-	do {
-
-		std::ostringstream oss;
-		oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << attempt << ".png";
-		imgName = oss.str();
-
-		++attempt;
-
-	} while (std::filesystem::exists(imgName));
-
-	std::ostringstream oss;
-	oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S") << "-" << (attempt - 1) << ".log";
-	std::string logName = oss.str();
-
 	std::ofstream logFile;
-	logFile.open(logName);
+	logFile.open(fileName + ".log");
 	logFile << logStream.str();
 	logFile.close();
 
-	gridTexture.copyToImage().saveToFile(imgName);
+	gridTexture.copyToImage().saveToFile(fileName + ".png");
+
+	//Clean up temporary file
+	remove(fileName.c_str());
 
 	return 0;
 }
