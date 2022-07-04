@@ -48,9 +48,10 @@ add_executable (Pottchi ${SRC} ${HDR} ${LIB})
 
 set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 
 set(SFML_FIND_QUIETLY FALSE)
-find_package(SFML COMPONENTS graphics window system CONFIG REQUIRED)
+find_package(SFML COMPONENTS graphics window system REQUIRED)
 
 target_link_libraries(Pottchi PRIVATE sfml-graphics sfml-window ${SFML_DEPENDENCIES})
 
