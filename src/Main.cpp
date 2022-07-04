@@ -104,6 +104,10 @@ int main(int argc, char *argv[]) {
 	loadName = result["f"].as<std::string>();
 	HEADLESS = result["h"].as<bool>();
 
+	#ifdef SSH_HEADLESS
+	HEADLESS = true;
+	#endif
+
 	std::cout << "Loading: " << loadName << std::endl;
 	int configStatus = readConfig(loadName + ".cfg");
 	std::cout << "Done loading" << std::endl;
@@ -143,11 +147,13 @@ int main(int argc, char *argv[]) {
 	DivisionHandler::initializeHandler(grid);
 	TransformHandler::initializeHandler(grid);
 
+	#ifndef SSH_HEADLESS
 	// Texture to render simulation to
 	sf::Texture gridTexture;
 	gridTexture.create(grid->boundaryWidth, grid->boundaryHeight);
 	sf::Sprite sprite(gridTexture);
 	sprite.setScale(PIXEL_SCALE, PIXEL_SCALE);
+	
 
 	// Grid render method
 	auto refreshGridTexture = [&] {
@@ -158,10 +164,13 @@ int main(int argc, char *argv[]) {
 		gridTexture.update(pixels);
 	};
 
+	#endif
+
 	// RUN WITH GUI
 
 	if (!HEADLESS) {
 
+		#ifndef SSH_HEADLESS
 		// Start simulation loop
 		std::atomic<bool> done(false);
 		std::thread simLoopThread(simLoop, grid, std::ref(done));
@@ -200,6 +209,9 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
+
+		#endif
+
 	} else {
 
 		std::cout << "Headless Launch\n";
@@ -209,7 +221,7 @@ int main(int argc, char *argv[]) {
 		
 	}
 
-	refreshGridTexture();
+	
 
 	std::string imgName;
 
@@ -220,7 +232,10 @@ int main(int argc, char *argv[]) {
 	logFile << logStream.str();
 	logFile.close();
 
+	#ifndef SSH_HEADLESS
+	refreshGridTexture();
 	gridTexture.copyToImage().saveToFile(fileName + ".png");
+	#endif
 
 	//Clean up temporary file
 	remove(fileName.c_str());

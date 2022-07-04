@@ -50,6 +50,11 @@ set_property(TARGET Pottchi PROPERTY CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 
+option(SSH_HEADLESS "Remove all SFML for running remotely" OFF)
+if (SSH_HEADLESS)
+  add_definitions(-DSSH_HEADLESS)
+endif()
+
 set(SFML_FIND_QUIETLY FALSE)
 find_package(SFML COMPONENTS graphics window system REQUIRED)
 
