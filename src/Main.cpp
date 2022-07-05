@@ -51,8 +51,6 @@ std::string IMAGE_NAME = "default";
 int MCS_HOUR_EST = 500.0;
 
 bool AUTO_QUIT = false;
-
-// TODO command line option
 bool HEADLESS = true;
 
 // Thread safety stuff
@@ -82,9 +80,7 @@ void lowPriorityUnlock() {
 	mLowPriority.unlock();
 }
 
-std::string loadName;
-
-std::ostringstream logStream;
+std::string logName;
 
 int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done);
 unsigned int readConfig(std::string cfg);
@@ -101,7 +97,7 @@ int main(int argc, char *argv[]) {
 		("f,file","File name to load", cxxopts::value<std::string>()->default_value("default"));
 	
 	auto result = options.parse(argc, argv);
-	loadName = result["f"].as<std::string>();
+	std::string loadName = result["f"].as<std::string>();
 	HEADLESS = result["h"].as<bool>();
 
 	#ifdef SSH_HEADLESS
@@ -141,6 +137,7 @@ int main(int argc, char *argv[]) {
 	} while (std::filesystem::exists(fileName));
 
 	std::ofstream temp(fileName);
+	logName = fileName+".log";
 
 	// Initialize grid and event handlers
 	std::shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
@@ -221,17 +218,6 @@ int main(int argc, char *argv[]) {
 		
 	}
 
-	
-
-	std::string imgName;
-
-	// TODO File output change
-	// Rendering to PNG and outputting log
-	std::ofstream logFile;
-	logFile.open(fileName + ".log");
-	logFile << logStream.str();
-	logFile.close();
-
 	#ifndef SSH_HEADLESS
 	refreshGridTexture();
 	gridTexture.copyToImage().saveToFile(fileName + ".png");
@@ -244,6 +230,8 @@ int main(int argc, char *argv[]) {
 }
 
 int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
+
+	std::ofstream logFile(logName, std::ofstream::out);
 
 	// Number of samples to take before increasing MCS count
 	unsigned int iMCS = grid->interiorWidth * grid->interiorHeight;
@@ -293,7 +281,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 				// Unconditional log entry
 				if (R.type == 0) {
 
-					logStream << R.reportText << "," << m << "," << R.data[0] << "\n";
+					logFile << R.reportText << "," << m << "," << R.data[0] << "\n";
 
 					if (!R.doRepeat) {
 						R.fired = true;
@@ -309,7 +297,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 						cellCount += SuperCell::isCountable(s);
 					}
 
-					logStream << R.reportText << "," << m << "," << cellCount << "\n";
+					logFile << R.reportText << "," << m << "," << cellCount << "\n";
 
 					if (!R.doRepeat) {
 						R.fired = true;
@@ -332,7 +320,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 
 								if (std::find(neighbourTypes.begin(), neighbourTypes.end(), typeB) != neighbourTypes.end()) {
 
-									logStream << R.reportText << "," << m << "\n";
+									logFile << R.reportText << "," << m << "\n";
 
 									if (!R.doRepeat) {
 										R.fired = true;
@@ -356,7 +344,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 						cellCount += SuperCell::getCellType(s) == R.data[0];
 					}
 
-					logStream << R.reportText << "," << m << "," << cellCount << "\n";
+					logFile << R.reportText << "," << m << "," << cellCount << "\n";
 				}
 
 				// Check for any cell of type 0 not touching type 1
@@ -399,7 +387,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 					for (auto neighbourStatusPair : listOfTypeASupers) {
 						if (neighbourStatusPair.second == false) {
 
-							logStream << R.reportText << "," << m << "\n";
+							logFile << R.reportText << "," << m << "\n";
 
 							if (!R.doRepeat) {
 								R.fired = true;
@@ -436,7 +424,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 						}
 					}
 
-					logStream << R.reportText << "," << m << "," << confirmedSupers.size() << "\n";
+					logFile << R.reportText << "," << m << "," << confirmedSupers.size() << "\n";
 
 					if (!R.doRepeat) {
 						R.fired = true;
@@ -460,6 +448,8 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 
 	//Ensure Mutex unlock
 	lowPriorityUnlock();
+
+	logFile.close();
 
 	done = true;
 
