@@ -24,6 +24,7 @@ file(GLOB SRC
     "src/SuperCellTemplate.cpp"
     "src/DivisionHandler.cpp"
     "src/TransformHandler.cpp"
+    "src/ReportHandler.cpp"
 )
 
 file(GLOB HDR
@@ -40,6 +41,7 @@ file(GLOB HDR
     "src/headers/SuperCellTemplate.h"
     "src/headers/DivisionHandler.h"
     "src/headers/TransformHandler.h"
+    "src/headers/ReportHandler.h"
 )
 
 file(GLOB LIB "lib/cxxopts.hpp")

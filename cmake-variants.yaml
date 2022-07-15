@@ -1,0 +1,26 @@
+buildType:
+  default: debug
+  description: My option
+  choices:
+    debug:
+      short: Debug
+      long: Build with debugging information
+      buildtype: Debug
+    release:
+      short: Release
+      long: Optimize the resulting binaries
+      buildType: Release
+
+headless:
+  default: 'no'
+  choices:
+    'no':
+      short: Head
+      long: Run with GUI
+      settings:
+        SSH_HEADLESS: no
+    'yes':
+      short: Headless
+      long: Run without GUI
+      settings:
+        SSH_HEADLESS: yes
