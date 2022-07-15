@@ -38,6 +38,8 @@ void TransformHandler::runTransformLoop() {
 				for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 					if (SuperCell::getCellType(c) == T.transformFrom) {
 
+						if(SuperCell::isDead(c)) continue;
+
 						SuperCell::setCellType(c, T.transformTo);
 						if (T.updateColour)
 							SuperCell::generateNewColour(c);
@@ -59,6 +61,8 @@ void TransformHandler::runTransformLoop() {
 					for (int x = 1; x <= grid->interiorWidth; x++) {
 
 						int c = grid->getCell(x, y);
+
+						if(SuperCell::isDead(c)) continue;
 
 						if (SuperCell::getCellType(c) == T.transformFrom) {
 
@@ -91,6 +95,8 @@ void TransformHandler::runTransformLoop() {
 				for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 
 					if (SuperCell::getCellType(c) == T.transformFrom) {
+
+						if(SuperCell::isDead(c)) continue;
 
 						if (RandomNumberGenerators::rUnifProb() < pTransform) {
 							SuperCell::setCellType(c, T.transformTo);

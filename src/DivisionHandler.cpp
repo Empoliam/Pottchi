@@ -11,6 +11,8 @@ void DivisionHandler::initializeHandler(std::shared_ptr<SquareCellGrid> ptr) {
 void DivisionHandler::runDivisionLoop() {
 	for (int c = 0; c < SuperCell::getNumSupers(); c++) {
 
+		if(SuperCell::isDead(c)) continue;
+
 		if (SuperCell::doDivide(c)) {
 
 			if (SuperCell::getMCS(c) > SuperCell::getNextDiv(c) && SuperCell::getVolume(c) >= SuperCell::getDivMinVol(c)) {

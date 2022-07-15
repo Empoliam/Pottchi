@@ -39,6 +39,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 					int cellCount = 0;
 
 					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
+						if(SuperCell::isDead(s)) continue;
 						cellCount += SuperCell::isCountable(s);
 					}
 
@@ -86,6 +87,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 					int cellCount = 0;
 
 					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
+						if(SuperCell::isDead(s)) continue;
 						cellCount += SuperCell::getCellType(s) == R.data[0];
 					}
 

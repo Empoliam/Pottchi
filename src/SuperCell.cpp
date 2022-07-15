@@ -205,3 +205,10 @@ int SuperCell::getVolume(int i) {
 bool SuperCell::isCountable(int c) {
 	return CellType::getType(superCells[c].cellType).countable;
 }
+
+ bool SuperCell::isDead(int c) {
+	return superCells[c].dead;
+}
+ void SuperCell::setDead(int c, bool d) {
+	superCells[c].dead = d;
+ }

@@ -60,6 +60,9 @@ public:
 
 	static int generateNewDivisionTime(int c);
 
+	static bool isDead(int c);
+	static void setDead(int c, bool d);
+
 private:
 	int ID;
 	int generation;
@@ -71,6 +74,8 @@ private:
 
 	int lastDivMCS = 0;
 	int nextDivMCS = 9999999;
+
+	bool dead = false;
 
 	SuperCell(int type, int generation, int targetVolume);
 

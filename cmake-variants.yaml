@@ -10,7 +10,7 @@ buildType:
       short: Release
       long: Optimize the resulting binaries
       buildType: Release
-
+      
 headless:
   default: 'no'
   choices:

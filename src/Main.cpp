@@ -272,7 +272,6 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 		// Reporting
 		ReportHandler::runReportLoop(m, logFile);
 
-
 		// Artificial delay if desired
 		/*
 		if (SIM_DELAY != 0)

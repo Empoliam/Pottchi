@@ -16,7 +16,7 @@ std::vector<uint8_t> pixels;
 SquareCellGrid::SquareCellGrid(int w, int h, int boundarySC, int spaceSC) {
 
 	internalGrid = std::vector<std::vector<int>>(w + 2, std::vector<int>(h + 2, spaceSC));
-	pixels = std::vector<uint8_t>((w+2)*(h+2)*4);
+	pixels = std::vector<uint8_t>((w + 2) * (h + 2) * 4);
 
 	// Temporary initialization
 	BOLTZ_TEMP = 0.0;
@@ -342,15 +342,20 @@ int SquareCellGrid::moveCell(int x, int y) {
 	int targetY = neighbours[r][1];
 
 	int origin = internalGrid[x][y];
-	int swap = internalGrid[targetX][targetY];
+	int target = internalGrid[targetX][targetY];
 
-	if (!SuperCell::isStatic(swap) &&
+	if (!SuperCell::isStatic(target) &&
 		!SuperCell::isStatic(origin) &&
-		swap != internalGrid[x][y]) {
+		target != internalGrid[x][y] &&
+		!SuperCell::isDead(origin)) {
 
-		double deltaH =
-			getAdhesionDelta(x, y, targetX, targetY) * OMEGA + getVolumeDelta(x, y, targetX, targetY) * LAMBDA;
+		double deltaH = 0;
 
+		if (SuperCell::isDead(target)) {
+			deltaH = 0;
+		} else {
+			deltaH = getAdhesionDelta(x, y, targetX, targetY) * OMEGA + getVolumeDelta(x, y, targetX, targetY) * LAMBDA;
+		}
 		if (deltaH <= 0 || (RandomNumberGenerators::rUnifProb() < exp(-deltaH / BOLTZ_TEMP))) {
 			setCell(targetX, targetY, internalGrid[x][y]);
 
