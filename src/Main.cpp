@@ -34,6 +34,8 @@
 #include "./headers/DivisionHandler.h"
 #include "./headers/TransformHandler.h"
 #include "./headers/ReportHandler.h"
+#include "./headers/CellDeathHandler.h"
+#include "./headers/CellDeathEvent.h"
 
 #include "../lib/cxxopts.hpp"
 
@@ -115,8 +117,6 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	// TODO File handling
-
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
 
@@ -145,6 +145,7 @@ int main(int argc, char *argv[]) {
 	DivisionHandler::initializeHandler(grid);
 	TransformHandler::initializeHandler(grid);
 	ReportHandler::initializeHandler(grid);
+	CellDeathHandler::initializeHandler(grid);
 
 	#ifndef SSH_HEADLESS
 	// Texture to render simulation to
@@ -258,6 +259,8 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 
 			bool success = grid->moveCell(x, y);
 		}
+
+		CellDeathHandler::runDeathLoop(m);
 
 		// Cell division
 		DivisionHandler::runDivisionLoop();
@@ -505,9 +508,9 @@ unsigned int readConfig(std::string cfg) {
 				else if (c == "REPEAT")
 					R.doRepeat = (V[1] == "1");
 				else if (c == "DATA") {
-					std::vector<std::string> D = split(V[1], ':');
-					for (std::string S : D) {
-						R.data.push_back(stod(S));
+					std::vector<std::string> dat = split(V[1], ':');
+					for (std::string S : dat) {
+						R.data.push_back(stoi(S));
 					}
 				} else if (c == "TEXT")
 					R.reportText = V[1];
@@ -517,6 +520,40 @@ unsigned int readConfig(std::string cfg) {
 
 			ReportEvent::addNewEvent(R);
 		}
+
+		else if (V[0] == "DEATH_DEFINE") {
+
+			CellDeathEvent D(stoi(V[1]));
+
+			while (line != "END_DEATH") {
+
+				std::getline(ifs, line);
+				lineNumber++;
+
+				V = split(line, ',');
+
+				std::string c = V[0];
+
+				if (c == "TIME")
+					D.fireOn = (int)(stod(V[1]) * MCS_HOUR_EST);
+				else if (c == "TYPE")
+					D.type = stoi(V[1]);
+				else if (c == "TARGET_TYPE")
+					D.targetType = stoi(V[1]);
+				else if (c == "DATA") {
+					std::vector<std::string> dat = split(V[1], ':');
+					for (std::string S : dat) {
+						D.data.push_back(stod(S));
+					}
+				}
+				else if (c != "END_DEATH")
+					std::cout << "Unknown report config on line " << lineNumber << std::endl;
+
+			}
+
+			CellDeathEvent::AddNewEvent(D);
+		}
+
 
 		else {
 

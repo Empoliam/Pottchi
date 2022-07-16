@@ -5,7 +5,9 @@ buildType:
     debug:
       short: Debug
       long: Build with debugging information
-      buildtype: Debug
+      buildType: Debug
+      settings:
+        CMAKE_BUILD_TYPE: Debug
     release:
       short: Release
       long: Optimize the resulting binaries

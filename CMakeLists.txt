@@ -25,6 +25,8 @@ file(GLOB SRC
     "src/DivisionHandler.cpp"
     "src/TransformHandler.cpp"
     "src/ReportHandler.cpp"
+    "src/CellDeathHandler.cpp"
+    "src/CellDeathEvent.cpp"
 )
 
 file(GLOB HDR
@@ -42,6 +44,8 @@ file(GLOB HDR
     "src/headers/DivisionHandler.h"
     "src/headers/TransformHandler.h"
     "src/headers/ReportHandler.h"
+    "src/headers/CellDeathHandler.h"
+    "src/headers/CellDeathEvent.h"
 )
 
 file(GLOB LIB "lib/cxxopts.hpp")
