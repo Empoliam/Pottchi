@@ -61,7 +61,7 @@ void CellDeathHandler::runDeathLoop(int m) {
 							}
 						}
 
-						double saturation = (double)(std::max((double)targetNeighbours.size(),D.data[1]))/D.data[1];
+						double saturation = (double)(std::min((double)targetNeighbours.size(),D.data[1]))/D.data[1];
 						double prob = saturation * D.data[2];
 
 						if(RandomNumberGenerators::rUnifProb() < prob) SuperCell::setDead(c, true);
