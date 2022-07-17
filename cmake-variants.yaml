@@ -26,3 +26,17 @@ headless:
       long: Run without GUI
       settings:
         SSH_HEADLESS: yes
+
+tinypng:
+  default: 'no'
+  choices:
+    'no':
+      short: SFML Image
+      long: Image out with SFML
+      settings:
+        TINY_OUT: no
+    'yes':
+      short: TinyPng Image
+      long: Image out with SFML
+      settings:
+        TINY_OUT: yes

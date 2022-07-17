@@ -103,7 +103,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 					std::map<int, bool> listOfTypeASupers;
 
 					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
-						if (SuperCell::getCellType(s) == typeA) {
+						if (SuperCell::getCellType(s) == typeA && !SuperCell::isDead(s)) {
 							listOfTypeASupers[s] = false;
 						}
 					}

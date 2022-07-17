@@ -37,7 +37,8 @@
 #include "./headers/CellDeathHandler.h"
 #include "./headers/CellDeathEvent.h"
 
-#include "../lib/cxxopts.hpp"
+#include "./lib/cxxopts.hpp"
+#include "./lib/TinyPngOut.hpp"
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 84000;
@@ -221,9 +222,15 @@ int main(int argc, char *argv[]) {
 		
 	}
 
+	#ifndef TINY_OUT
 	#ifndef SSH_HEADLESS
 	refreshGridTexture();
 	gridTexture.copyToImage().saveToFile(fileName + ".png");
+	#endif
+	#endif
+
+	#ifdef TINY_OUT
+		std::cout << "Tiny PNG output";
 	#endif
 
 	//Clean up temporary file

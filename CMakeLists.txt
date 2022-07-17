@@ -48,7 +48,7 @@ file(GLOB HDR
     "src/headers/CellDeathEvent.h"
 )
 
-file(GLOB LIB "lib/cxxopts.hpp")
+file(GLOB LIB "src/lib/cxxopts.hpp" "src/lib/TinyPngOut.cpp" "src/lib/TinyPngOut.hpp")
 
 add_executable (Pottchi ${SRC} ${HDR} ${LIB})
 
@@ -59,6 +59,11 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
 option(SSH_HEADLESS "Remove all SFML for running remotely" OFF)
 if (SSH_HEADLESS)
   add_definitions(-DSSH_HEADLESS)
+endif()
+
+option(TINY_OUT "Tiny PNG for output" OFF)
+if (TINY_OUT)
+  add_definitions(-DTINY_OUT)
 endif()
 
 set(SFML_FIND_QUIETLY FALSE)
