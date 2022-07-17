@@ -13,7 +13,7 @@ class CellDeathEvent {
     static CellDeathEvent& getEvent(int e); 
 
     int id;
-    int fireOn = 0x7FFFFFFF;
+    int fireOn = 0;
     int type = 0;
     int targetType = 0;
 
