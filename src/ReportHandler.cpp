@@ -4,6 +4,7 @@
 #include "headers/ReportEvent.h"
 
 #include <fstream>
+#include <algorithm>
 
 static std::shared_ptr<SquareCellGrid> grid;
 
