@@ -66,10 +66,12 @@ if (TINY_OUT)
   add_definitions(-DTINY_OUT)
 endif()
 
-set(SFML_FIND_QUIETLY FALSE)
-find_package(SFML COMPONENTS graphics window system REQUIRED)
+IF(NOT SSH_HEADLESS)
+  set(SFML_FIND_QUIETLY FALSE)
+  find_package(SFML COMPONENTS graphics window system REQUIRED)
 
-target_link_libraries(Pottchi PRIVATE sfml-graphics sfml-window ${SFML_DEPENDENCIES})
+  target_link_libraries(Pottchi PRIVATE sfml-graphics sfml-window ${SFML_DEPENDENCIES})
+ENDIF()
 
 IF(NOT WIN32)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3")

@@ -15,10 +15,12 @@
 #include <cmath>
 #include <cstdint>
 
+#ifndef SSH_HEADLESS
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window.hpp>
+#endif
 
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
@@ -84,11 +86,14 @@ void lowPriorityUnlock() {
 	mLowPriority.unlock();
 }
 
+
+
 std::string logName;
 
 int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done);
 unsigned int readConfig(std::string cfg);
 std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName);
+std::vector<uint8_t> stripAlpha(std::vector<uint8_t> pixelsIn);
 
 std::map<int, int> templateColourMap;
 
@@ -230,7 +235,10 @@ int main(int argc, char *argv[]) {
 	#endif
 
 	#ifdef TINY_OUT
-		std::cout << "Tiny PNG output";
+		grid->fullTextureRefresh();
+		std::ofstream tinyout(fileName + ".png", std::ios::binary);;
+		TinyPngOut pngout(static_cast<uint32_t>(grid->boundaryWidth), static_cast<uint32_t>(grid->boundaryHeight), tinyout);
+		pngout.write(stripAlpha(grid->getPixels()).data(), grid->boundaryWidth*grid->boundaryHeight);
 	#endif
 
 	//Clean up temporary file
@@ -640,4 +648,21 @@ std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName) {
 	grid->LAMBDA = LAMBDA;
 
 	return grid;
+}
+
+std::vector<uint8_t> stripAlpha(std::vector<uint8_t> pixelsIn) {
+	
+	std::vector<uint8_t> pixelsOut;
+	pixelsOut.reserve((int) ((pixelsIn.size()*3)/4));
+
+	for(int i = 0; i < pixelsIn.size(); i++) {
+		
+		if((i+1)%4 != 0) {
+			pixelsOut.push_back(pixelsIn[i]);
+		}
+
+	}
+
+	return pixelsOut;
+
 }
