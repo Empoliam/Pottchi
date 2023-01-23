@@ -1,6 +1,7 @@
 #include "headers/CellDeathEvent.h"
 
 #include <iostream>
+#include <algorithm>
 
 static std::vector<CellDeathEvent> deathEvents = std::vector<CellDeathEvent>();
 
