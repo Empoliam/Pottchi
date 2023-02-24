@@ -178,6 +178,28 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 						R.fired = true;
 					}
 				}
+
+				// Count dead cells of type 0. If -1, count all dead cells.
+				if (R.type == 6) {
+
+					int type = R.data[0];
+
+					int cellCount = 0;
+
+					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
+						if(!SuperCell::isDead(s)) continue;
+
+						if(type == -1) {
+							cellCount++;
+							continue;
+						}
+
+						cellCount += SuperCell::getCellType(s) == R.data[0];
+					}
+
+					logFile << R.reportText << "," << m << "," << cellCount << "\n";
+
+				}
 			}
 		}
 
