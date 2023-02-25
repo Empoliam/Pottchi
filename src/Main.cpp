@@ -6,10 +6,10 @@
 #include <iomanip>
 #include <iostream>
 #include <math.h>
+#include <mutex>
 #include <random>
 #include <stdlib.h>
 #include <thread>
-#include <mutex>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -22,30 +22,31 @@
 #include <SFML/Window.hpp>
 #endif
 
+#include "./headers/CellDeathEvent.h"
+#include "./headers/CellDeathHandler.h"
 #include "./headers/CellType.h"
 #include "./headers/ColourScheme.h"
+#include "./headers/DivisionHandler.h"
 #include "./headers/MathConstants.h"
 #include "./headers/RandomNumberGenerators.h"
 #include "./headers/ReportEvent.h"
+#include "./headers/ReportHandler.h"
 #include "./headers/SquareCellGrid.h"
 #include "./headers/SuperCell.h"
 #include "./headers/SuperCellTemplate.h"
 #include "./headers/TransformEvent.h"
+#include "./headers/TransformHandler.h"
 #include "./headers/Vector2D.h"
 #include "./headers/split.h"
-#include "./headers/DivisionHandler.h"
-#include "./headers/TransformHandler.h"
-#include "./headers/ReportHandler.h"
-#include "./headers/CellDeathHandler.h"
-#include "./headers/CellDeathEvent.h"
 
-#include "./lib/cxxopts.hpp"
 #include "./lib/TinyPngOut.hpp"
+#include "./lib/cxxopts.hpp"
 
 unsigned int PIXEL_SCALE = 4;
 unsigned int MAX_MCS = 84000;
 unsigned int SIM_DELAY = 0;
 unsigned int RENDER_FPS = 60;
+unsigned int IMAGE_LOAD_TYPE = 0;
 
 double BOLTZ_TEMP = 10.0;
 double OMEGA = 1.0;
@@ -86,8 +87,6 @@ void lowPriorityUnlock() {
 	mLowPriority.unlock();
 }
 
-
-
 std::string logName;
 
 int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done);
@@ -101,17 +100,15 @@ int main(int argc, char *argv[]) {
 
 	cxxopts::Options options("Pottchi", "CPM Software");
 
-	options.add_options()
-		("h,headless", "Run in headless mode")
-		("f,file","File name to load", cxxopts::value<std::string>()->default_value("default"));
-	
+	options.add_options()("h,headless", "Run in headless mode")("f,file", "File name to load", cxxopts::value<std::string>()->default_value("default"));
+
 	auto result = options.parse(argc, argv);
 	std::string loadName = result["f"].as<std::string>();
 	HEADLESS = result["h"].as<bool>();
 
-	#ifdef SSH_HEADLESS
+#ifdef SSH_HEADLESS
 	HEADLESS = true;
-	#endif
+#endif
 
 	std::cout << "Loading: " << loadName << std::endl;
 	int configStatus = readConfig(loadName + ".cfg");
@@ -129,7 +126,7 @@ int main(int argc, char *argv[]) {
 	std::string fileName;
 
 	// Random number to add to filename to avoid conflicts
-	int randName = RandomNumberGenerators::rUnifInt(0,1000);
+	int randName = RandomNumberGenerators::rUnifInt(0, 1000);
 
 	// Try extra hard to avoid conflicts
 	int attempt = 0;
@@ -144,7 +141,7 @@ int main(int argc, char *argv[]) {
 	} while (std::filesystem::exists(fileName));
 
 	std::ofstream temp(fileName);
-	logName = fileName+".log";
+	logName = fileName + ".log";
 
 	// Initialize grid and event handlers
 	std::shared_ptr<SquareCellGrid> grid = initializeGrid(IMAGE_NAME + ".pgm");
@@ -153,13 +150,12 @@ int main(int argc, char *argv[]) {
 	ReportHandler::initializeHandler(grid);
 	CellDeathHandler::initializeHandler(grid);
 
-	#ifndef SSH_HEADLESS
+#ifndef SSH_HEADLESS
 	// Texture to render simulation to
 	sf::Texture gridTexture;
 	gridTexture.create(grid->boundaryWidth, grid->boundaryHeight);
 	sf::Sprite sprite(gridTexture);
 	sprite.setScale(PIXEL_SCALE, PIXEL_SCALE);
-	
 
 	// Grid render method
 	auto refreshGridTexture = [&] {
@@ -170,13 +166,13 @@ int main(int argc, char *argv[]) {
 		gridTexture.update(pixels);
 	};
 
-	#endif
+#endif
 
 	// RUN WITH GUI
 
 	if (!HEADLESS) {
 
-		#ifndef SSH_HEADLESS
+#ifndef SSH_HEADLESS
 		// Start simulation loop
 		std::atomic<bool> done(false);
 		std::thread simLoopThread(simLoop, grid, std::ref(done));
@@ -216,7 +212,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		#endif
+#endif
 
 	} else {
 
@@ -224,24 +220,24 @@ int main(int argc, char *argv[]) {
 
 		std::atomic<bool> done(false);
 		simLoop(grid, std::ref(done));
-		
 	}
 
-	#ifndef TINY_OUT
-	#ifndef SSH_HEADLESS
+#ifndef TINY_OUT
+#ifndef SSH_HEADLESS
 	refreshGridTexture();
 	gridTexture.copyToImage().saveToFile(fileName + ".png");
-	#endif
-	#endif
+#endif
+#endif
 
-	#ifdef TINY_OUT
-		grid->fullTextureRefresh();
-		std::ofstream tinyout(fileName + ".png", std::ios::binary);;
-		TinyPngOut pngout(static_cast<uint32_t>(grid->boundaryWidth), static_cast<uint32_t>(grid->boundaryHeight), tinyout);
-		pngout.write(stripAlpha(grid->getPixels()).data(), grid->boundaryWidth*grid->boundaryHeight);
-	#endif
+#ifdef TINY_OUT
+	grid->fullTextureRefresh();
+	std::ofstream tinyout(fileName + ".png", std::ios::binary);
+	;
+	TinyPngOut pngout(static_cast<uint32_t>(grid->boundaryWidth), static_cast<uint32_t>(grid->boundaryHeight), tinyout);
+	pngout.write(stripAlpha(grid->getPixels()).data(), grid->boundaryWidth * grid->boundaryHeight);
+#endif
 
-	//Clean up temporary file
+	// Clean up temporary file
 	remove(fileName.c_str());
 
 	return 0;
@@ -257,13 +253,13 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 	// Simulation loop
 	for (unsigned int m = 0; m < MAX_MCS; m++) {
 
-		if(!HEADLESS) {
+		if (!HEADLESS) {
 			lowPriorityLock();
 		}
 
 		if (done) {
 			lowPriorityUnlock();
-			break;			
+			break;
 		}
 
 		// Monte Carlo Step
@@ -283,7 +279,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 		// Transform Events
 		TransformHandler::runTransformLoop();
 
-		if(!HEADLESS) {
+		if (!HEADLESS) {
 			lowPriorityUnlock();
 		}
 
@@ -303,7 +299,7 @@ int simLoop(std::shared_ptr<SquareCellGrid> grid, std::atomic<bool> &done) {
 		TransformEvent::updateTimers();
 	}
 
-	//Ensure Mutex unlock
+	// Ensure Mutex unlock
 	lowPriorityUnlock();
 
 	logFile.close();
@@ -355,6 +351,8 @@ unsigned int readConfig(std::string cfg) {
 				AUTO_QUIT = (value == "1");
 			else if (P == "IMAGE")
 				IMAGE_NAME = value;
+			else if (P == "IMAGE_TYPE")
+				IMAGE_LOAD_TYPE = stoi(value);
 
 		}
 
@@ -560,15 +558,12 @@ unsigned int readConfig(std::string cfg) {
 					for (std::string S : dat) {
 						D.data.push_back(stod(S));
 					}
-				}
-				else if (c != "END_DEATH")
+				} else if (c != "END_DEATH")
 					std::cout << "Unknown report config on line " << lineNumber << std::endl;
-
 			}
 
 			CellDeathEvent::AddNewEvent(D);
 		}
-
 
 		else {
 
@@ -594,44 +589,90 @@ std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName) {
 
 	std::ifstream ifs(imgName);
 	std::string pgmString;
+	getline(ifs, pgmString); // P2
+	getline(ifs, pgmString); // Comment
 	getline(ifs, pgmString);
-	getline(ifs, pgmString);
-	int SIM_WIDTH = stoi(pgmString);
-	getline(ifs, pgmString);
-	int SIM_HEIGHT = stoi(pgmString);
+	auto widthHeight = split(pgmString, ' ');
+	int SIM_WIDTH = stoi(widthHeight[0]);
+	int SIM_HEIGHT = stoi(widthHeight[1]);
 	getline(ifs, pgmString);
 
 	int boundarySuper = 0;
 	int spaceSuper = 1;
 
-	std::map<int, int> tempSuperMap;
+	std::shared_ptr<SquareCellGrid> grid(nullptr);
 
-	for (const auto &[cVal, superTemplate] : templateColourMap) {
-		tempSuperMap[cVal] = SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(superTemplate));
+	if (IMAGE_LOAD_TYPE == 0) {
 
-		int sType = SuperCellTemplate::getTemplate(superTemplate).specialType;
-		if (sType == 1) {
-			boundarySuper = tempSuperMap[cVal];
-		} else if (sType == 2) {
-			spaceSuper = tempSuperMap[cVal];
-		}
-	}
+		std::map<int, int> tempSuperMap;
 
-	std::shared_ptr<SquareCellGrid> grid(new SquareCellGrid(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper));
+		for (const auto &[cVal, superTemplate] : templateColourMap) {
+			tempSuperMap[cVal] = SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(superTemplate));
 
-	for (int y = 1; y <= grid->interiorHeight; y++) {
-		for (int x = 1; x <= grid->interiorWidth; x++) {
-
-			uint8_t b = 0;
-			ifs >> b;
-
-			try {
-				int setSC = tempSuperMap[b];
-				grid->setCell(x, y, setSC);
-			} catch (std::out_of_range) {
-				grid->setCell(x, y, 0);
+			int sType = SuperCellTemplate::getTemplate(superTemplate).specialType;
+			if (sType == 1) {
+				boundarySuper = tempSuperMap[cVal];
+			} else if (sType == 2) {
+				spaceSuper = tempSuperMap[cVal];
 			}
 		}
+
+		grid = std::make_shared<SquareCellGrid>(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper);
+
+		for (int y = 1; y <= grid->interiorHeight; y++) {
+			for (int x = 1; x <= grid->interiorWidth; x++) {
+
+				uint8_t b = 0;
+				ifs >> b;
+
+				try {
+					int setSC = tempSuperMap[b];
+					grid->setCell(x, y, setSC);
+				} catch (std::out_of_range) {
+					grid->setCell(x, y, 0);
+				}
+			}
+		}
+
+	} else {
+
+		int boundaryColour = 255;
+		int spaceColour = 0;
+
+		for (const auto &[cVal, superTemplate] : templateColourMap) {
+			
+			int sType = SuperCellTemplate::getTemplate(superTemplate).specialType;
+
+			if (sType == 1) {
+				boundaryColour = cVal;
+				boundarySuper = SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(superTemplate));
+			} else if (sType == 2) {
+				spaceColour = cVal;
+				spaceSuper = SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(superTemplate));
+			}
+
+		}
+
+		grid = std::make_shared<SquareCellGrid>(SIM_WIDTH, SIM_HEIGHT, boundarySuper, spaceSuper);
+
+		for (int y = 1; y <= grid->interiorHeight; y++) {
+			for (int x = 1; x <= grid->interiorWidth; x++) {
+
+				uint8_t b = 0;
+				ifs >> b;
+
+				if(b == boundaryColour) {
+					grid->setCell(x, y, boundarySuper);
+				} else if (b == spaceColour) {
+					grid->setCell(x, y, spaceSuper);
+				} else {
+					grid->setCell(x, y, SuperCell::makeNewSuperCell(SuperCellTemplate::getTemplate(templateColourMap[b])));
+				}
+				
+			}
+
+		}
+
 	}
 
 	for (int c = 0; c < SuperCell::getNumSupers(); c++) {
@@ -651,18 +692,16 @@ std::shared_ptr<SquareCellGrid> initializeGrid(std::string imgName) {
 }
 
 std::vector<uint8_t> stripAlpha(std::vector<uint8_t> pixelsIn) {
-	
-	std::vector<uint8_t> pixelsOut;
-	pixelsOut.reserve((int) ((pixelsIn.size()*3)/4));
 
-	for(int i = 0; i < pixelsIn.size(); i++) {
-		
-		if((i+1)%4 != 0) {
+	std::vector<uint8_t> pixelsOut;
+	pixelsOut.reserve((int)((pixelsIn.size() * 3) / 4));
+
+	for (int i = 0; i < pixelsIn.size(); i++) {
+
+		if ((i + 1) % 4 != 0) {
 			pixelsOut.push_back(pixelsIn[i]);
 		}
-
 	}
 
 	return pixelsOut;
-
 }
