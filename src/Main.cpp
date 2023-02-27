@@ -523,7 +523,7 @@ unsigned int readConfig(std::string cfg) {
 				else if (c == "DATA") {
 					std::vector<std::string> dat = split(V[1], ':');
 					for (std::string S : dat) {
-						R.data.push_back(stoi(S));
+						R.data.push_back(S);
 					}
 				} else if (c == "TEXT")
 					R.reportText = V[1];

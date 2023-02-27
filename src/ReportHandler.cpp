@@ -6,6 +6,7 @@
 #include <fstream>
 #include <algorithm>
 
+
 static std::shared_ptr<SquareCellGrid> grid;
 
 void ReportHandler::initializeHandler(std::shared_ptr<SquareCellGrid> ptr) {
@@ -54,8 +55,8 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 				// Check if a cell of type 0 is touching type 1
 				if (R.type == 2) {
 
-					int typeA = R.data[0];
-					int typeB = R.data[1];
+					int typeA = stoi(R.data[0]);
+					int typeB = stoi(R.data[1]);
 
 					for (int y = 1; y <= grid->interiorHeight; y++) {
 
@@ -89,7 +90,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 
 					for (int s = 0; s < SuperCell::getNumSupers(); s++) {
 						if(SuperCell::isDead(s)) continue;
-						cellCount += SuperCell::getCellType(s) == R.data[0];
+						cellCount += SuperCell::getCellType(s) == stoi(R.data[0]);
 					}
 
 					logFile << R.reportText << "," << m << "," << cellCount << "\n";
@@ -98,8 +99,8 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 				// Check for any cell of type 0 not touching type 1
 				if (R.type == 4) {
 
-					int typeA = R.data[0];
-					int typeB = R.data[1];
+					int typeA = stoi(R.data[0]);
+					int typeB = stoi(R.data[1]);
 
 					std::map<int, bool> listOfTypeASupers;
 
@@ -151,8 +152,8 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 				// Count cells of type 0 is touching type 1
 				if (R.type == 5) {
 
-					int typeA = R.data[0];
-					int typeB = R.data[1];
+					int typeA = stoi(R.data[0]);
+					int typeB = stoi(R.data[1]);
 
 					std::vector<int> confirmedSupers;
 
@@ -182,7 +183,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 				// Count dead cells of type 0. If -1, count all dead cells.
 				if (R.type == 6) {
 
-					int type = R.data[0];
+					int type = stoi(R.data[0]);
 
 					int cellCount = 0;
 
@@ -194,7 +195,7 @@ void ReportHandler::runReportLoop(int m, std::ofstream& logFile) {
 							continue;
 						}
 
-						cellCount += SuperCell::getCellType(s) == R.data[0];
+						cellCount += SuperCell::getCellType(s) == type;
 					}
 
 					logFile << R.reportText << "," << m << "," << cellCount << "\n";

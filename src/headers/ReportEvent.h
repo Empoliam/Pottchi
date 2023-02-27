@@ -22,6 +22,6 @@ public:
 
     bool doRepeat = true;
     bool fired = false;
-    std::vector<int> data;
+    std::vector<std::string> data;
 
 };
